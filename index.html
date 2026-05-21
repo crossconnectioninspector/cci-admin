@@ -1407,7 +1407,165 @@ async function refreshFullCache() {
 
 function sleep(ms) { return new Promise(r=>setTimeout(r,ms)); }
 
-// ── INSPECTIONS ───────────────────────────────────────────────────────────────
+// ── CITY RISK MAP — UI FUNCTIONS ─────────────────────────────────────────────
+
+function rebuildRiskMarkersNew() {
+  if(!riskMarkers) return;
+  riskMarkers.clearLayers();
+  const data = filteredRiskLocations();
+  el('risk-count-label').textContent = data.length + ' locations';
+  data.forEach(loc => {
+    const color = ratingColorRisk(loc.rating);
+    const icon = L.divIcon({
+      html: `<div style="background:${color};color:#000;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;font-family:'Barlow Condensed',sans-serif;border:2px solid rgba(255,255,255,.3);box-shadow:0 0 10px ${color}88">${loc.rating}</div>`,
+      iconSize: [28, 28], className: ''
+    });
+    const m = L.marker([loc.lat, loc.lng], {icon});
+    m.on('click', () => showRiskDetail(loc));
+    riskMarkers.addLayer(m);
+  });
+  updateRiskStats();
+  if(riskShowList) buildRiskListView();
+}
+
+function showRiskDetail(loc) {
+  const color = ratingColorRisk(loc.rating);
+  const emoji = loc.rating >= 9 ? '🛑' : loc.rating >= 7 ? '⚠️' : loc.rating >= 5 ? '🔶' : '✅';
+  el('risk-detail-body').innerHTML = `
+    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">
+      <div style="font-size:20px">${emoji}</div>
+      <div style="flex:1">
+        <div style="font-family:var(--cond);font-size:17px;font-weight:700;margin-bottom:2px">${loc.name}</div>
+        <div style="font-size:12px;color:var(--muted)">${loc.label}</div>
+        ${loc.address ? `<div style="font-size:11px;color:var(--muted)">${loc.address}</div>` : ''}
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-family:var(--cond);font-size:28px;font-weight:900;color:${color};line-height:1">${loc.rating}/10</div>
+        <div style="font-size:10px;font-weight:700;color:${color}">${riskHazardLabel(loc.rating)}</div>
+      </div>
+      <button onclick="el('risk-detail-card').style.display='none'" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0 0 0 6px;flex-shrink:0">✕</button>
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:10px;display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px">
+      <div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:2px">HAZARD LEVEL</div>
+        <div style="font-size:12px;font-weight:600;color:${loc.cat==='Health'?'#e05252':'#f0c040'}">${loc.cat==='Health'?'⚠ Health Hazard':'Non-Health Hazard'}</div>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:2px">REQUIRED DEVICE</div>
+        <div style="font-size:12px;font-weight:600;color:var(--accent)">${loc.device}</div>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:2px">TCEQ CODE</div>
+        <div style="font-size:12px;font-weight:600">${loc.code||'290.47(f)'}</div>
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:10px">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">WHY THIS IS A RISK</div>
+      <div style="font-size:12px;line-height:1.6;color:var(--text)">${loc.reason}</div>
+    </div>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--accent);opacity:.6;margin-top:8px">⚠ Estimated risk based on TCEQ 290.47(f) Appendix F — not yet inspected</div>
+  `;
+  el('risk-detail-card').style.display = 'block';
+  if(riskMap) riskMap.setView([loc.lat, loc.lng], 16);
+}
+
+function buildRiskListView() {
+  const data = filteredRiskLocations().sort((a,b) => b.rating - a.rating);
+  el('risk-list-body').innerHTML = data.map(loc => {
+    const color = ratingColorRisk(loc.rating);
+    const safeName = loc.name.replace(/'/g, "\'");
+    return `<div onclick="showRiskDetail(riskLocations.find(l=>l.name==='${safeName}'))" style="background:var(--surface);border:1px solid ${color}55;border-left:3px solid ${color};border-radius:10px;padding:12px 14px;margin-bottom:10px;cursor:pointer">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${loc.name}</div>
+          <div style="font-size:11px;color:var(--muted)">${loc.label}</div>
+          ${loc.address ? `<div style="font-size:10px;color:var(--muted)">${loc.address}</div>` : ''}
+        </div>
+        <div style="text-align:right;flex-shrink:0;margin-left:8px">
+          <div style="font-family:var(--cond);font-size:24px;font-weight:900;color:${color};line-height:1">${loc.rating}</div>
+          <div style="font-size:9px;color:${color};font-weight:700">${riskHazardLabel(loc.rating)}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <span style="font-family:var(--mono);font-size:9px;color:${loc.cat==='Health'?'#e05252':'#f0c040'}">${loc.cat==='Health'?'⚠ HEALTH':'NON-HEALTH'}</span>
+        <span style="font-family:var(--mono);font-size:9px;color:var(--accent)">Required: ${loc.device}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buildCatMenu() {
+  const cats = [...new Set(riskLocations.map(l => l.label))].sort();
+  el('cat-menu-list').innerHTML = [null, ...cats].map(cat => {
+    const isSelected = riskSelectedCat === cat;
+    const count = cat ? riskLocations.filter(l => l.label === cat).length : riskLocations.length;
+    const catData = cat ? TCEQ_CATEGORIES.find(c => c.label === cat) : null;
+    const isHealth = catData?.cat === 'Health';
+    const safeCat = cat ? `'${cat.replace(/'/g, "\'")}'` : 'null';
+    return `<div onclick="selectRiskCat(${safeCat})" style="display:flex;align-items:center;gap:12px;padding:12px 20px;cursor:pointer;background:${isSelected?'rgba(249,166,30,.08)':'transparent'};border-bottom:1px solid var(--border)">
+      <div style="width:28px;height:28px;border-radius:7px;background:${isSelected?(isHealth?'#e05252':'#f0c040'):(isHealth?'rgba(224,82,82,.12)':'rgba(240,192,64,.12)')};display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">${cat===null?'🗺️':isHealth?'⚠️':'✅'}</div>
+      <div style="flex:1;font-size:13px;font-weight:${isSelected?'600':'400'}">${cat||'All Categories'}</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${count}</div>
+      ${isSelected?'<div style="color:var(--accent);font-weight:700">✓</div>':''}
+    </div>`;
+  }).join('');
+}
+
+function selectRiskCat(cat) {
+  riskSelectedCat = cat;
+  el('cat-label').textContent = cat || 'All Categories';
+  el('cat-btn').style.color = cat ? 'var(--text)' : 'var(--muted)';
+  el('cat-clear-btn').style.display = cat ? 'block' : 'none';
+  toggleCatMenu();
+  rebuildRiskMarkersNew();
+}
+
+function clearRiskCat() { selectRiskCat(null); }
+
+function toggleCatMenu() {
+  const m = el('cat-menu');
+  const isOpen = m.style.display !== 'none';
+  m.style.display = isOpen ? 'none' : 'block';
+  if(!isOpen) buildCatMenu();
+}
+
+function setRiskRating(level) {
+  riskFilterRating_ = level;
+  ['all','severe','high','moderate','low'].forEach((id, i) => {
+    const pill = el('rft-' + id);
+    if(pill) pill.classList.toggle('active',
+      (i===0&&level===-1)||(i===1&&level===3)||(i===2&&level===2)||(i===3&&level===1)||(i===4&&level===0));
+  });
+  ['severe','high','mod','low'].forEach((id, i) => {
+    const chip = el('rsc-' + id);
+    if(chip) chip.classList.toggle('active',
+      (i===0&&level===3)||(i===1&&level===2)||(i===2&&level===1)||(i===3&&level===0));
+  });
+  rebuildRiskMarkersNew();
+}
+
+function toggleRiskView() {
+  riskShowList = !riskShowList;
+  el('risk-map').style.display = riskShowList ? 'none' : 'block';
+  el('risk-list-view').style.display = riskShowList ? 'block' : 'none';
+  el('risk-detail-card').style.display = 'none';
+  el('risk-view-btn').textContent = riskShowList ? '🗺️' : '📋';
+  if(riskShowList) buildRiskListView();
+}
+
+function toggleHealthOnly() {
+  riskHealthOnly = !riskHealthOnly;
+  const btn = el('risk-health-btn');
+  btn.style.color = riskHealthOnly ? '#e05252' : 'var(--muted)';
+  btn.style.borderColor = riskHealthOnly ? 'rgba(224,82,82,.4)' : 'var(--border)';
+  btn.style.background = riskHealthOnly ? 'rgba(224,82,82,.1)' : 'var(--surface)';
+  rebuildRiskMarkersNew();
+}
+
+function filterRiskList() { buildRiskListView(); rebuildRiskMarkersNew(); }
+function riskReset() { if(riskMap) riskMap.setView([32.4487,-99.7331], 13); }
+
+// ── INSPECTIONS ─────────────────────────────────────────────────────────────
 function renderInspections() {
   let data = DB.filter(r=>r.type==='inspection');
   const addr=el('insp-addr')?.value.toLowerCase()||'';
