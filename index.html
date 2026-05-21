@@ -1001,7 +1001,7 @@ const OSM_CLASS_RULES = [
   {key:'amenity', value:'university',       idx:36},
   {key:'amenity', value:'college',          idx:36},
   {key:'amenity', value:'place_of_worship', idx:40},
-  {key:'amenity', value:'bank',             idx:46},
+  {key:'amenity', value:'bank',             idx:45},
   {key:'amenity', value:'fire_station',     idx:42},
   {key:'amenity', value:'cinema',           idx:38},
   {key:'amenity', value:'laboratory',       idx:7},
@@ -1074,7 +1074,7 @@ const NAME_KEYWORD_RULES = [
   {keywords:['beauty salon','salon','barber','hair salon'],                   idx:33},
   {keywords:['school','elementary','middle school','high school','academy','isd '], idx:35},
   {keywords:['supermarket','walmart','kroger','heb','united supermarket','brookshire','aldi'], idx:41},
-  {keywords:['bank','wells fargo','first financial','prosperity bank','bbva','chase bank','credit union'], idx:46},
+  {keywords:['bank','wells fargo','first financial','prosperity bank','bbva','chase bank','credit union'], idx:45},
   {keywords:['car dealer','dealership','chevrolet','ford dealer','toyota dealer','honda dealer','dodge dealer'], idx:29},
   {keywords:['restaurant','grill','kitchen','bistro','diner','steakhouse','pizza','burger','taco','bbq','barbeque','wings','ihop','applebee','chili'], idx:20},
   {keywords:['starbucks','coffee','dunkin','dutch bros'],                      idx:22},
@@ -1287,8 +1287,138 @@ async function fetchAllRiskLocations() {
   rebuildRiskMarkersNew();
   updateRiskStats();
   buildCatMenu();
-  el('risk-header-counts').innerHTML = `<span style="color:var(--green)">✓ ${riskLocations.length} locations loaded</span>`;
-  setTimeout(() => { if(el('risk-header-counts')) el('risk-header-counts').innerHTML = ''; }, 5000);
+  if(riskLocations.length === 0) {
+    el('risk-header-counts').innerHTML = '<span style="color:var(--red)">⚠ No data — tap ↻ to retry</span>';
+  } else {
+    el('risk-header-counts').innerHTML = `<span style="color:var(--green)">✓ ${riskLocations.length} locations loaded</span>`;
+    setTimeout(() => { if(el('risk-header-counts')) el('risk-header-counts').innerHTML = ''; }, 5000);
+  }
+}
+
+// ── Overpass API call ─────────────────────────────────────────────────────────
+async function overpassQuery(query) {
+  if(riskStopped || riskTimedOut()) return [];
+  for(let attempt = 0; attempt < OVERPASS_ENDPOINTS.length; attempt++) {
+    const url = OVERPASS_ENDPOINTS[(overpassEndpointIdx + attempt) % OVERPASS_ENDPOINTS.length];
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), RISK_REQUEST_TIMEOUT);
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'data=' + encodeURIComponent(query),
+        signal: controller.signal
+      });
+      clearTimeout(timer);
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      const count = (data.elements||[]).length;
+      console.log(`✅ Overpass: ${count} elements from ${url}`);
+      riskErrorCount = 0;
+      overpassEndpointIdx = (overpassEndpointIdx + attempt);
+      return data.elements || [];
+    } catch(e) {
+      clearTimeout(timer);
+      console.warn(`❌ Overpass ${url}: ${e.message}`);
+    }
+  }
+  riskErrorCount++;
+  console.warn(`All Overpass endpoints failed (${riskErrorCount}/${RISK_MAX_ERRORS})`);
+  if(riskErrorCount >= RISK_MAX_ERRORS) {
+    riskStopped = true;
+    el('risk-header-counts').innerHTML = '<span style="color:var(--red)">⚠ Overpass unavailable — tap ↻ to retry</span>';
+  }
+  return [];
+}
+
+// ── Classify Overpass elements into TCEQ categories ───────────────────────────
+function classifyAndAdd(elements, seen, gasKw, foodTags) {
+  for(const el_ of elements) {
+    const name = el_.tags && el_.tags.name;
+    if(!name || !name.trim()) continue;
+    const lat = el_.lat || (el_.center && el_.center.lat);
+    const lon = el_.lon || (el_.center && el_.center.lon);
+    if(!lat || !lon) continue;
+    const key = name.toLowerCase().slice(0,30) + '_' + Math.round(lat*1000) + '_' + Math.round(lon*1000);
+    if(seen.has(key)) continue;
+
+    // Match by OSM tag rules
+    let catIdx = -1;
+    if(el_.tags) {
+      for(const rule of OSM_CLASS_RULES) {
+        const tagVal = el_.tags[rule.key];
+        if(tagVal !== undefined) {
+          if(rule.value === '' || tagVal === rule.value) {
+            const matchedTag = rule.key + '=' + tagVal;
+            if(foodTags.has(matchedTag)) {
+              const lower = name.toLowerCase();
+              if(gasKw.some(kw => lower.includes(kw))) break;
+            }
+            catIdx = rule.idx;
+            break;
+          }
+        }
+      }
+    }
+    // Fall back to name keyword rules
+    if(catIdx < 0) {
+      const lower = name.toLowerCase();
+      for(const rule of NAME_KEYWORD_RULES) {
+        if(rule.keywords.some(kw => lower.includes(kw))) { catIdx = rule.idx; break; }
+      }
+    }
+    if(catIdx < 0 || catIdx >= TCEQ_CATEGORIES.length) continue;
+    seen.add(key);
+    const cat = TCEQ_CATEGORIES[catIdx];
+    const addr = [(el_.tags && el_.tags['addr:housenumber']), (el_.tags && el_.tags['addr:street'])].filter(Boolean).join(' ');
+    riskLocations.push({name, lat, lng:lon, label:cat.label, cat:cat.cat, device:cat.device, rating:cat.rating, code:cat.code, reason:cat.reason, address:addr, id:key});
+  }
+}
+
+// ── Nominatim keyword search ───────────────────────────────────────────────────
+async function nominatimSearch(term, seen) {
+  if(riskStopped || riskTimedOut()) return [];
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), RISK_REQUEST_TIMEOUT);
+  try {
+    const encoded = encodeURIComponent(term);
+    const url = `${NOMINATIM_URL}?q=${encoded}&format=json&addressdetails=1&extratags=1&limit=10&viewbox=-99.86,32.33,-99.60,32.65&bounded=1&countrycodes=us`;
+    const res = await fetch(url, {signal: controller.signal});
+    clearTimeout(timer);
+    if(!res.ok) return [];
+    const data = await res.json();
+    riskErrorCount = 0;
+    const results = [];
+    for(const item of data) {
+      const name = (item.display_name||'').split(',')[0].trim();
+      if(!name) continue;
+      const lat = parseFloat(item.lat), lon = parseFloat(item.lon);
+      if(isNaN(lat)||isNaN(lon)) continue;
+      const key = name.toLowerCase().slice(0,30)+'_'+Math.round(lat*1000)+'_'+Math.round(lon*1000);
+      if(seen.has(key)) continue;
+      const lower = name.toLowerCase();
+      let catIdx = -1;
+      for(const rule of NAME_KEYWORD_RULES) {
+        if(rule.keywords.some(kw => lower.includes(kw))) { catIdx = rule.idx; break; }
+      }
+      if(catIdx < 0 || catIdx >= TCEQ_CATEGORIES.length) continue;
+      seen.add(key);
+      const cat = TCEQ_CATEGORIES[catIdx];
+      const addr = [item.address && item.address.house_number, item.address && item.address.road].filter(Boolean).join(' ');
+      results.push({name, lat, lng:lon, label:cat.label, cat:cat.cat, device:cat.device, rating:cat.rating, code:cat.code, reason:cat.reason, address:addr, id:key});
+    }
+    console.log(`✅ Nominatim "${term}": ${results.length} results`);
+    return results;
+  } catch(e) {
+    clearTimeout(timer);
+    riskErrorCount++;
+    console.warn(`❌ Nominatim "${term}": ${e.message}`);
+    if(riskErrorCount >= RISK_MAX_ERRORS) {
+      riskStopped = true;
+      el('risk-header-counts').innerHTML = '<span style="color:var(--red)">⚠ Network error — tap ↻ to retry</span>';
+    }
+    return [];
+  }
 }
 
 function sleep(ms) { return new Promise(r=>setTimeout(r,ms)); }
