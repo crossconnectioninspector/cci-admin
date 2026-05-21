@@ -856,9 +856,16 @@ function mapReset()    { if(deviceMap) deviceMap.setView([32.4487,-99.7331],13);
 
 // Abilene bounding box for Overpass: south,west,north,east
 const ABILENE_BBOX = '32.33,-99.86,32.65,-99.60';
-const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
+// Multiple Overpass endpoints — browser will try each if one fails
+const OVERPASS_ENDPOINTS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
+];
+let overpassEndpointIdx = 0;
+function getOverpassURL() { return OVERPASS_ENDPOINTS[overpassEndpointIdx % OVERPASS_ENDPOINTS.length]; }
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
-const OSM_USER_AGENT = 'CrossConnectionInspector/1.0 (sniderbackflowsolutions@gmail.com)';
+// Note: User-Agent is a forbidden header in browser fetch — omit it
 
 // TCEQ 290.47(f) categories — each has osmTag for Overpass queries
 const TCEQ_CATEGORIES = [
@@ -1085,8 +1092,8 @@ async function initRiskMap() {
   }
 
   // Show cache immediately — no blank map
-  const cached = localStorage.getItem('cci_risk_locations_v4');
-  const cachedTs = localStorage.getItem('cci_risk_ts_v4');
+  const cached = localStorage.getItem('cci_risk_locations_v5');
+  const cachedTs = localStorage.getItem('cci_risk_ts_v5');
   const stale = !cachedTs || (Date.now() - parseInt(cachedTs)) > 86400000;
 
   if(cached) {
@@ -1114,8 +1121,8 @@ function stopRiskScan() {
   // Save whatever we have so far
   if(riskLocations.length > 0) {
     riskLocations.sort((a,b)=>b.rating-a.rating);
-    localStorage.setItem('cci_risk_locations_v4', JSON.stringify(riskLocations));
-    localStorage.setItem('cci_risk_ts_v4', Date.now().toString());
+    localStorage.setItem('cci_risk_locations_v5', JSON.stringify(riskLocations));
+    localStorage.setItem('cci_risk_ts_v5', Date.now().toString());
     rebuildRiskMarkersNew();
     updateRiskStats();
     buildCatMenu();
@@ -1243,8 +1250,8 @@ async function fetchAllRiskLocations() {
   step++;
 
   riskLocations.sort((a,b)=>b.rating-a.rating);
-  localStorage.setItem('cci_risk_locations_v4', JSON.stringify(riskLocations));
-  localStorage.setItem('cci_risk_ts_v4', Date.now().toString());
+  localStorage.setItem('cci_risk_locations_v5', JSON.stringify(riskLocations));
+  localStorage.setItem('cci_risk_ts_v5', Date.now().toString());
   riskLoading = false;
   hideStopBtn();
   rebuildRiskMarkersNew();
@@ -1273,31 +1280,39 @@ function riskTimedOut() {
 // ── Overpass API call with automatic timeout + error tracking ─────────────────
 async function overpassQuery(query) {
   if(riskStopped || riskTimedOut()) return [];
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), RISK_REQUEST_TIMEOUT);
-  try {
-    const res = await fetch(OVERPASS_URL, {
-      method:'POST',
-      headers:{'Content-Type':'application/x-www-form-urlencoded','User-Agent':OSM_USER_AGENT},
-      body:'data='+encodeURIComponent(query),
-      signal: controller.signal
-    });
-    clearTimeout(timer);
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const data = await res.json();
-    riskErrorCount = 0; // reset on success
-    return data.elements || [];
-  } catch(e) {
-    clearTimeout(timer);
-    riskErrorCount++;
-    console.warn(`Overpass error (${riskErrorCount}/${RISK_MAX_ERRORS}):`, e.message);
-    if(riskErrorCount >= RISK_MAX_ERRORS) {
-      riskStopped = true;
-      el('risk-header-counts').innerHTML = '<span style="color:var(--red)">⚠ Scan stopped — server not responding</span>';
-      console.warn('Risk scan auto-stopped: too many errors');
+  // Try each endpoint — rotate on failure
+  for(let attempt = 0; attempt < OVERPASS_ENDPOINTS.length; attempt++) {
+    const url = OVERPASS_ENDPOINTS[(overpassEndpointIdx + attempt) % OVERPASS_ENDPOINTS.length];
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), RISK_REQUEST_TIMEOUT);
+    try {
+      const res = await fetch(url, {
+        method:'POST',
+        // Note: User-Agent is a forbidden browser header — do NOT include it
+        headers:{'Content-Type':'application/x-www-form-urlencoded'},
+        body:'data='+encodeURIComponent(query),
+        signal: controller.signal
+      });
+      clearTimeout(timer);
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const data = await res.json();
+      riskErrorCount = 0;
+      overpassEndpointIdx = (overpassEndpointIdx + attempt); // stick with working endpoint
+      return data.elements || [];
+    } catch(e) {
+      clearTimeout(timer);
+      console.warn(`Overpass endpoint ${url} failed:`, e.message);
+      // Try next endpoint
     }
-    return [];
   }
+  // All endpoints failed
+  riskErrorCount++;
+  console.warn(`All Overpass endpoints failed (${riskErrorCount}/${RISK_MAX_ERRORS})`);
+  if(riskErrorCount >= RISK_MAX_ERRORS) {
+    riskStopped = true;
+    el('risk-header-counts').innerHTML = '<span style="color:var(--red)">⚠ Scan stopped — Overpass API unavailable</span>';
+  }
+  return [];
 }
 
 // ── Classify Overpass elements ────────────────────────────────────────────────
@@ -1356,7 +1371,7 @@ async function nominatimSearch(term, seen) {
   try {
     const encoded = encodeURIComponent(term);
     const url = `${NOMINATIM_URL}?q=${encoded}&format=json&addressdetails=1&extratags=1&limit=10&viewbox=-99.86,32.33,-99.60,32.65&bounded=1&countrycodes=us`;
-    const res = await fetch(url, {headers:{'User-Agent':OSM_USER_AGENT}, signal: controller.signal});
+    const res = await fetch(url, {signal: controller.signal});
     clearTimeout(timer);
     if(!res.ok) return [];
     const data = await res.json();
@@ -1397,8 +1412,8 @@ async function nominatimSearch(term, seen) {
 // ── Refresh button — rebuilds cache from scratch ──────────────────────────────
 async function refreshFullCache() {
   // Clear cache and reload from scratch
-  localStorage.removeItem('cci_risk_locations_v4');
-  localStorage.removeItem('cci_risk_ts_v4');
+  localStorage.removeItem('cci_risk_locations_v5');
+  localStorage.removeItem('cci_risk_ts_v5');
   riskLocations = [];
   riskLoading = false;
   riskStopped = false;
