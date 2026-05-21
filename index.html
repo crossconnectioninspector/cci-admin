@@ -1160,96 +1160,66 @@ async function fetchAllRiskLocations() {
     '7-eleven','circle k','loves','flying j','pilot','quiktrip','conoco','texaco'];
   const FOOD_TAGS = new Set(['amenity=restaurant','amenity=fast_food','amenity=cafe','amenity=bar']);
 
-  // ── PASS 1: Broad Overpass queries ────────────────────────────────────────
-  const broadFilters = [
-    {label:'Amenities',  filter:'["amenity"]'},
-    {label:'Shops',      filter:'["shop"]'},
-    {label:'Leisure',    filter:'["leisure"]'},
-    {label:'Tourism',    filter:'["tourism"]'},
-    {label:'Healthcare', filter:'["healthcare"]'},
-    {label:'Craft',      filter:'["craft"]'},
-    {label:'Landuse',    filter:'["landuse"~"cemetery|industrial"]'},
-  ];
-
-  const totalSteps = broadFilters.length + 2;
-  let step = 0;
-
-  for(const bf of broadFilters) {
-    if(riskStopped) return;
-    el('risk-header-counts').innerHTML = `<span style="color:var(--accent)">Scanning ${bf.label}… ${step+1}/${totalSteps}</span>`;
-    const elements = await overpassQuery(`[out:json][timeout:30];(node${bf.filter}(${ABILENE_BBOX});way${bf.filter}(${ABILENE_BBOX});relation${bf.filter}(${ABILENE_BBOX}););out center tags;`);
-    if(riskStopped) return;
-    classifyAndAdd(elements, seen, GAS_KW, FOOD_TAGS);
-    rebuildRiskMarkersNew();
-    step++;
-    await sleep(600);
-  }
-
-  // ── PASS 2: Specific high-value tags batched ──────────────────────────────
-  if(riskStopped) return;
-  el('risk-header-counts').innerHTML = `<span style="color:var(--accent)">Deep scan specific tags…</span>`;
-  const specificPairs = [
+  // Small targeted batches of 10 tag pairs — fast browser-friendly responses
+  const allPairs = [
     ['amenity','fuel'],['amenity','car_wash'],['amenity','hospital'],['amenity','dentist'],
     ['amenity','doctors'],['amenity','pharmacy'],['amenity','veterinary'],['amenity','funeral_hall'],
     ['amenity','nursing_home'],['amenity','clinic'],['amenity','school'],['amenity','place_of_worship'],
     ['amenity','fire_station'],['amenity','bank'],['amenity','cinema'],['amenity','car_rental'],
-    ['amenity','laboratory'],['amenity','animal_shelter'],['healthcare','dialysis'],
-    ['healthcare','physiotherapist'],['leisure','golf_course'],['leisure','swimming_pool'],
-    ['leisure','fitness_centre'],['leisure','bowling_alley'],['leisure','sports_centre'],
-    ['leisure','stadium'],['leisure','spa'],['shop','car_repair'],['shop','car'],
-    ['shop','hairdresser'],['shop','beauty'],['shop','tattoo'],['shop','laundry'],
-    ['shop','supermarket'],['shop','pet'],['shop','florist'],['shop','storage_rental'],
-    ['shop','bakery'],['shop','alcohol'],['tourism','hotel'],['tourism','motel'],
-    ['tourism','camp_site'],['craft','brewery'],['craft','pest_control'],['craft','plumber'],
+    ['amenity','animal_shelter'],['amenity','fast_food'],['amenity','restaurant'],['amenity','cafe'],
+    ['amenity','bar'],['amenity','pub'],['amenity','nightclub'],['amenity','university'],
+    ['healthcare','dialysis'],['healthcare','physiotherapist'],
+    ['leisure','golf_course'],['leisure','swimming_pool'],['leisure','fitness_centre'],
+    ['leisure','bowling_alley'],['leisure','sports_centre'],['leisure','stadium'],['leisure','spa'],
+    ['shop','car_repair'],['shop','car'],['shop','hairdresser'],['shop','beauty'],
+    ['shop','tattoo'],['shop','laundry'],['shop','supermarket'],['shop','pet'],
+    ['shop','florist'],['shop','storage_rental'],['shop','bakery'],
+    ['tourism','hotel'],['tourism','motel'],['tourism','camp_site'],['tourism','aquarium'],
+    ['craft','brewery'],['craft','pest_control'],['craft','plumber'],
     ['landuse','cemetery'],
   ];
-  let lines2 = [];
-  specificPairs.forEach(([k,v])=>{
-    lines2.push(`node["${k}"="${v}"](${ABILENE_BBOX});`);
-    lines2.push(`way["${k}"="${v}"](${ABILENE_BBOX});`);
-    lines2.push(`relation["${k}"="${v}"](${ABILENE_BBOX});`);
-  });
-  const elements2 = await overpassQuery(`[out:json][timeout:60];(${lines2.join('')});out center tags;`);
-  if(riskStopped) return;
-  classifyAndAdd(elements2, seen, GAS_KW, FOOD_TAGS);
-  rebuildRiskMarkersNew();
-  step++;
-  await sleep(600);
 
-  // ── PASS 3: Nominatim keyword searches ────────────────────────────────────
-  if(riskStopped) return;
-  el('risk-header-counts').innerHTML = `<span style="color:var(--accent)">Keyword search…</span>`;
-  const kwBatches = [
-    ['dialysis','davita','fresenius','urgent care','concentra'],
-    ['whataburger','sonic','pizza hut','dominos','starbucks','subway'],
-    ['holiday inn','best western','la quinta','hilton','hampton inn'],
-    ['allsups','stripes','valero','exxon','chevron'],
-    ['jiffy lube','oil change','midas','autozone'],
-    ['united supermarket','heb','walmart','brookshire'],
-    ['wells fargo','first financial','prosperity bank','chase bank'],
-    ['abilene isd','wylie isd','abilene christian','hardin simmons'],
-    ['first baptist','first methodist','grace church','fellowship'],
-    ['planet fitness','anytime fitness','ymca','snap fitness'],
-    ['funeral home','mortuary','memorial chapel','cremation'],
-    ['chevrolet abilene','ford abilene','toyota abilene'],
-    ['orkin','terminix','pest control abilene'],
-    ['extra space storage','public storage','life storage'],
-    ['great clips','sport clips','fantastic sams'],
-    ['walgreens','cvs pharmacy'],
-    ['hendrick','covenant hospital','medical center'],
-  ];
-  for(const batch of kwBatches) {
-    if(riskStopped) break;
-    for(const term of batch) {
-      if(riskStopped) break;
-      const found = await nominatimSearch(term, seen);
-      found.forEach(loc => riskLocations.push(loc));
-      await sleep(1100); // Nominatim: 1 req/sec
-    }
+  // Split into batches of 10 pairs — small enough for browser to handle quickly
+  const BATCH_SIZE = 10;
+  const batches = [];
+  for(let i = 0; i < allPairs.length; i += BATCH_SIZE) batches.push(allPairs.slice(i, i + BATCH_SIZE));
+  const totalBatches = batches.length;
+
+  for(let bi = 0; bi < batches.length; bi++) {
+    if(riskStopped) return;
+    el('risk-header-counts').innerHTML = `<span style="color:var(--accent)">Scanning ${bi+1}/${totalBatches}… ${riskLocations.length} found</span>`;
+    let lines = [];
+    batches[bi].forEach(([k,v]) => {
+      lines.push(`node["${k}"="${v}"](${ABILENE_BBOX});`);
+      lines.push(`way["${k}"="${v}"](${ABILENE_BBOX});`);
+    });
+    const elements = await overpassQuery(`[out:json][timeout:20];(${lines.join('')});out center tags;`);
+    if(riskStopped) return;
+    classifyAndAdd(elements, seen, GAS_KW, FOOD_TAGS);
+    rebuildRiskMarkersNew();
+    await sleep(600);
   }
-  step++;
 
-  riskLocations.sort((a,b)=>b.rating-a.rating);
+  // Nominatim keyword searches — catches chains not tagged well in OSM
+  if(riskStopped) return;
+  el('risk-header-counts').innerHTML = `<span style="color:var(--accent)">Searching brands & chains… ${riskLocations.length} found</span>`;
+  const kwTerms = [
+    'davita dialysis abilene','hendrick medical center','covenant health abilene',
+    'whataburger abilene','sonic abilene','dairy queen abilene',
+    'holiday inn abilene','la quinta abilene','hampton inn abilene',
+    'allsups abilene','stripes store abilene','united supermarket abilene',
+    'first financial bank abilene','prosperity bank abilene',
+    'planet fitness abilene','ymca abilene',
+    'funeral home abilene','orkin abilene','walgreens abilene','cvs abilene',
+  ];
+  for(const term of kwTerms) {
+    if(riskStopped) break;
+    const found = await nominatimSearch(term, seen);
+    found.forEach(loc => riskLocations.push(loc));
+    await sleep(1100);
+  }
+
+  riskLocations.sort((a,b) => b.rating - a.rating);
   localStorage.setItem('cci_risk_locations_v5', JSON.stringify(riskLocations));
   localStorage.setItem('cci_risk_ts_v5', Date.now().toString());
   riskLoading = false;
@@ -1258,166 +1228,7 @@ async function fetchAllRiskLocations() {
   updateRiskStats();
   buildCatMenu();
   el('risk-header-counts').innerHTML = `<span style="color:var(--green)">✓ ${riskLocations.length} locations loaded</span>`;
-  setTimeout(()=>{ if(el('risk-header-counts')) el('risk-header-counts').innerHTML=''; }, 5000);
-}
-
-// ── Automatic kill switch state ──────────────────────────────────────────────
-let riskErrorCount = 0;
-const RISK_MAX_ERRORS = 5;        // stop after 5 consecutive failures
-const RISK_REQUEST_TIMEOUT = 25000; // 25 sec per request before abort
-const RISK_SCAN_TIMEOUT = 600000;   // 10 min total scan before force-stop
-let riskScanStartTime = 0;
-
-function riskTimedOut() {
-  if(Date.now() - riskScanStartTime > RISK_SCAN_TIMEOUT) {
-    console.warn('Risk scan: total timeout reached');
-    riskStopped = true;
-    return true;
-  }
-  return false;
-}
-
-// ── Overpass API call with automatic timeout + error tracking ─────────────────
-async function overpassQuery(query) {
-  if(riskStopped || riskTimedOut()) return [];
-  // Try each endpoint — rotate on failure
-  for(let attempt = 0; attempt < OVERPASS_ENDPOINTS.length; attempt++) {
-    const url = OVERPASS_ENDPOINTS[(overpassEndpointIdx + attempt) % OVERPASS_ENDPOINTS.length];
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), RISK_REQUEST_TIMEOUT);
-    try {
-      const res = await fetch(url, {
-        method:'POST',
-        // Note: User-Agent is a forbidden browser header — do NOT include it
-        headers:{'Content-Type':'application/x-www-form-urlencoded'},
-        body:'data='+encodeURIComponent(query),
-        signal: controller.signal
-      });
-      clearTimeout(timer);
-      if(!res.ok) throw new Error('HTTP '+res.status);
-      const data = await res.json();
-      riskErrorCount = 0;
-      overpassEndpointIdx = (overpassEndpointIdx + attempt); // stick with working endpoint
-      return data.elements || [];
-    } catch(e) {
-      clearTimeout(timer);
-      console.warn(`Overpass endpoint ${url} failed:`, e.message);
-      // Try next endpoint
-    }
-  }
-  // All endpoints failed
-  riskErrorCount++;
-  console.warn(`All Overpass endpoints failed (${riskErrorCount}/${RISK_MAX_ERRORS})`);
-  if(riskErrorCount >= RISK_MAX_ERRORS) {
-    riskStopped = true;
-    el('risk-header-counts').innerHTML = '<span style="color:var(--red)">⚠ Scan stopped — Overpass API unavailable</span>';
-  }
-  return [];
-}
-
-// ── Classify Overpass elements ────────────────────────────────────────────────
-function classifyAndAdd(elements, seen, gasKw, foodTags) {
-  for(const el_ of elements) {
-    const name = el_.tags?.name;
-    if(!name || !name.trim()) continue;
-    const lat = el_.lat || el_.center?.lat;
-    const lon = el_.lon || el_.center?.lon;
-    if(!lat || !lon) continue;
-
-    const key = name.toLowerCase().slice(0,30)+'_'+Math.round(lat*1000)+'_'+Math.round(lon*1000);
-    if(seen.has(key)) continue;
-
-    // Find category by OSM tags
-    let catIdx = -1;
-    if(el_.tags) {
-      for(const rule of OSM_CLASS_RULES) {
-        const tagVal = el_.tags[rule.key];
-        if(tagVal !== undefined) {
-          if(rule.value === '' || tagVal === rule.value) {
-            // Filter gas stations from food categories
-            const matchedTag = rule.key+'='+tagVal;
-            if(foodTags.has(matchedTag)) {
-              const lower = name.toLowerCase();
-              if(gasKw.some(kw=>lower.includes(kw))) break;
-            }
-            catIdx = rule.idx;
-            break;
-          }
-        }
-      }
-    }
-
-    // Try name keywords if no tag match
-    if(catIdx < 0) {
-      const lower = name.toLowerCase();
-      for(const rule of NAME_KEYWORD_RULES) {
-        if(rule.keywords.some(kw=>lower.includes(kw))) { catIdx=rule.idx; break; }
-      }
-    }
-
-    if(catIdx < 0) continue;
-    seen.add(key);
-    const cat = TCEQ_CATEGORIES[catIdx];
-    const addr = [el_.tags?.['addr:housenumber'],el_.tags?.['addr:street']].filter(Boolean).join(' ');
-    riskLocations.push({name,lat,lng:lon,label:cat.label,cat:cat.cat,device:cat.device,rating:cat.rating,code:cat.code,reason:cat.reason,address:addr,id:key});
-  }
-}
-
-// ── Nominatim keyword search with automatic timeout ───────────────────────────
-async function nominatimSearch(term, seen) {
-  if(riskStopped || riskTimedOut()) return [];
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), RISK_REQUEST_TIMEOUT);
-  try {
-    const encoded = encodeURIComponent(term);
-    const url = `${NOMINATIM_URL}?q=${encoded}&format=json&addressdetails=1&extratags=1&limit=10&viewbox=-99.86,32.33,-99.60,32.65&bounded=1&countrycodes=us`;
-    const res = await fetch(url, {signal: controller.signal});
-    clearTimeout(timer);
-    if(!res.ok) return [];
-    const data = await res.json();
-    riskErrorCount = 0; // reset on success
-    const results = [];
-    for(const item of data) {
-      const name = (item.display_name||'').split(',')[0].trim();
-      if(!name) continue;
-      const lat = parseFloat(item.lat);
-      const lon = parseFloat(item.lon);
-      if(isNaN(lat)||isNaN(lon)) continue;
-      const key = name.toLowerCase().slice(0,30)+'_'+Math.round(lat*1000)+'_'+Math.round(lon*1000);
-      if(seen.has(key)) continue;
-      const lower = name.toLowerCase();
-      let catIdx = -1;
-      for(const rule of NAME_KEYWORD_RULES) {
-        if(rule.keywords.some(kw=>lower.includes(kw))) { catIdx=rule.idx; break; }
-      }
-      if(catIdx < 0) continue;
-      seen.add(key);
-      const cat = TCEQ_CATEGORIES[catIdx];
-      const addr = [item.address?.house_number, item.address?.road].filter(Boolean).join(' ');
-      results.push({name,lat,lng:lon,label:cat.label,cat:cat.cat,device:cat.device,rating:cat.rating,code:cat.code,reason:cat.reason,address:addr,id:key});
-    }
-    return results;
-  } catch(e) {
-    clearTimeout(timer);
-    riskErrorCount++;
-    console.warn(`Nominatim error (${riskErrorCount}/${RISK_MAX_ERRORS}):`, e.message);
-    if(riskErrorCount >= RISK_MAX_ERRORS) {
-      riskStopped = true;
-      el('risk-header-counts').innerHTML = '<span style="color:var(--red)">⚠ Scan stopped — network errors</span>';
-    }
-    return [];
-  }
-}
-
-// ── Refresh button — rebuilds cache from scratch ──────────────────────────────
-async function refreshFullCache() {
-  // Clear cache and reload from scratch
-  localStorage.removeItem('cci_risk_locations_v5');
-  localStorage.removeItem('cci_risk_ts_v5');
-  riskLocations = [];
-  riskLoading = false;
-  riskStopped = false;
-  await fetchAllRiskLocations();
+  setTimeout(() => { if(el('risk-header-counts')) el('risk-header-counts').innerHTML = ''; }, 5000);
 }
 
 function sleep(ms) { return new Promise(r=>setTimeout(r,ms)); }
