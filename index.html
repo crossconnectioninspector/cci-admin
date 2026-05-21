@@ -209,10 +209,51 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
 
 @media(max-width:768px){
   .sidebar{display:none}
-  .main{margin-left:0}
+  .main{margin-left:0;padding-bottom:64px} /* room for bottom nav */
   .stats-row{grid-template-columns:repeat(2,1fr)}
   .risk-grid{grid-template-columns:1fr}
+  #page-city-risk-page{height:calc(100vh - 56px - 64px) !important} /* topbar + bottom nav */
+  .topbar-title{font-size:15px}
+  .sbar{flex-direction:column;gap:8px}
+  .sg{min-width:100%}
+  table{font-size:11px}
+  thead th{font-size:8px;padding:8px 8px}
+  tbody td{padding:8px 8px}
+  .td-addr{max-width:120px}
+  .modal{border-radius:14px 14px 0 0;max-height:95vh;position:fixed;bottom:0;left:0;right:0;width:100%;margin:0}
+  .mb{padding:14px 16px 80px}
 }
+
+/* ── Mobile bottom navigation bar ── */
+.mob-nav{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;
+  height:64px;
+  background:var(--surface);
+  border-top:1px solid var(--border);
+  z-index:100;
+  flex-direction:row;
+  align-items:center;
+  justify-content:space-around;
+  padding:0 4px;
+}
+@media(max-width:768px){
+  .mob-nav{display:flex}
+}
+.mob-nb{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;flex:1;padding:8px 4px;
+  border:none;background:transparent;color:var(--muted);
+  font-family:var(--sans);font-size:9px;font-weight:600;
+  letter-spacing:.3px;cursor:pointer;border-radius:8px;
+  transition:color .15s;text-align:center;
+}
+.mob-nb:hover,.mob-nb.active{color:var(--accent)}
+.mob-nb.active .mob-nb-icon{
+  background:rgba(249,166,30,.15);
+  border-radius:8px;
+}
+.mob-nb-icon{font-size:20px;width:36px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:background .15s}
 </style>
 </head>
 <body>
@@ -371,7 +412,7 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
   </div>
 
   <!-- Category dropdown sheet -->
-  <div id="cat-menu" style="display:none;position:absolute;top:0;left:220px;right:0;bottom:0;z-index:300;background:rgba(0,0,0,.6)" onclick="toggleCatMenu()">
+  <div id="cat-menu" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:300;background:rgba(0,0,0,.6)" onclick="toggleCatMenu()">
     <div onclick="event.stopPropagation()" style="position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:16px 16px 0 0;max-height:70%;display:flex;flex-direction:column">
       <div style="padding:14px 20px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
         <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px">FILTER BY CATEGORY</div>
@@ -575,6 +616,25 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
 </div>
 
 </main><!-- /main -->
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mob-nav" id="mob-nav">
+  <button class="mob-nb active" id="mob-dashboard" onclick="nav('dashboard',this);mobNav('dashboard')">
+    <div class="mob-nb-icon">📊</div>Dashboard
+  </button>
+  <button class="mob-nb" id="mob-device-map-page" onclick="nav('device-map-page',this);mobNav('device-map-page')">
+    <div class="mob-nb-icon">🗺️</div>Device Map
+  </button>
+  <button class="mob-nb" id="mob-city-risk-page" onclick="nav('city-risk-page',this);mobNav('city-risk-page')">
+    <div class="mob-nb-icon">⚠️</div>City Risk
+  </button>
+  <button class="mob-nb" id="mob-backflow-page" onclick="nav('backflow-page',this);mobNav('backflow-page')">
+    <div class="mob-nb-icon">🔧</div>Backflow
+  </button>
+  <button class="mob-nb" id="mob-import-page" onclick="nav('import-page',this);mobNav('import-page')">
+    <div class="mob-nb-icon">📤</div>Add
+  </button>
+</nav>
 
 <!-- REPORT DETAIL MODAL -->
 <div class="overlay" id="modal" onclick="closeModal(event)">
@@ -1772,6 +1832,13 @@ function clearF(s){
 
 // ── UTILS ─────────────────────────────────────────────────────────────────────
 function el(id){return document.getElementById(id)}
+
+function mobNav(id) {
+  // Sync the mobile bottom nav active state
+  document.querySelectorAll('.mob-nb').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('mob-' + id);
+  if(btn) btn.classList.add('active');
+}
 function es(icon,title,sub){return `<div class="es"><div class="es-icon">${icon}</div><div class="es-title">${title}</div><div class="es-sub">${sub}</div></div>`}
 function fd(d){if(!d)return'—';return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
 function toast(msg,type){const t=el('toast');t.textContent=msg;t.className='toast '+type+' show';setTimeout(()=>t.classList.remove('show'),3000)}
