@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Cross Connection Inspector — Tester Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600;700;900&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root {
+  --bg:#13161a; --surface:#1e2228; --elevated:#272c35;
+  --accent:#f9a61e; --accent2:#e8870a;
+  --text:#f2f4f6; --muted:#8c959f; --border:#2e343e;
+  --red:#e05252; --green:#4caf79; --yellow:#f0c040; --blue:#6495ed;
+  --mono:'Share Tech Mono',monospace;
+  --sans:'Barlow',sans-serif;
+  --cond:'Barlow Condensed',sans-serif;
+  --radius:12px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;font-weight:500;overscroll-behavior:none}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* SCREEN SYSTEM */
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex;flex-direction:column}
+
+/* LOGIN */
+#screen-login{align-items:center;justify-content:center;padding:24px;background:var(--bg)}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:400px;padding:36px 32px;box-shadow:0 24px 64px rgba(0,0,0,.5)}
+.login-logo{text-align:center;margin-bottom:32px}
+.login-icon{width:56px;height:56px;background:var(--accent);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 14px}
+.login-title{font-family:var(--cond);font-size:24px;font-weight:900;line-height:1.1}
+.login-sub{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;margin-top:6px}
+.err-msg{font-size:12px;color:var(--red);text-align:center;margin-top:4px;display:none}
+
+/* FORMS */
+.form-group{margin-bottom:16px}
+.form-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;display:block;margin-bottom:6px}
+.form-input{background:var(--elevated);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-family:var(--sans);font-size:15px;font-weight:600;outline:none;width:100%;transition:border-color .2s}
+.form-input:focus{border-color:var(--accent)}
+.form-input::placeholder{color:var(--muted);font-weight:400}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 20px;border-radius:10px;font-family:var(--sans);font-size:14px;font-weight:700;border:none;cursor:pointer;transition:opacity .15s,transform .1s;white-space:nowrap;width:100%}
+.btn:hover{opacity:.88}.btn:active{transform:scale(.97)}
+.btn-accent{background:var(--accent);color:#000}
+.btn-ghost{background:var(--elevated);color:var(--text);border:1.5px solid var(--border)}
+.btn-danger{background:rgba(224,82,82,.15);color:var(--red);border:1.5px solid rgba(224,82,82,.3)}
+.btn-success{background:var(--green);color:#000}
+.btn-sm{padding:8px 14px;font-size:12px;width:auto;border-radius:8px}
+.btn-icon{width:38px;height:38px;padding:0;border-radius:9px;font-size:16px}
+
+/* TOP BAR */
+.topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 14px;position:sticky;top:0;z-index:50;flex-shrink:0}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.topbar-icon{width:30px;height:30px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.topbar-title{font-family:var(--cond);font-size:16px;font-weight:900}
+.topbar-right{display:flex;align-items:center;gap:6px}
+.tester-pill{font-family:var(--mono);font-size:9px;color:var(--accent);background:rgba(249,166,30,.1);border:1px solid rgba(249,166,30,.25);padding:3px 9px;border-radius:20px;letter-spacing:1px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* SIGN OUT BUTTON */
+.signout-btn{display:flex;align-items:center;gap:5px;padding:6px 10px;background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.25);border-radius:8px;color:var(--red);font-family:var(--mono);font-size:9px;letter-spacing:1px;cursor:pointer;font-weight:700;transition:opacity .15s}
+.signout-btn:hover{opacity:.8}
+.signout-btn:active{transform:scale(.96)}
+
+/* BOTTOM NAV */
+.bottom-nav{height:62px;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:stretch;flex-shrink:0;position:sticky;bottom:0}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:transparent;color:var(--muted);font-family:var(--mono);font-size:8px;letter-spacing:.8px;cursor:pointer;transition:color .15s;padding:0}
+.bn-item.active{color:var(--accent)}
+.bn-icon{font-size:18px;line-height:1}
+
+/* PAGE CONTENT */
+.page-content{flex:1;overflow-y:auto;padding:14px}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px}
+.card-title{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+
+/* FIELD COMPONENTS */
+.form-section{margin-bottom:18px}
+.form-section-title{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.form-row.full{grid-template-columns:1fr}
+.form-field{display:flex;flex-direction:column;gap:5px}
+.field-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase}
+.field-input{background:var(--elevated);border:1.5px solid var(--border);border-radius:9px;padding:11px 12px;color:var(--text);font-family:var(--sans);font-size:14px;font-weight:600;outline:none;transition:border-color .2s;width:100%}
+.field-input:focus{border-color:var(--accent)}
+.field-input::placeholder{color:var(--muted);font-weight:400}
+select.field-input option{background:var(--elevated)}
+
+/* PSID FIELDS */
+.psid-row{background:var(--elevated);border:1.5px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;transition:border-color .2s}
+.psid-row:focus-within{border-color:var(--accent)}
+.psid-row-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.psid-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase}
+.psid-indicator{font-family:var(--mono);font-size:9px;font-weight:700}
+.psid-input{background:transparent;border:none;color:var(--text);font-family:var(--mono);font-size:22px;font-weight:700;outline:none;width:100%;padding:0}
+.psid-input::placeholder{color:var(--muted);font-size:16px;font-weight:400}
+.psid-unit{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:3px}
+
+/* RESULT BANNER */
+.result-banner{border-radius:10px;padding:14px 16px;text-align:center;font-family:var(--cond);font-size:20px;font-weight:900;letter-spacing:1px;transition:all .3s;background:rgba(140,149,159,.1);color:var(--muted)}
+.result-detail{font-family:var(--mono);font-size:10px;color:var(--muted);text-align:center;margin-top:6px;line-height:1.6}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+.stat-val{font-family:var(--cond);font-size:26px;font-weight:900;line-height:1}
+.stat-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:4px}
+
+/* TOGGLE */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0}
+.toggle-label{font-size:14px;font-weight:600}
+.toggle{width:44px;height:24px;background:var(--elevated);border-radius:12px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;border:none}
+.toggle.on{background:var(--accent)}
+.toggle::after{content:'';position:absolute;width:18px;height:18px;background:#fff;border-radius:9px;top:3px;left:3px;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.toggle.on::after{left:23px}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.5px;white-space:nowrap}
+.badge-pass{background:rgba(76,175,121,.15);color:var(--green);border:1px solid rgba(76,175,121,.25)}
+.badge-fail{background:rgba(224,82,82,.15);color:var(--red);border:1px solid rgba(224,82,82,.25)}
+.badge-pending{background:rgba(140,149,159,.1);color:var(--muted);border:1px solid var(--border)}
+.badge-warn{background:rgba(240,192,64,.15);color:var(--yellow);border:1px solid rgba(240,192,64,.3)}
+
+/* PHOTO UPLOAD */
+.photo-zone{border:2px dashed var(--border);border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:border-color .2s;position:relative}
+.photo-zone:hover{border-color:var(--accent)}
+.photo-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.photo-zone-icon{font-size:32px;margin-bottom:6px}
+.photo-zone-text{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px}
+.photo-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.photo-thumb{width:68px;height:68px;border-radius:8px;object-fit:cover;border:1px solid var(--border)}
+
+/* DOC UPLOAD */
+.doc-upload-zone{border:2px dashed var(--border);border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;position:relative;margin-bottom:10px}
+.doc-upload-zone:hover{border-color:var(--accent);background:rgba(249,166,30,.04)}
+.doc-upload-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.doc-upload-zone.uploaded{border-color:var(--green);background:rgba(76,175,121,.06)}
+.doc-status{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px}
+
+/* ALERT */
+.alert{border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:flex-start;gap:10px}
+.alert-warn{background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.3)}
+.alert-err{background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.3)}
+.alert-ok{background:rgba(76,175,121,.1);border:1px solid rgba(76,175,121,.3)}
+.alert-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.alert-text{font-size:13px;font-weight:600;line-height:1.4}
+.alert-sub{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:3px}
+
+/* HISTORY CARDS */
+.history-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.history-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;gap:8px}
+.history-addr{font-weight:700;font-size:14px;flex:1;line-height:1.3}
+.history-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.history-field{display:flex;flex-direction:column;gap:2px}
+.history-field-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px}
+.history-field-val{font-size:12px;font-weight:600}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:48px 24px;color:var(--muted)}
+.empty-icon{font-size:48px;margin-bottom:12px}
+.empty-title{font-family:var(--cond);font-size:18px;font-weight:700;margin-bottom:6px;color:var(--text)}
+.empty-sub{font-family:var(--mono);font-size:10px;letter-spacing:1px}
+
+/* TOAST */
+.toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--elevated);border:1px solid var(--border);border-radius:10px;padding:11px 18px;font-family:var(--mono);font-size:11px;letter-spacing:1px;opacity:0;transition:all .3s;pointer-events:none;z-index:999;white-space:nowrap;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{border-color:var(--green);color:var(--green)}
+.toast.error{border-color:var(--red);color:var(--red)}
+.toast.info{border-color:var(--accent);color:var(--accent)}
+
+/* SPINNER */
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* PROFILE SECTION */
+.profile-header{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.profile-avatar{width:56px;height:56px;background:var(--accent);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;font-family:var(--cond);font-weight:900;color:#000;flex-shrink:0}
+.profile-name{font-family:var(--cond);font-size:22px;font-weight:900;line-height:1}
+.profile-email{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px}
+
+/* PDF BUTTON */
+.pdf-btn{background:rgba(100,149,237,.15);border:1.5px solid rgba(100,149,237,.3);color:var(--blue);border-radius:8px;padding:7px 12px;font-family:var(--mono);font-size:10px;letter-spacing:1px;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;gap:6px;transition:opacity .15s}
+.pdf-btn:hover{opacity:.8}
+
+/* SEARCH */
+.search-wrap{position:relative;margin-bottom:14px}
+.search-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none}
+.search-input{background:var(--surface);border:1.5px solid var(--border);border-radius:11px;padding:12px 12px 12px 40px;color:var(--text);font-family:var(--sans);font-size:14px;font-weight:600;outline:none;width:100%;transition:border-color .2s}
+.search-input:focus{border-color:var(--accent)}
+.search-input::placeholder{color:var(--muted);font-weight:400}
+
+/* DEVICE CARD */
+.device-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;cursor:pointer;transition:border-color .2s;display:flex;align-items:center;gap:12px}
+.device-card:hover,.device-card:active{border-color:var(--accent)}
+.device-badge{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:rgba(249,166,30,.12)}
+.device-info{flex:1;min-width:0}
+.device-addr{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.device-meta{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ LOGIN ═══════════════════ -->
+<div class="screen active" id="screen-login">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-icon">🛡️</div>
+      <div class="login-title">Cross Connection<br>Inspector</div>
+      <div class="login-sub">TESTER PORTAL</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input type="email" class="form-input" id="login-email" placeholder="you@example.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input type="password" class="form-input" id="login-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div id="login-error" class="err-msg"></div>
+    <div style="margin-top:18px">
+      <button class="btn btn-accent" onclick="doLogin()" id="login-btn">Sign In</button>
+    </div>
+    <div style="text-align:center;margin-top:14px;font-family:var(--mono);font-size:10px;color:var(--muted)">Need access? Contact your administrator.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════ APP ═══════════════════ -->
+<div class="screen" id="screen-app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-icon">🛡️</div>
+      <div class="topbar-title">CCI Tester</div>
+    </div>
+    <div class="topbar-right">
+      <div class="tester-pill" id="tester-name-pill">TESTER</div>
+      <button class="signout-btn" onclick="doLogout()" title="Sign out">
+        ↩ SIGN OUT
+      </button>
+    </div>
+  </div>
+
+  <!-- ── HOME ── -->
+  <div class="page-content" id="page-home" style="display:none">
+    <div class="stats-row">
+      <div class="stat-chip"><div class="stat-val" id="stat-total">—</div><div class="stat-label">MY TESTS</div></div>
+      <div class="stat-chip"><div class="stat-val" style="color:var(--green)" id="stat-pass">—</div><div class="stat-label">PASSED</div></div>
+      <div class="stat-chip"><div class="stat-val" style="color:var(--red)" id="stat-fail">—</div><div class="stat-label">FAILED</div></div>
+    </div>
+    <div id="home-alerts"></div>
+    <div class="card">
+      <div class="card-title">QUICK ACTIONS</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="btn btn-accent" onclick="switchPage('submit')">📋 Submit New Test Report</button>
+        <button class="btn btn-ghost" onclick="switchPage('search')">🔍 Search Devices / Properties</button>
+        <button class="btn btn-ghost" onclick="switchPage('history')">📁 My Submitted Reports</button>
+        <button class="btn btn-ghost" onclick="switchPage('profile')">👤 My Profile & Documents</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">TESTER INFO</div>
+      <div id="tester-info-card" style="font-size:13px;color:var(--muted)">Loading…</div>
+    </div>
+  </div>
+
+  <!-- ── SEARCH ── -->
+  <div class="page-content" id="page-search" style="display:none">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="search" class="search-input" id="search-input" placeholder="Address or serial number…" oninput="runSearch()" autocomplete="off">
+    </div>
+    <div id="search-results">
+      <div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">Search Devices</div><div class="empty-sub">TYPE AN ADDRESS OR SERIAL # ABOVE</div></div>
+    </div>
+  </div>
+
+  <!-- ── SUBMIT ── -->
+  <div class="page-content" id="page-submit" style="display:none">
+
+    <div id="profile-missing-alert" style="display:none" class="alert alert-warn">
+      <div class="alert-icon">⚠️</div>
+      <div><div class="alert-text">Profile incomplete</div><div class="alert-sub">ADD YOUR CERT # AND GAUGE CAL DATE IN PROFILE TAB FIRST</div></div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">ASSEMBLY TYPE</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn btn-accent" id="asm-rpz" onclick="selectAsm('RPZ')" style="font-size:13px">RPZ</button>
+        <button class="btn btn-ghost" id="asm-dcva" onclick="selectAsm('DCVA')" style="font-size:13px">DCVA</button>
+        <button class="btn btn-ghost" id="asm-pvb" onclick="selectAsm('PVB')" style="font-size:13px">PVB</button>
+        <button class="btn btn-ghost" id="asm-svb" onclick="selectAsm('SVB')" style="font-size:13px">SVB</button>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">LOCATION</div>
+      <div class="form-row full"><div class="form-field"><span class="field-label">Street Address</span><input type="text" class="field-input" id="sub-addr" placeholder="123 Main St, Abilene TX" autocomplete="off"></div></div>
+      <div class="form-row">
+        <div class="form-field"><span class="field-label">Date</span><input type="date" class="field-input" id="sub-date"></div>
+        <div class="form-field"><span class="field-label">Your Name</span><input type="text" class="field-input" id="sub-tester" placeholder="Full name"></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">DEVICE INFO</div>
+      <div class="form-row">
+        <div class="form-field"><span class="field-label">Manufacturer</span><input type="text" class="field-input" id="sub-mfr" placeholder="Watts, Febco…"></div>
+        <div class="form-field"><span class="field-label">Model</span><input type="text" class="field-input" id="sub-model" placeholder="LF009…"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><span class="field-label">Serial #</span><input type="text" class="field-input" id="sub-serial" placeholder="SN-12345"></div>
+        <div class="form-field"><span class="field-label">Size</span><select class="field-input" id="sub-size"><option>3/4"</option><option>1"</option><option>1-1/4"</option><option>1-1/2"</option><option>2"</option><option>3"</option><option>4"</option></select></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">PRESSURE READINGS (PSID)</div>
+      <div id="psid-fields"></div>
+      <div style="margin-top:12px">
+        <div class="result-banner" id="result-banner">Enter readings above — result auto-calculates</div>
+        <div class="result-detail" id="result-detail">Based on TCEQ guidelines</div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">REPAIRS</div>
+      <div class="toggle-row"><span class="toggle-label">Repairs were made</span><button class="toggle" id="repairs-toggle" onclick="toggleRepairs()"></button></div>
+      <div id="repair-details-wrap" style="display:none;margin-top:8px">
+        <div class="form-field"><span class="field-label">Repair Details</span><textarea class="field-input" id="sub-repair-details" rows="3" placeholder="Describe repairs made…" style="resize:vertical"></textarea></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">PHOTOS</div>
+      <div class="photo-zone">
+        <input type="file" accept="image/jpeg,image/png,image/webp" multiple capture="environment" id="photo-input" onchange="handlePhotos(this)">
+        <div class="photo-zone-icon">📷</div>
+        <div class="photo-zone-text">TAP TO TAKE PHOTO OR UPLOAD</div>
+      </div>
+      <div class="photo-preview" id="photo-preview"></div>
+      <div id="photo-count" style="font-family:var(--mono);font-size:10px;color:var(--accent);margin-top:6px"></div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">CERTIFICATION & REMARKS</div>
+      <div class="form-row">
+        <div class="form-field"><span class="field-label">Cert #</span><input type="text" class="field-input" id="sub-cert" placeholder="TX-BPAT-12345"></div>
+        <div class="form-field"><span class="field-label">Firm</span><input type="text" class="field-input" id="sub-firm" placeholder="Your Company"></div>
+      </div>
+      <div class="form-row full" style="margin-top:8px">
+        <div class="form-field"><span class="field-label">Remarks</span><textarea class="field-input" id="sub-remarks" rows="3" placeholder="Notes, conditions, recommendations…" style="resize:vertical"></textarea></div>
+      </div>
+    </div>
+
+    <button class="btn btn-accent" id="submit-btn" onclick="submitReport()" style="margin-bottom:8px;font-size:16px;padding:16px">✓ Submit & Generate TCEQ 20700</button>
+    <button class="btn btn-ghost" onclick="clearForm()" style="margin-bottom:24px">Clear Form</button>
+  </div>
+
+  <!-- ── HISTORY ── -->
+  <div class="page-content" id="page-history" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-family:var(--cond);font-size:18px;font-weight:900">My Reports</div>
+      <button class="btn btn-ghost btn-sm" onclick="loadHistory()">↻ Refresh</button>
+    </div>
+    <div id="history-list"><div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-title">Loading…</div></div></div>
+  </div>
+
+  <!-- ── PROFILE ── -->
+  <div class="page-content" id="page-profile" style="display:none">
+
+    <div class="profile-header">
+      <div class="profile-avatar" id="profile-avatar">?</div>
+      <div>
+        <div class="profile-name" id="profile-name-display">—</div>
+        <div class="profile-email" id="profile-email-display">—</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">TESTER CREDENTIALS</div>
+      <div class="form-row">
+        <div class="form-field"><span class="field-label">Full Name</span><input type="text" class="field-input" id="prof-name" placeholder="Matt Snider"></div>
+        <div class="form-field"><span class="field-label">Company</span><input type="text" class="field-input" id="prof-company" placeholder="Your Firm"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><span class="field-label">Backflow Cert #</span><input type="text" class="field-input" id="prof-cert" placeholder="TX-BPAT-12345"></div>
+        <div class="form-field"><span class="field-label">Cert Expiration</span><input type="date" class="field-input" id="prof-cert-exp"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><span class="field-label">License #</span><input type="text" class="field-input" id="prof-license" placeholder="TX-LIC-00000"></div>
+        <div class="form-field"><span class="field-label">License Expiration</span><input type="date" class="field-input" id="prof-license-exp"></div>
+      </div>
+      <div class="form-row full" style="margin-top:4px">
+        <div class="form-field"><span class="field-label">Gauge Serial # (for TCEQ form)</span><input type="text" class="field-input" id="prof-gauge-serial" placeholder="Gauge SN-00000"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">GAUGE CALIBRATION CERTIFICATE</div>
+      <div id="gauge-cal-status"></div>
+      <div class="form-row">
+        <div class="form-field"><span class="field-label">Calibration Date</span><input type="date" class="field-input" id="prof-gauge-date"></div>
+        <div class="form-field"><span class="field-label">Next Cal Due</span><input type="date" class="field-input" id="prof-gauge-due"></div>
+      </div>
+      <div class="doc-upload-zone" id="gauge-upload-zone">
+        <input type="file" accept="image/jpeg,image/png,application/pdf" id="gauge-cert-input" onchange="handleDocUpload(this,'gauge')">
+        <div class="photo-zone-icon">📄</div>
+        <div class="photo-zone-text">TAP TO UPLOAD GAUGE CAL CERT (PDF OR IMAGE)</div>
+      </div>
+      <div id="gauge-doc-status" class="doc-status" style="display:none"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">BACKFLOW LICENSE DOCUMENT</div>
+      <div id="license-doc-status-display"></div>
+      <div class="doc-upload-zone" id="license-upload-zone">
+        <input type="file" accept="image/jpeg,image/png,application/pdf" id="license-cert-input" onchange="handleDocUpload(this,'license')">
+        <div class="photo-zone-icon">🪪</div>
+        <div class="photo-zone-text">TAP TO UPLOAD BACKFLOW LICENSE (PDF OR IMAGE)</div>
+      </div>
+      <div id="license-doc-status" class="doc-status" style="display:none"></div>
+    </div>
+
+    <button class="btn btn-accent" onclick="saveProfile()" id="save-profile-btn" style="margin-bottom:8px">💾 Save Profile</button>
+    <button class="btn btn-danger" onclick="doLogout()" style="margin-bottom:24px">↩ Sign Out</button>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <button class="bn-item active" id="bn-home" onclick="switchPage('home')"><span class="bn-icon">🏠</span>HOME</button>
+    <button class="bn-item" id="bn-search" onclick="switchPage('search')"><span class="bn-icon">🔍</span>SEARCH</button>
+    <button class="bn-item" id="bn-submit" onclick="switchPage('submit')"><span class="bn-icon">📋</span>SUBMIT</button>
+    <button class="bn-item" id="bn-history" onclick="switchPage('history')"><span class="bn-icon">📁</span>HISTORY</button>
+    <button class="bn-item" id="bn-profile" onclick="switchPage('profile')"><span class="bn-icon">👤</span>PROFILE</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════════════
+const SUPA_URL = 'https://reondjywvejywbfhohgm.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJlb25kanl3dmVqeXdiZmhvaGdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5OTMzNjYsImV4cCI6MjA5NDU2OTM2Nn0.xpjq6ccrAB6yHUCH-q6X58CZbsg-DSTV_nh96MQ5eGM';
+// ═══════════════════════════════════════════════════
+
+const supaClient = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+let currentUser = null;
+let currentAsm = 'RPZ';
+let repairsOn = false;
+let photoFiles = [];
+let myReports = [];
+let allDevices = [];
+let testerProfile = {};
+
+// ── AUTH ────────────────────────────────────────────
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
+  errEl.style.display = 'none';
+  btn.innerHTML = '<span class="spinner"></span>';
+  btn.disabled = true;
+  const { data, error } = await supaClient.auth.signInWithPassword({ email, password });
+  if (error) {
+    errEl.textContent = error.message;
+    errEl.style.display = 'block';
+    btn.innerHTML = 'Sign In';
+    btn.disabled = false;
+  } else {
+    currentUser = data.user;
+    await enterApp();
+  }
+}
+
+async function doLogout() {
+  await supaClient.auth.signOut();
+  currentUser = null;
+  testerProfile = {};
+  showScreen('login');
+}
+
+async function enterApp() {
+  showScreen('app');
+  document.getElementById('sub-date').valueAsDate = new Date();
+  await loadProfile();
+  applyProfileToForm();
+  renderTesterInfo();
+  selectAsm('RPZ');
+  switchPage('home');
+  await loadHomeStats();
+  await loadAllDevices();
+}
+
+// ── SCREENS ────────────────────────────────────────
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+function switchPage(id) {
+  ['home','search','submit','history','profile'].forEach(p => {
+    document.getElementById('page-' + p).style.display = 'none';
+    const bn = document.getElementById('bn-' + p);
+    if (bn) bn.classList.remove('active');
+  });
+  document.getElementById('page-' + id).style.display = 'block';
+  const bn = document.getElementById('bn-' + id);
+  if (bn) bn.classList.add('active');
+  if (id === 'history') loadHistory();
+  if (id === 'profile') renderProfilePage();
+  if (id === 'submit') checkProfileWarning();
+}
+
+// ── PROFILE ────────────────────────────────────────
+
+async function loadProfile() {
+  const meta = currentUser?.user_metadata || {};
+  testerProfile = {
+    name: meta.full_name || '',
+    company: meta.company || '',
+    cert: meta.cert_number || '',
+    certExp: meta.cert_exp || '',
+    license: meta.license_number || '',
+    licenseExp: meta.license_exp || '',
+    gaugeSerial: meta.gauge_serial || '',
+    gaugeDate: meta.gauge_cal_date || '',
+    gaugeDue: meta.gauge_cal_due || '',
+    gaugeDocUrl: meta.gauge_doc_url || '',
+    licenseDocUrl: meta.license_doc_url || '',
+  };
+  const pill = document.getElementById('tester-name-pill');
+  if (pill) pill.textContent = (testerProfile.name || currentUser.email || 'TESTER').toUpperCase().slice(0,16);
+}
+
+function applyProfileToForm() {
+  const s = id => document.getElementById(id);
+  if (testerProfile.name)    s('sub-tester').value = testerProfile.name;
+  if (testerProfile.cert)    s('sub-cert').value   = testerProfile.cert;
+  if (testerProfile.company) s('sub-firm').value    = testerProfile.company;
+}
+
+function renderProfilePage() {
+  const s = id => document.getElementById(id);
+  s('prof-name').value         = testerProfile.name || '';
+  s('prof-company').value      = testerProfile.company || '';
+  s('prof-cert').value         = testerProfile.cert || '';
+  s('prof-cert-exp').value     = testerProfile.certExp || '';
+  s('prof-license').value      = testerProfile.license || '';
+  s('prof-license-exp').value  = testerProfile.licenseExp || '';
+  s('prof-gauge-serial').value = testerProfile.gaugeSerial || '';
+  s('prof-gauge-date').value   = testerProfile.gaugeDate || '';
+  s('prof-gauge-due').value    = testerProfile.gaugeDue || '';
+
+  // Avatar
+  const initials = (testerProfile.name || currentUser.email || '?').charAt(0).toUpperCase();
+  s('profile-avatar').textContent = initials;
+  s('profile-name-display').textContent = testerProfile.name || '—';
+  s('profile-email-display').textContent = currentUser.email || '—';
+
+  // Show uploaded doc status
+  if (testerProfile.gaugeDocUrl) {
+    document.getElementById('gauge-upload-zone').classList.add('uploaded');
+    showDocStatus('gauge-doc-status', '✅ Gauge Cal Cert uploaded', testerProfile.gaugeDocUrl);
+  }
+  if (testerProfile.licenseDocUrl) {
+    document.getElementById('license-upload-zone').classList.add('uploaded');
+    showDocStatus('license-doc-status', '✅ License document uploaded', testerProfile.licenseDocUrl);
+  }
+
+  // Expiration warnings
+  renderExpirationWarnings();
+}
+
+function showDocStatus(elId, label, url) {
+  const el = document.getElementById(elId);
+  el.style.display = 'flex';
+  el.innerHTML = `<span style="color:var(--green);font-size:14px">✅</span>
+    <span style="font-size:12px;font-weight:600">${label}</span>
+    <a href="${url}" target="_blank" style="font-family:var(--mono);font-size:10px;color:var(--accent);margin-left:auto">VIEW</a>`;
+}
+
+function renderExpirationWarnings() {
+  const today = new Date();
+  const warn30 = new Date(); warn30.setDate(warn30.getDate() + 30);
+  let html = '';
+  const check = (dateStr, label) => {
+    if (!dateStr) return;
+    const d = new Date(dateStr + 'T12:00:00');
+    if (d < today) html += `<div class="alert alert-err"><div class="alert-icon">🛑</div><div><div class="alert-text">${label} EXPIRED</div><div class="alert-sub">${fmtDate(dateStr)}</div></div></div>`;
+    else if (d < warn30) html += `<div class="alert alert-warn"><div class="alert-icon">⚠️</div><div><div class="alert-text">${label} expiring soon</div><div class="alert-sub">${fmtDate(dateStr)}</div></div></div>`;
+  };
+  check(testerProfile.certExp, 'Backflow Cert');
+  check(testerProfile.licenseExp, 'Backflow License');
+  check(testerProfile.gaugeDue, 'Gauge Calibration');
+  document.getElementById('gauge-cal-status').innerHTML = html;
+}
+
+async function handleDocUpload(input, type) {
+  const file = input.files[0];
+  if (!file) return;
+  toast('Uploading document…', 'info');
+  try {
+    const ext = file.name.split('.').pop();
+    const path = `tester-docs/${currentUser.id}/${type}_${Date.now()}.${ext}`;
+    const { error } = await supaClient.storage.from('test-photos').upload(path, file, { contentType: file.type, upsert: true });
+    if (error) throw error;
+    const { data } = supaClient.storage.from('test-photos').getPublicUrl(path);
+    const url = data.publicUrl;
+    if (type === 'gauge') {
+      testerProfile.gaugeDocUrl = url;
+      document.getElementById('gauge-upload-zone').classList.add('uploaded');
+      showDocStatus('gauge-doc-status', '✅ Gauge Cal Cert uploaded', url);
+    } else {
+      testerProfile.licenseDocUrl = url;
+      document.getElementById('license-upload-zone').classList.add('uploaded');
+      showDocStatus('license-doc-status', '✅ License document uploaded', url);
+    }
+    toast('Document uploaded!', 'success');
+  } catch(e) {
+    toast('Upload failed: ' + e.message, 'error');
+  }
+}
+
+async function saveProfile() {
+  const s = id => document.getElementById(id).value.trim();
+  testerProfile = {
+    ...testerProfile,
+    name: s('prof-name'),
+    company: s('prof-company'),
+    cert: s('prof-cert'),
+    certExp: s('prof-cert-exp'),
+    license: s('prof-license'),
+    licenseExp: s('prof-license-exp'),
+    gaugeSerial: s('prof-gauge-serial'),
+    gaugeDate: s('prof-gauge-date'),
+    gaugeDue: s('prof-gauge-due'),
+  };
+  const btn = document.getElementById('save-profile-btn');
+  btn.innerHTML = '<span class="spinner"></span> Saving…';
+  btn.disabled = true;
+  const { error } = await supaClient.auth.updateUser({
+    data: {
+      full_name: testerProfile.name,
+      company: testerProfile.company,
+      cert_number: testerProfile.cert,
+      cert_exp: testerProfile.certExp,
+      license_number: testerProfile.license,
+      license_exp: testerProfile.licenseExp,
+      gauge_serial: testerProfile.gaugeSerial,
+      gauge_cal_date: testerProfile.gaugeDate,
+      gauge_cal_due: testerProfile.gaugeDue,
+      gauge_doc_url: testerProfile.gaugeDocUrl || '',
+      license_doc_url: testerProfile.licenseDocUrl || '',
+    }
+  });
+  btn.innerHTML = '💾 Save Profile';
+  btn.disabled = false;
+  if (error) { toast('Save failed: ' + error.message, 'error'); return; }
+  applyProfileToForm();
+  const pill = document.getElementById('tester-name-pill');
+  if (pill) pill.textContent = (testerProfile.name || currentUser.email || 'TESTER').toUpperCase().slice(0,16);
+  renderExpirationWarnings();
+  toast('Profile saved!', 'success');
+}
+
+function checkProfileWarning() {
+  const missing = !testerProfile.cert || !testerProfile.gaugeDate;
+  document.getElementById('profile-missing-alert').style.display = missing ? 'flex' : 'none';
+}
+
+// ── HOME ────────────────────────────────────────────
+
+async function loadHomeStats() {
+  try {
+    const headers = await getHeaders();
+    const res = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?select=*&order=date.desc`, { headers });
+    if (!res.ok) throw new Error();
+    const all = await res.json();
+    const name = testerProfile.name || currentUser.email;
+    myReports = all.filter(r =>
+      (r.tester && r.tester.toLowerCase() === (name||'').toLowerCase()) ||
+      (r.tester_email && r.tester_email === currentUser.email)
+    );
+    document.getElementById('stat-total').textContent = myReports.length;
+    document.getElementById('stat-pass').textContent = myReports.filter(r => r.result==='PASS').length;
+    document.getElementById('stat-fail').textContent = myReports.filter(r => r.result==='FAIL').length;
+    renderHomeAlerts();
+  } catch(e) {
+    document.getElementById('stat-total').textContent = '—';
+  }
+}
+
+function renderHomeAlerts() {
+  const today = new Date();
+  const warn30 = new Date(); warn30.setDate(warn30.getDate() + 30);
+  let html = '';
+  const check = (dateStr, label) => {
+    if (!dateStr) return;
+    const d = new Date(dateStr + 'T12:00:00');
+    if (d < today) html += alertHTML('err','🛑',`${label} EXPIRED — Update in Profile tab`, fmtDate(dateStr));
+    else if (d < warn30) html += alertHTML('warn','⚠️',`${label} expiring in ${Math.ceil((d-today)/86400000)} days`, fmtDate(dateStr));
+  };
+  check(testerProfile.certExp, 'Backflow Cert');
+  check(testerProfile.licenseExp, 'Backflow License');
+  check(testerProfile.gaugeDue, 'Gauge Calibration');
+  document.getElementById('home-alerts').innerHTML = html;
+}
+
+function alertHTML(type, icon, text, sub) {
+  return `<div class="alert alert-${type}"><div class="alert-icon">${icon}</div><div><div class="alert-text">${text}</div>${sub?`<div class="alert-sub">${sub}</div>`:''}`;
+}
+
+function renderTesterInfo() {
+  const el = document.getElementById('tester-info-card');
+  el.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    <div><span style="color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:1px">NAME</span><br><strong>${testerProfile.name||'—'}</strong></div>
+    <div><span style="color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:1px">CERT #</span><br><strong>${testerProfile.cert||'—'}</strong></div>
+    <div><span style="color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:1px">COMPANY</span><br><strong>${testerProfile.company||'—'}</strong></div>
+    <div><span style="color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:1px">GAUGE CAL</span><br><strong>${testerProfile.gaugeDate?fmtDate(testerProfile.gaugeDate):'—'}</strong></div>
+  </div>`;
+}
+
+// ── SEARCH ────────────────────────────────────────────
+
+async function loadAllDevices() {
+  try {
+    const headers = await getHeaders();
+    const res = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?select=*&order=date.desc`, { headers });
+    if (!res.ok) throw new Error();
+    allDevices = await res.json();
+  } catch(e) { allDevices = []; }
+}
+
+function runSearch() {
+  const q = document.getElementById('search-input').value.trim().toLowerCase();
+  const container = document.getElementById('search-results');
+  if (q.length < 2) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">Search Devices</div><div class="empty-sub">TYPE AN ADDRESS OR SERIAL # ABOVE</div></div>`;
+    return;
+  }
+  const seen = new Set();
+  const results = allDevices.filter(d => {
+    const addr = (d.address||'').toLowerCase();
+    const serial = (d.serial||'').toLowerCase();
+    const mfr = (d.manufacturer||'').toLowerCase();
+    const key = addr + '_' + serial;
+    if (seen.has(key)) return false;
+    if (addr.includes(q) || serial.includes(q) || mfr.includes(q)) { seen.add(key); return true; }
+    return false;
+  });
+  if (results.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">🔎</div><div class="empty-title">No Results</div><div class="empty-sub">TRY A DIFFERENT ADDRESS OR SERIAL #</div></div>`;
+    return;
+  }
+  container.innerHTML = results.map(d => {
+    const status = d.result || 'pending';
+    const bc = status==='PASS'?'badge-pass':status==='FAIL'?'badge-fail':'badge-pending';
+    const bl = status==='PASS'?'✓ PASS':status==='FAIL'?'✗ FAIL':'? PENDING';
+    return `<div class="device-card" onclick="prefillAndSubmit(${JSON.stringify(d).replace(/"/g,'&quot;')})">
+      <div class="device-badge">${status==='PASS'?'✅':status==='FAIL'?'❌':'🔧'}</div>
+      <div class="device-info">
+        <div class="device-addr">${d.address||'—'}</div>
+        <div class="device-meta">${[d.assembly,d.manufacturer,d.model,d.serial?'SN:'+d.serial:null].filter(Boolean).join(' · ')}</div>
+      </div>
+      <div><span class="badge ${bc}">${bl}</span></div>
+    </div>`;
+  }).join('');
+}
+
+function prefillAndSubmit(d) {
+  switchPage('submit');
+  document.getElementById('sub-addr').value  = d.address || '';
+  document.getElementById('sub-mfr').value   = d.manufacturer || '';
+  document.getElementById('sub-model').value = d.model || '';
+  document.getElementById('sub-serial').value = d.serial || '';
+  selectAsm(['RPZ','DCVA','PVB','SVB'].includes(d.assembly) ? d.assembly : 'RPZ');
+}
+
+// ── SUBMIT FORM ────────────────────────────────────────
+
+function selectAsm(asm) {
+  currentAsm = asm;
+  ['RPZ','DCVA','PVB','SVB'].forEach(a => {
+    const btn = document.getElementById('asm-' + a.toLowerCase());
+    if (btn) btn.className = 'btn ' + (a===asm?'btn-accent':'btn-ghost');
+  });
+  buildPsidFields(asm);
+  updateResultBanner();
+}
+
+function buildPsidFields(asm) {
+  const c = document.getElementById('psid-fields');
+  if (asm==='RPZ') {
+    c.innerHTML = psidField('psid-c1','1ST CHECK VALVE','min 5.0 PSID to pass') +
+                  psidField('psid-c2','2ND CHECK VALVE','min 1.0 PSID to pass') +
+                  psidField('psid-rv','RELIEF VALVE','must open ≤ (1st check − 2.0)');
+  } else if (asm==='DCVA') {
+    c.innerHTML = psidField('psid-c1','1ST CHECK VALVE','min 1.0 PSID to pass') +
+                  psidField('psid-c2','2ND CHECK VALVE','min 1.0 PSID to pass');
+  } else {
+    c.innerHTML = psidField('psid-c1','CHECK VALVE','min 1.0 PSID to pass') +
+                  psidField('psid-rv','AIR INLET','min 1.0 PSID to pass');
+  }
+  ['psid-c1','psid-c2','psid-rv'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', updateResultBanner);
+  });
+}
+
+function psidField(id, label, hint) {
+  return `<div class="psid-row">
+    <div class="psid-row-top"><span class="psid-label">${label}</span><span class="psid-indicator" id="${id}-ind" style="color:var(--muted)">—</span></div>
+    <input type="number" step="0.1" min="0" class="psid-input" id="${id}" placeholder="0.0">
+    <div class="psid-unit">${hint}</div>
+  </div>`;
+}
+
+function getVal(id) { const el=document.getElementById(id); return el&&el.value!==''?parseFloat(el.value):null; }
+
+function updateResultBanner() {
+  const c1=getVal('psid-c1'), c2=getVal('psid-c2'), rv=getVal('psid-rv');
+  // Update indicators
+  if (document.getElementById('psid-c1-ind') && c1!==null) {
+    const pass = currentAsm==='RPZ' ? c1>=5.0 : c1>=1.0;
+    document.getElementById('psid-c1-ind').textContent = c1.toFixed(1)+' PSID';
+    document.getElementById('psid-c1-ind').style.color = pass?'var(--green)':'var(--red)';
+  }
+  if (document.getElementById('psid-c2-ind') && c2!==null) {
+    document.getElementById('psid-c2-ind').textContent = c2.toFixed(1)+' PSID';
+    document.getElementById('psid-c2-ind').style.color = c2>=1.0?'var(--green)':'var(--red)';
+  }
+  if (document.getElementById('psid-rv-ind') && rv!==null) {
+    let pass = currentAsm==='RPZ' ? (c1!==null && rv<=(c1-2.0)) : rv>=1.0;
+    document.getElementById('psid-rv-ind').textContent = rv.toFixed(1)+' PSID';
+    document.getElementById('psid-rv-ind').style.color = pass?'var(--green)':'var(--red)';
+  }
+  const {result,fails} = calcResult(currentAsm,c1,c2,rv);
+  const banner=document.getElementById('result-banner'), detail=document.getElementById('result-detail');
+  if (!result) {
+    banner.style.background='rgba(140,149,159,.1)'; banner.style.color='var(--muted)';
+    banner.textContent='Enter readings above — result auto-calculates';
+    detail.textContent='Based on TCEQ guidelines'; return;
+  }
+  if (result==='PASS') { banner.style.background='rgba(76,175,121,.15)'; banner.style.color='var(--green)'; banner.textContent='✓ PASS — All readings meet TCEQ thresholds'; }
+  else { banner.style.background='rgba(224,82,82,.15)'; banner.style.color='var(--red)'; banner.textContent='✗ FAIL — Assembly does not meet TCEQ requirements'; }
+  detail.innerHTML = fails.length ? fails.join('<br>') : '';
+}
+
+function calcResult(asm,c1,c2,rv) {
+  const fails=[];
+  if (asm==='RPZ') {
+    if (c1===null) return {result:null,fails:[]};
+    if (c1<5.0) fails.push(`1st Check ${c1} PSID — FAILS (min 5.0)`);
+    if (c2!==null&&c2<1.0) fails.push(`2nd Check ${c2} PSID — FAILS (min 1.0)`);
+    if (c1>=5.0&&rv!==null) { const t=c1-2.0; if(rv>t) fails.push(`Relief ${rv} PSID — FAILS (must open ≤${t.toFixed(1)})`); }
+  } else if (asm==='DCVA') {
+    if (c1===null) return {result:null,fails:[]};
+    if (c1<1.0) fails.push(`1st Check ${c1} PSID — FAILS (min 1.0)`);
+    if (c2!==null&&c2<1.0) fails.push(`2nd Check ${c2} PSID — FAILS (min 1.0)`);
+  } else {
+    if (c1===null) return {result:null,fails:[]};
+    if (c1<1.0) fails.push(`Check Valve ${c1} PSID — FAILS (min 1.0)`);
+    if (rv!==null&&rv<1.0) fails.push(`Air Inlet ${rv} PSID — FAILS (min 1.0)`);
+  }
+  return {result:fails.length===0?'PASS':'FAIL',fails};
+}
+
+function toggleRepairs() {
+  repairsOn=!repairsOn;
+  document.getElementById('repairs-toggle').className='toggle'+(repairsOn?' on':'');
+  document.getElementById('repair-details-wrap').style.display=repairsOn?'block':'none';
+}
+
+function handlePhotos(input) {
+  photoFiles=[...input.files];
+  const prev=document.getElementById('photo-preview');
+  prev.innerHTML='';
+  photoFiles.forEach(f=>{const url=URL.createObjectURL(f);const img=document.createElement('img');img.src=url;img.className='photo-thumb';prev.appendChild(img);});
+  document.getElementById('photo-count').textContent=photoFiles.length?`${photoFiles.length} photo${photoFiles.length>1?'s':''} selected`:'';
+}
+
+async function submitReport() {
+  const addr=document.getElementById('sub-addr').value.trim();
+  if (!addr){toast('Please enter an address','error');return;}
+  const c1=getVal('psid-c1'),c2=getVal('psid-c2'),rv=getVal('psid-rv');
+  const {result,fails}=calcResult(currentAsm,c1,c2,rv);
+  if (!result){toast('Please enter at least one pressure reading','error');return;}
+
+  const btn=document.getElementById('submit-btn');
+  btn.innerHTML='<span class="spinner"></span> Saving…';
+  btn.disabled=true;
+
+  // Upload photos
+  let photoUrls=[];
+  for (const file of photoFiles) {
+    try {
+      const path=`reports/${Date.now()}_${file.name}`;
+      const {error}=await supaClient.storage.from('test-photos').upload(path,file,{contentType:file.type});
+      if (!error){const {data}=supaClient.storage.from('test-photos').getPublicUrl(path);photoUrls.push(data.publicUrl);}
+    } catch(e){}
+  }
+
+  const fmtPsid=(v,field)=>{
+    if(v===null)return'';
+    let pass=true;
+    if(field==='c1')pass=currentAsm==='RPZ'?v>=5.0:v>=1.0;
+    else if(field==='c2')pass=v>=1.0;
+    else if(field==='rv')pass=currentAsm==='RPZ'?(c1!==null&&v<=(c1-2.0)):v>=1.0;
+    return`${v} psid — ${pass?'Closed Tight':'Leaked'}`;
+  };
+
+  const testerName=document.getElementById('sub-tester').value||testerProfile.name||currentUser.email;
+  const reportDate=document.getElementById('sub-date').value||new Date().toISOString().split('T')[0];
+
+  const row={
+    id:'BF'+Date.now(),
+    date:reportDate,
+    address:addr,
+    tester:testerName,
+    tester_email:currentUser.email,
+    cert_num:document.getElementById('sub-cert').value||testerProfile.cert||'',
+    firm:document.getElementById('sub-firm').value||testerProfile.company||'',
+    assembly:currentAsm,
+    manufacturer:document.getElementById('sub-mfr').value,
+    model:document.getElementById('sub-model').value,
+    serial:document.getElementById('sub-serial').value,
+    size:document.getElementById('sub-size').value,
+    result,
+    check1:fmtPsid(c1,'c1'),
+    check2:fmtPsid(c2,'c2'),
+    relief:fmtPsid(rv,'rv'),
+    psid_c1:c1, psid_c2:c2, psid_relief:rv,
+    fail_reasons:fails.join('; '),
+    repairs:repairsOn,
+    repair_details:document.getElementById('sub-repair-details').value,
+    remarks:document.getElementById('sub-remarks').value,
+    photo_urls:photoUrls,
+    pws_name:'City of Abilene', pws_id:'TX0100023',
+  };
+
+  try {
+    const headers=await getHeaders();
+    const res=await fetch(`${SUPA_URL}/rest/v1/backflow_reports`,{
+      method:'POST', headers:{...headers,'Prefer':'return=minimal'}, body:JSON.stringify(row)
+    });
+    if (!res.ok) throw new Error(await res.text());
+    myReports.unshift(row);
+    toast(result==='PASS'?'✓ Saved — Generating PDF…':'✗ Saved — Generating PDF…', result==='PASS'?'success':'error');
+    // Generate TCEQ 20700 PDF
+    setTimeout(()=>generateTCEQ20700(row), 800);
+    clearForm();
+    setTimeout(()=>switchPage('history'),2000);
+  } catch(e){
+    toast('Error: '+e.message,'error');
+  }
+  btn.innerHTML='✓ Submit & Generate TCEQ 20700';
+  btn.disabled=false;
+}
+
+function clearForm() {
+  ['sub-addr','sub-mfr','sub-model','sub-serial','sub-remarks','sub-repair-details'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('photo-preview').innerHTML='';
+  document.getElementById('photo-count').textContent='';
+  document.getElementById('photo-input').value='';
+  photoFiles=[];repairsOn=false;
+  document.getElementById('repairs-toggle').className='toggle';
+  document.getElementById('repair-details-wrap').style.display='none';
+  document.getElementById('sub-date').valueAsDate=new Date();
+  selectAsm('RPZ');
+}
+
+// ── TCEQ 20700 PDF GENERATOR ──────────────────────────
+
+function generateTCEQ20700(r) {
+  try {
+    const {jsPDF} = window.jspdf;
+    const doc = new jsPDF({ orientation:'portrait', unit:'pt', format:'letter' });
+    const W=612, ml=45, mr=45, cw=W-ml-mr;
+    let y=40;
+
+    const font = (size,style='normal') => { doc.setFontSize(size); doc.setFont('helvetica',style); };
+    const text = (t,x,yy,opts={}) => doc.text(t,x,yy,opts);
+    const line = (x1,y1,x2,y2) => { doc.setDrawColor(180); doc.line(x1,y1,x2,y2); };
+    const rect = (x,yy,w,h,fill) => { if(fill){doc.setFillColor(...fill);doc.rect(x,yy,w,h,'F');}else{doc.setDrawColor(180);doc.rect(x,yy,w,h,'S');} };
+    const label = (t,x,yy) => { font(7,'normal'); doc.setTextColor(100); text(t,x,yy); doc.setTextColor(0); };
+    const value = (t,x,yy,size=10) => { font(size,'bold'); text(t,x,yy); font(10,'normal'); };
+
+    // HEADER
+    rect(ml, y-14, cw, 28, [249,166,30]);
+    font(14,'bold'); doc.setTextColor(0);
+    text('TCEQ BACKFLOW PREVENTION ASSEMBLY TEST REPORT',W/2,y+4,{align:'center'});
+    font(8,'normal'); doc.setTextColor(60);
+    text('Form 20700 — Texas Commission on Environmental Quality 30 TAC §290.47(f)',W/2,y+16,{align:'center'});
+    doc.setTextColor(0); y+=40;
+
+    // RESULT BADGE
+    const passColor = r.result==='PASS' ? [76,175,121] : [224,82,82];
+    rect(W-mr-80, y-18, 80, 26, passColor);
+    font(14,'bold'); doc.setTextColor(255);
+    text(r.result==='PASS'?'✓ PASS':'✗ FAIL', W-mr-40, y-2, {align:'center'});
+    doc.setTextColor(0);
+
+    // SECTION: PWS Info
+    font(8,'bold'); doc.setTextColor(80);
+    text('PUBLIC WATER SYSTEM', ml, y); doc.setTextColor(0);
+    line(ml, y+2, W-mr, y+2); y+=14;
+
+    const col2=W/2+10;
+    label('PWS Name',ml,y); value(r.pws_name||'City of Abilene',ml,y+10);
+    label('PWS ID',col2,y); value(r.pws_id||'TX0100023',col2,y+10); y+=26;
+    label('Service Address',ml,y); value(r.address||'',ml,y+10,9);
+    label('Test Date',col2,y); value(fmtDate(r.date),col2,y+10); y+=30;
+
+    // SECTION: Assembly
+    font(8,'bold'); doc.setTextColor(80);
+    text('ASSEMBLY INFORMATION',ml,y); doc.setTextColor(0);
+    line(ml,y+2,W-mr,y+2); y+=14;
+
+    const c3=ml+(cw/4), c4=ml+(cw/2), c5=ml+(3*cw/4);
+    label('Type',ml,y);        value(r.assembly||'',ml,y+10);
+    label('Manufacturer',c3,y); value(r.manufacturer||'',c3,y+10);
+    label('Model',c4,y);        value(r.model||'',c4,y+10);
+    label('Size',c5,y);         value(r.size||'',c5,y+10); y+=26;
+    label('Serial #',ml,y);     value(r.serial||'',ml,y+10);
+    label('Installation Location',c3,y); value('See address above',c3,y+10); y+=30;
+
+    // SECTION: Gauge Info (from tester profile)
+    font(8,'bold'); doc.setTextColor(80);
+    text('TEST GAUGE INFORMATION',ml,y); doc.setTextColor(0);
+    line(ml,y+2,W-mr,y+2); y+=14;
+
+    label('Gauge Serial #',ml,y);      value(testerProfile.gaugeSerial||'',ml,y+10);
+    label('Calibration Date',c3,y);    value(testerProfile.gaugeDate?fmtDate(testerProfile.gaugeDate):'',c3,y+10);
+    label('Calibration Due',c4,y);     value(testerProfile.gaugeDue?fmtDate(testerProfile.gaugeDue):'',c4,y+10); y+=30;
+
+    // SECTION: Test Readings
+    font(8,'bold'); doc.setTextColor(80);
+    text('PRESSURE DIFFERENTIAL READINGS (PSID)',ml,y); doc.setTextColor(0);
+    line(ml,y+2,W-mr,y+2); y+=14;
+
+    const readings = [];
+    if (r.assembly==='RPZ') {
+      readings.push(['1st Check Valve (min 5.0 PSID)', r.check1||'—', r.psid_c1>=5.0?'PASS':'FAIL']);
+      readings.push(['2nd Check Valve (min 1.0 PSID)', r.check2||'—', r.psid_c2>=1.0?'PASS':'FAIL']);
+      readings.push(['Relief Valve (open ≤ C1−2.0)', r.relief||'—', r.psid_relief!==null&&r.psid_c1!==null&&r.psid_relief<=(r.psid_c1-2.0)?'PASS':'FAIL']);
+    } else if (r.assembly==='DCVA') {
+      readings.push(['1st Check Valve (min 1.0 PSID)', r.check1||'—', r.psid_c1>=1.0?'PASS':'FAIL']);
+      readings.push(['2nd Check Valve (min 1.0 PSID)', r.check2||'—', r.psid_c2>=1.0?'PASS':'FAIL']);
+    } else {
+      readings.push(['Check Valve (min 1.0 PSID)', r.check1||'—', r.psid_c1>=1.0?'PASS':'FAIL']);
+      readings.push(['Air Inlet (min 1.0 PSID)', r.relief||'—', r.psid_relief>=1.0?'PASS':'FAIL']);
+    }
+
+    // Table header
+    rect(ml,y,cw,14,[240,240,240]);
+    font(7,'bold'); doc.setTextColor(60);
+    text('TEST POINT',ml+4,y+9); text('READING',ml+220,y+9); text('RESULT',ml+350,y+9); doc.setTextColor(0);
+    y+=14;
+
+    readings.forEach((row,i) => {
+      if(i%2===1) rect(ml,y,cw,18,[250,250,250]);
+      font(8,'normal'); text(row[0],ml+4,y+12);
+      font(9,'bold');   text(row[1],ml+220,y+12);
+      doc.setTextColor(row[2]==='PASS'?[76,175,121]:[224,82,82]);
+      font(8,'bold');   text(row[2],ml+350,y+12);
+      doc.setTextColor(0); y+=18;
+    });
+    y+=8;
+
+    // Repairs
+    font(8,'bold'); doc.setTextColor(80);
+    text('REPAIRS / REMARKS',ml,y); doc.setTextColor(0);
+    line(ml,y+2,W-mr,y+2); y+=14;
+    label('Repairs Made',ml,y); value(r.repairs?'YES — See details below':'NO',ml,y+10); y+=20;
+    if (r.repairs && r.repair_details) {
+      font(8,'normal');
+      const lines=doc.splitTextToSize(r.repair_details, cw);
+      lines.forEach(l=>{ text(l,ml,y); y+=12; });
+      y+=4;
+    }
+    if (r.remarks) {
+      label('Remarks',ml,y); y+=10;
+      font(8,'normal');
+      const lines=doc.splitTextToSize(r.remarks,cw);
+      lines.forEach(l=>{ text(l,ml,y); y+=12; });
+    }
+    y+=16;
+
+    // SECTION: Tester Certification
+    font(8,'bold'); doc.setTextColor(80);
+    text('TESTER CERTIFICATION',ml,y); doc.setTextColor(0);
+    line(ml,y+2,W-mr,y+2); y+=14;
+
+    label('Licensed Tester Name',ml,y);  value(r.tester||testerProfile.name||'',ml,y+10);
+    label('Certification #',c3,y);       value(r.cert_num||testerProfile.cert||'',c3,y+10);
+    label('Cert Expiration',c4,y);       value(testerProfile.certExp?fmtDate(testerProfile.certExp):'',c4,y+10); y+=26;
+    label('Company / Firm',ml,y);        value(r.firm||testerProfile.company||'',ml,y+10);
+    label('License #',c3,y);             value(testerProfile.license||'',c3,y+10); y+=30;
+
+    // Signature line
+    line(ml, y, ml+200, y);
+    line(ml+220, y, ml+350, y);
+    font(7,'normal'); doc.setTextColor(100);
+    text('Tester Signature',ml,y+10);
+    text('Date',ml+220,y+10); doc.setTextColor(0); y+=30;
+
+    // FOOTER
+    rect(ml,y,cw,20,[240,240,240]);
+    font(7,'normal'); doc.setTextColor(100);
+    text(`Generated by Cross Connection Inspector — ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}`,W/2,y+13,{align:'center'});
+    text('TCEQ 30 TAC §290.47(f) — City of Abilene Cross-Connection Control Program',W/2,y+22,{align:'center'});
+
+    // Save
+    const filename=`TCEQ_20700_${(r.address||'report').replace(/[^a-z0-9]/gi,'_').slice(0,30)}_${r.date}.pdf`;
+    doc.save(filename);
+    toast('📄 TCEQ 20700 PDF downloaded!','success');
+  } catch(e) {
+    console.error('PDF error:',e);
+    toast('PDF generation failed: '+e.message,'error');
+  }
+}
+
+// ── HISTORY ────────────────────────────────────────────
+
+async function loadHistory() {
+  const container=document.getElementById('history-list');
+  container.innerHTML=`<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-title">Loading…</div></div>`;
+  try {
+    const headers=await getHeaders();
+    const res=await fetch(`${SUPA_URL}/rest/v1/backflow_reports?select=*&order=date.desc&limit=50`,{headers});
+    if (!res.ok) throw new Error();
+    const all=await res.json();
+    const name=testerProfile.name||currentUser.email;
+    myReports=all.filter(r=>(r.tester&&r.tester.toLowerCase()===(name||'').toLowerCase())||(r.tester_email&&r.tester_email===currentUser.email));
+    renderHistory();
+  } catch(e){ renderHistory(); }
+}
+
+function renderHistory() {
+  const c=document.getElementById('history-list');
+  if (!myReports.length) {
+    c.innerHTML=`<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No Reports Yet</div><div class="empty-sub">SUBMIT YOUR FIRST TEST REPORT</div></div>`;
+    return;
+  }
+  c.innerHTML=myReports.map(r=>{
+    const bc=r.result==='PASS'?'badge-pass':r.result==='FAIL'?'badge-fail':'badge-pending';
+    const bl=r.result==='PASS'?'✓ PASS':r.result==='FAIL'?'✗ FAIL':'? PENDING';
+    return `<div class="history-card">
+      <div class="history-header">
+        <div class="history-addr">${r.address||'—'}</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          <span class="badge ${bc}">${bl}</span>
+          <button class="pdf-btn" onclick="generateTCEQ20700(${JSON.stringify(r).replace(/"/g,'&quot;')})">📄 PDF</button>
+        </div>
+      </div>
+      <div class="history-meta">
+        <div class="history-field"><div class="history-field-label">DATE</div><div class="history-field-val">${fmtDate(r.date)}</div></div>
+        <div class="history-field"><div class="history-field-label">ASSEMBLY</div><div class="history-field-val">${r.assembly||'—'}</div></div>
+        <div class="history-field"><div class="history-field-label">SERIAL #</div><div class="history-field-val">${r.serial||'—'}</div></div>
+        <div class="history-field"><div class="history-field-label">REPAIRS</div><div class="history-field-val">${r.repairs?'Yes':'No'}</div></div>
+      </div>
+      ${r.fail_reasons?`<div style="margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--red);line-height:1.6">${r.fail_reasons}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ── HELPERS ────────────────────────────────────────────
+
+async function getHeaders() {
+  const {data:{session}}=await supaClient.auth.getSession();
+  const token=session?.access_token||SUPA_KEY;
+  return {'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+token};
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+
+function toast(msg,type) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast '+type+' show';
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+// ── INIT ────────────────────────────────────────────────
+
+supaClient.auth.getSession().then(({data:{session}})=>{
+  if (session) { currentUser=session.user; enterApp(); }
+});
+</script>
+</body>
+</html>
