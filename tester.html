@@ -564,6 +564,34 @@ select.field-input option{background:var(--elevated)}
   #wizard-mode { display: none !important; }
 }
 
+
+/* ── ADDRESS & DEVICE AUTOCOMPLETE ── */
+.ac-wrap { position: relative; width: 100%; }
+.ac-dropdown {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 200;
+  background: var(--elevated); border: 1.5px solid var(--accent);
+  border-radius: 12px; overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,.5); max-height: 220px; overflow-y: auto;
+}
+.ac-item {
+  padding: 13px 14px; font-size: 14px; font-weight: 600; cursor: pointer;
+  border-bottom: 1px solid var(--border); transition: background .15s;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.ac-item:last-child { border-bottom: none; }
+.ac-item:active { background: rgba(249,166,30,.1); }
+.ac-item-main { color: var(--text); }
+.ac-item-sub { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .5px; }
+.ac-loading { padding: 14px; text-align: center; font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 1px; }
+.ac-empty { padding: 14px; text-align: center; font-family: var(--mono); font-size: 10px; color: var(--muted); }
+
+/* Lead-free badge */
+.lf-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px; font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: .5px; margin-left: 6px; }
+.lf-pass { background: rgba(61,184,112,.15); color: var(--green); border: 1px solid rgba(61,184,112,.25); }
+.lf-fail { background: rgba(224,82,82,.15); color: var(--red); border: 1px solid rgba(224,82,82,.25); }
+.lf-unknown { background: rgba(140,149,159,.1); color: var(--muted); border: 1px solid var(--border); }
+.model-lf-check { margin-top: 6px; padding: 8px 10px; border-radius: 8px; font-family: var(--mono); font-size: 10px; line-height: 1.5; display: none; }
+
 </style>
 </head>
 <body>
@@ -689,7 +717,15 @@ select.field-input option{background:var(--elevated)}
 
     <div class="form-section">
       <div class="form-section-title">LOCATION</div>
-      <div class="form-row full"><div class="form-field"><span class="field-label">Street Address</span><input type="text" class="field-input" id="sub-addr" placeholder="123 Main St, Abilene TX" autocomplete="off"></div></div>
+      <div class="form-row full">
+        <div class="form-field">
+          <span class="field-label">Street Address <span style="color:var(--red)">*</span></span>
+          <div class="ac-wrap">
+            <input type="text" class="field-input" id="sub-addr" placeholder="123 Main St, Abilene TX" autocomplete="off">
+            <div class="ac-dropdown" id="sub-addr-dropdown" style="display:none"></div>
+          </div>
+        </div>
+      </div>
       <div class="form-row">
         <div class="form-field"><span class="field-label">Date</span><input type="date" class="field-input" id="sub-date"></div>
         <div class="form-field"><span class="field-label">Your Name</span><input type="text" class="field-input" id="sub-tester" placeholder="Full name"></div>
@@ -699,9 +735,22 @@ select.field-input option{background:var(--elevated)}
     <div class="form-section">
       <div class="form-section-title">DEVICE INFO</div>
       <div class="form-row">
-        <div class="form-field"><span class="field-label">Manufacturer</span><input type="text" class="field-input" id="sub-mfr" placeholder="Watts, Febco…"></div>
-        <div class="form-field"><span class="field-label">Model</span><input type="text" class="field-input" id="sub-model" placeholder="LF009…"></div>
+        <div class="form-field">
+          <span class="field-label">Manufacturer <span style="color:var(--red)">*</span></span>
+          <div class="ac-wrap">
+            <input type="text" class="field-input" id="sub-mfr" placeholder="Watts, Febco…" autocomplete="off">
+            <div class="ac-dropdown" id="sub-mfr-dropdown" style="display:none"></div>
+          </div>
+        </div>
+        <div class="form-field">
+          <span class="field-label">Model <span style="color:var(--red)">*</span></span>
+          <div class="ac-wrap">
+            <input type="text" class="field-input" id="sub-model" placeholder="LF009…" autocomplete="off">
+            <div class="ac-dropdown" id="sub-model-dropdown" style="display:none"></div>
+          </div>
+        </div>
       </div>
+      <div class="model-lf-check" id="lf-check-result" style="display:none;border-radius:9px;padding:10px 12px;margin-bottom:8px;font-family:var(--mono);font-size:10px;line-height:1.6;margin-top:4px"></div>
       <div class="form-row">
         <div class="form-field"><span class="field-label">Serial #</span><input type="text" class="field-input" id="sub-serial" placeholder="SN-12345"></div>
         <div class="form-field"><span class="field-label">Size</span><select class="field-input" id="sub-size"><option>3/4"</option><option>1"</option><option>1-1/4"</option><option>1-1/2"</option><option>2"</option><option>3"</option><option>4"</option></select></div>
@@ -901,6 +950,8 @@ async function enterApp() {
   switchPage('home');
   await loadHomeStats();
   await loadAllDevices();
+  // Init autocompletes for full portal
+  setTimeout(initPortalAutocompletes, 300);
 }
 
 // ── SCREENS ────────────────────────────────────────
@@ -1691,6 +1742,8 @@ function wizStartTest() {
   document.getElementById('wiz-date').valueAsDate = new Date();
   wizSelectAsm('RPZ');
   wizShowStep('addr');
+  // Init address autocomplete
+  setTimeout(() => initAddrAutocomplete('wiz-addr', 'wiz-addr-dropdown', null), 200);
 }
 
 function wizGoHistory() {
@@ -1806,11 +1859,14 @@ function wizStep3Next() {
     document.getElementById('wiz-c1')?.focus();
     return;
   }
-  // Show repair select
   document.getElementById('wiz-repairs').onchange = function() {
     document.getElementById('wiz-repair-detail-group').style.display = this.value === 'yes' ? 'block' : 'none';
   };
   wizShowStep('device');
+  // Init device autocompletes
+  setTimeout(() => {
+    initMfrAutocomplete('wiz-mfr', 'wiz-mfr-dropdown', 'wiz-model', 'wiz-model-dropdown');
+  }, 200);
 }
 
 // ── Step 4: Device ─────────────────────────────────────────────
@@ -2012,6 +2068,293 @@ supaClient.auth.getSession().then(({data:{session}})=>{
   }
   // No session = login screen stays visible (default state — no CSS changes needed)
 });
+
+// ════════════════════════════════════════════════════════════════
+//  ADDRESS AUTOCOMPLETE — Taylor CAD via ngrok FastAPI
+// ════════════════════════════════════════════════════════════════
+
+const CAD_BASE = 'https://scroll-rebel-bottle.ngrok-free.dev';
+let addrSearchTimer = null;
+let addrDropdownOpen = false;
+
+async function lookupCADAddress(query) {
+  if (!query || query.length < 4) return [];
+  try {
+    const encoded = encodeURIComponent(query);
+    const res = await fetch(`${CAD_BASE}/cad_lookup?address=${encoded}`, {
+      headers: { 'ngrok-skip-browser-warning': 'true' }
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    // Single result — wrap in array
+    if (data.propertyAddress || data.ownerName) return [data];
+    return [];
+  } catch(e) {
+    console.warn('CAD lookup error:', e.message);
+    return [];
+  }
+}
+
+async function searchCADMultiple(query) {
+  // Try both the exact lookup and a partial Nominatim fallback
+  const results = [];
+  // 1. Taylor CAD exact
+  const cadResult = await lookupCADAddress(query);
+  results.push(...cadResult);
+  // 2. Nominatim fallback for partial matches
+  if (results.length === 0 && query.length >= 4) {
+    try {
+      const encoded = encodeURIComponent(query + ' Abilene TX');
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&limit=5&countrycodes=us&viewbox=-99.86,32.33,-99.60,32.65&bounded=1`, {
+        headers: { 'User-Agent': 'CrossConnectionInspector/1.0' }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        data.forEach(item => {
+          const name = item.display_name.split(',')[0].trim();
+          results.push({ propertyAddress: name, ownerName: null, _nominatim: true, _fullAddr: item.display_name });
+        });
+      }
+    } catch(e) {}
+  }
+  return results;
+}
+
+function initAddrAutocomplete(inputId, dropdownId, onSelect) {
+  const input = document.getElementById(inputId);
+  const dropdown = document.getElementById(dropdownId);
+  if (!input || !dropdown) return;
+
+  input.addEventListener('input', () => {
+    clearTimeout(addrSearchTimer);
+    const q = input.value.trim();
+    if (q.length < 3) { dropdown.style.display = 'none'; return; }
+    dropdown.style.display = 'block';
+    dropdown.innerHTML = '<div class="ac-loading">🔍 SEARCHING TAYLOR CAD…</div>';
+    addrSearchTimer = setTimeout(async () => {
+      const results = await searchCADMultiple(q);
+      if (results.length === 0) {
+        dropdown.innerHTML = '<div class="ac-empty">No matches — type full address</div>';
+        return;
+      }
+      dropdown.innerHTML = results.map((r, i) => {
+        const addr = r.propertyAddress || r._fullAddr || '—';
+        const owner = r.ownerName ? `Owner: ${r.ownerName}` : (r._nominatim ? 'OpenStreetMap result' : '');
+        return `<div class="ac-item" onclick="selectAddr_${inputId}(${i})">
+          <div class="ac-item-main">${addr}</div>
+          ${owner ? `<div class="ac-item-sub">${owner}</div>` : ''}
+        </div>`;
+      }).join('');
+      // Store results for selection
+      window['_cadResults_' + inputId] = results;
+      // Dynamic select handlers
+      results.forEach((r, i) => {
+        window[`selectAddr_${inputId}`] = (idx) => {
+          const res = window['_cadResults_' + inputId][idx];
+          const addr = res.propertyAddress || res._fullAddr || '';
+          input.value = addr;
+          dropdown.style.display = 'none';
+          if (onSelect) onSelect(res);
+        };
+      });
+    }, 400);
+  });
+
+  // Close on outside click
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.style.display = 'none';
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
+//  DEVICE MANUFACTURER + MODEL AUTOCOMPLETE
+// ════════════════════════════════════════════════════════════════
+
+const BACKFLOW_DEVICES = {
+  'Watts': {
+    models: {
+      'LF009': { types: ['RPZ'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+      'LF009M2': { types: ['RPZ'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+      'LF007': { types: ['DCVA'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"','2-1/2"','3"'] },
+      'LF007M2': { types: ['DCVA'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+      'LF800M4': { types: ['PVB'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+      'LF800MKII': { types: ['PVB'], leadFree: true, sizes: ['3/4"','1"','1-1/2"','2"'] },
+      '009': { types: ['RPZ'], leadFree: false, sizes: ['3/4"','1"','1-1/2"','2"'] },
+      '007': { types: ['DCVA'], leadFree: false, sizes: ['3/4"','1"','1-1/2"','2"','3"'] },
+    }
+  },
+  'Febco': {
+    models: {
+      'LF825Y': { types: ['RPZ'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+      'LF825YA': { types: ['RPZ'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+      'LF860': { types: ['DCVA'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+      'LF765': { types: ['PVB'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+      '825Y': { types: ['RPZ'], leadFree: false, sizes: ['3/4"','1"','1-1/2"','2"'] },
+      '860': { types: ['DCVA'], leadFree: false, sizes: ['3/4"','1"','1-1/2"','2"'] },
+    }
+  },
+  'Wilkins': {
+    models: {
+      'LF375XL': { types: ['RPZ'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+      'LF375A': { types: ['RPZ'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+      'LF350XL': { types: ['DCVA'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+      'LF720A': { types: ['PVB'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+      '375XL': { types: ['RPZ'], leadFree: false, sizes: ['3/4"','1"','1-1/2"','2"'] },
+      '350XL': { types: ['DCVA'], leadFree: false, sizes: ['3/4"','1"','1-1/2"','2"'] },
+    }
+  },
+  'Ames': {
+    models: {
+      'LF4000SS': { types: ['RPZ'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+      'LF2000SS': { types: ['DCVA'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+      '4000SS': { types: ['RPZ'], leadFree: false, sizes: ['3/4"','1"','1-1/2"','2"'] },
+      '2000SS': { types: ['DCVA'], leadFree: false, sizes: ['3/4"','1"','1-1/2"','2"'] },
+    }
+  },
+  'Apollo': {
+    models: {
+      'LF4ALF': { types: ['RPZ'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+      'LF4A': { types: ['RPZ'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+      'LF4CIV': { types: ['DCVA'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+      '4ALF': { types: ['RPZ'], leadFree: false, sizes: ['3/4"','1"','1-1/2"','2"'] },
+    }
+  },
+  'Conbraco': {
+    models: {
+      'LF4ALF': { types: ['RPZ'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+      'LF4CIV': { types: ['DCVA'], leadFree: true, sizes: ['3/4"','1"','1-1/2"','2"'] },
+    }
+  },
+  'Cash Acme': {
+    models: {
+      'LF3': { types: ['RPZ'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+    }
+  },
+};
+
+const BRAND_LIST = Object.keys(BACKFLOW_DEVICES);
+
+function initMfrAutocomplete(inputId, dropdownId, modelInputId, modelDropdownId) {
+  const input = document.getElementById(inputId);
+  const dropdown = document.getElementById(dropdownId);
+  if (!input || !dropdown) return;
+
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toLowerCase();
+    if (!q) { dropdown.style.display = 'none'; return; }
+    const matches = BRAND_LIST.filter(b => b.toLowerCase().includes(q));
+    if (!matches.length) { dropdown.style.display = 'none'; return; }
+    dropdown.style.display = 'block';
+    dropdown.innerHTML = matches.map(b => `
+      <div class="ac-item" onclick="selectMfr('${b}','${inputId}','${dropdownId}','${modelInputId}','${modelDropdownId}')">
+        <div class="ac-item-main">${b}</div>
+        <div class="ac-item-sub">${Object.keys(BACKFLOW_DEVICES[b].models).length} MODELS AVAILABLE</div>
+      </div>`).join('');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.style.display = 'none';
+  });
+}
+
+function selectMfr(brand, inputId, dropdownId, modelInputId, modelDropdownId) {
+  document.getElementById(inputId).value = brand;
+  document.getElementById(dropdownId).style.display = 'none';
+  // Init model autocomplete for this brand
+  initModelAutocomplete(brand, modelInputId, modelDropdownId);
+  document.getElementById(modelInputId)?.focus();
+}
+
+function initModelAutocomplete(brand, inputId, dropdownId) {
+  const input = document.getElementById(inputId);
+  const dropdown = document.getElementById(dropdownId);
+  if (!input || !dropdown) return;
+  const models = brand ? BACKFLOW_DEVICES[brand]?.models || {} : {};
+
+  // Remove old listener
+  input.oninput = () => {
+    const q = input.value.trim().toLowerCase();
+    const allModels = Object.entries(models);
+    const matches = q ? allModels.filter(([k]) => k.toLowerCase().includes(q)) : allModels;
+    if (!matches.length) { dropdown.style.display = 'none'; checkLeadFree(brand, input.value.trim()); return; }
+    dropdown.style.display = 'block';
+    dropdown.innerHTML = matches.map(([model, info]) => {
+      const lfLabel = info.leadFree ? '✓ LF' : '✗ NOT LF';
+      const lfColor = info.leadFree ? 'var(--green)' : 'var(--red)';
+      return `<div class="ac-item" onclick="selectModel('${brand}','${model}','${inputId}','${dropdownId}')">
+        <div class="ac-item-main" style="display:flex;align-items:center;gap:8px">
+          ${model}
+          <span style="font-family:var(--mono);font-size:9px;color:${lfColor};background:${info.leadFree ? 'rgba(61,184,112,.1)' : 'rgba(224,82,82,.1)'};padding:2px 7px;border-radius:5px;border:1px solid ${lfColor}">${lfLabel}</span>
+        </div>
+        <div class="ac-item-sub">${info.types.join('/')} · Sizes: ${info.sizes.join(', ')}</div>
+      </div>`;
+    }).join('');
+    checkLeadFree(brand, input.value.trim());
+  };
+
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.style.display = 'none';
+  });
+}
+
+function selectModel(brand, model, inputId, dropdownId) {
+  document.getElementById(inputId).value = model;
+  document.getElementById(dropdownId).style.display = 'none';
+  checkLeadFree(brand, model);
+  // Auto-set assembly type if only one type
+  const info = BACKFLOW_DEVICES[brand]?.models[model];
+  if (info && info.types.length === 1) {
+    const asm = info.types[0];
+    // Set in wizard
+    if (document.getElementById('wiz-step-asm')) wizSelectAsm(asm);
+    // Set in full portal
+    if (typeof selectAsm === 'function') selectAsm(asm);
+  }
+}
+
+function checkLeadFree(brand, model) {
+  const checkEl = document.getElementById('lf-check-result') || document.getElementById('wiz-lf-check');
+  if (!checkEl) return;
+  const info = BACKFLOW_DEVICES[brand]?.models[model];
+  if (!info) { checkEl.style.display = 'none'; return; }
+  checkEl.style.display = 'block';
+  if (info.leadFree) {
+    checkEl.style.background = 'rgba(61,184,112,.08)';
+    checkEl.style.border = '1px solid rgba(61,184,112,.25)';
+    checkEl.style.color = 'var(--green)';
+    checkEl.innerHTML = '✓ LEAD-FREE COMPLIANT — This model meets TCEQ ≤0.25% lead requirement (NSF/ANSI 372)';
+  } else {
+    checkEl.style.background = 'rgba(224,82,82,.08)';
+    checkEl.style.border = '1px solid rgba(224,82,82,.25)';
+    checkEl.style.color = 'var(--red)';
+    checkEl.innerHTML = '⚠ NOT LEAD-FREE — This model exceeds TCEQ 0.25% lead limit. Replacement required for new installations per TCEQ 30 TAC §290.42.';
+  }
+}
+
+// ── Init all autocompletes when wizard address step shows ──────────────────────
+function initWizardAutocompletes() {
+  // Address autocomplete
+  initAddrAutocomplete('wiz-addr', 'wiz-addr-dropdown', (result) => {
+    // If we got CAD data, could pre-fill other fields
+    console.log('CAD result:', result);
+  });
+  // Manufacturer autocomplete
+  initMfrAutocomplete('wiz-mfr', 'wiz-mfr-dropdown', 'wiz-model', 'wiz-model-dropdown');
+  // Model autocomplete (starts empty until brand selected)
+  initModelAutocomplete('', 'wiz-model', 'wiz-model-dropdown');
+}
+
+// ── Init full portal autocompletes ────────────────────────────────────────────
+function initPortalAutocompletes() {
+  initAddrAutocomplete('sub-addr', 'sub-addr-dropdown', (result) => {
+    console.log('Portal CAD result:', result);
+  });
+  initMfrAutocomplete('sub-mfr', 'sub-mfr-dropdown', 'sub-model', 'sub-model-dropdown');
+  initModelAutocomplete('', 'sub-model', 'sub-model-dropdown');
+}
+
 </script>
 
 <!-- ══════════════════════════════════════════════════════
@@ -2133,7 +2476,10 @@ supaClient.auth.getSession().then(({data:{session}})=>{
       <div class="wiz-content">
         <div class="wiz-field-group">
           <label class="wiz-field-label">SERVICE ADDRESS <span style="color:var(--red)">*</span></label>
-          <input type="text" class="wiz-field-input" id="wiz-addr" placeholder="123 Main St, Abilene TX" autocomplete="street-address" autocorrect="off">
+          <div class="ac-wrap">
+            <input type="text" class="wiz-field-input" id="wiz-addr" placeholder="123 Main St, Abilene TX" autocomplete="off" autocorrect="off">
+            <div class="ac-dropdown" id="wiz-addr-dropdown" style="display:none"></div>
+          </div>
         </div>
         <div class="wiz-field-row">
           <div>
@@ -2224,16 +2570,21 @@ supaClient.auth.getSession().then(({data:{session}})=>{
           <label class="wiz-field-label">SERIAL # <span style="color:var(--red)">*</span></label>
           <input type="text" class="wiz-field-input" id="wiz-serial" placeholder="SN-12345" autocorrect="off" autocapitalize="characters">
         </div>
-        <div class="wiz-field-row">
-          <div>
-            <label class="wiz-field-label">MANUFACTURER <span style="color:var(--red)">*</span></label>
-            <input type="text" class="wiz-field-input" id="wiz-mfr" placeholder="Watts, Febco…">
-          </div>
-          <div>
-            <label class="wiz-field-label">MODEL <span style="color:var(--red)">*</span></label>
-            <input type="text" class="wiz-field-input" id="wiz-model" placeholder="LF009…">
+        <div style="margin-bottom:14px">
+          <label class="wiz-field-label">MANUFACTURER <span style="color:var(--red)">*</span></label>
+          <div class="ac-wrap">
+            <input type="text" class="wiz-field-input" id="wiz-mfr" placeholder="Watts, Febco, Wilkins…" autocomplete="off">
+            <div class="ac-dropdown" id="wiz-mfr-dropdown" style="display:none"></div>
           </div>
         </div>
+        <div style="margin-bottom:6px">
+          <label class="wiz-field-label">MODEL <span style="color:var(--red)">*</span></label>
+          <div class="ac-wrap">
+            <input type="text" class="wiz-field-input" id="wiz-model" placeholder="LF009, LF825Y…" autocomplete="off">
+            <div class="ac-dropdown" id="wiz-model-dropdown" style="display:none"></div>
+          </div>
+        </div>
+        <div class="model-lf-check" id="wiz-lf-check" style="display:none;border-radius:9px;padding:10px 12px;margin-bottom:14px;font-family:var(--mono);font-size:10px;line-height:1.6"></div>
         <div class="wiz-field-row">
           <div>
             <label class="wiz-field-label">SIZE</label>
