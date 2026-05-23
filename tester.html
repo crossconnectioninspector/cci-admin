@@ -551,11 +551,13 @@ select.field-input option{background:var(--elevated)}
 
 /* Mobile detection */
 @media (max-width: 768px) {
-  #wizard-mode { display: flex; }
-  #screen-login { display: none !important; }
-  #screen-app { display: none !important; }
-  body.show-full-portal #wizard-mode { display: none; }
-  body.show-full-portal #screen-login,
+  /* Wizard shows ONLY after login — CSS never hides the login screen */
+  #wizard-mode { display: none; }
+  body.wizard-active #wizard-mode { display: flex; }
+  body.wizard-active #screen-login { display: none !important; }
+  body.wizard-active #screen-app { display: none !important; }
+  /* Full portal override */
+  body.show-full-portal #wizard-mode { display: none !important; }
   body.show-full-portal #screen-app { display: flex !important; }
 }
 @media (min-width: 769px) {
@@ -871,8 +873,8 @@ async function doLogin() {
   } else {
     currentUser = data.user;
     if (window.innerWidth <= 768) {
-      document.getElementById('screen-login').style.display = 'none';
-      document.getElementById('wizard-mode').style.display = 'flex';
+      document.body.classList.add('wizard-active');
+      document.body.classList.remove('show-full-portal');
       await loadProfile();
       renderTesterInfo();
       initWizard();
@@ -1964,9 +1966,10 @@ async function loadWizHistory() {
 // ── Switch modes ───────────────────────────────────────────────
 function switchToFullPortal() {
   document.body.classList.add('show-full-portal');
-  // Show the login screen or app screen appropriately
+  document.body.classList.add('wizard-active'); // keep wizard-active so login stays hidden
   if (currentUser) {
-    document.getElementById('screen-app').style.display = 'flex';
+    // Ensure app screen is active
+    document.getElementById('screen-app').classList.add('active');
     document.getElementById('screen-login').style.display = 'none';
     switchPage('home');
   }
@@ -1981,10 +1984,12 @@ async function wizDoLogout() {
   await supaClient.auth.signOut();
   currentUser = null;
   testerProfile = {};
-  document.getElementById('wizard-mode').style.display = 'none';
-  // Show login
-  document.getElementById('screen-login').style.display = 'flex';
+  // Remove all mode classes — login screen shows by default
+  document.body.classList.remove('wizard-active');
   document.body.classList.remove('show-full-portal');
+  // Ensure login screen is visible
+  document.getElementById('screen-login').style.display = '';
+  document.getElementById('screen-login').classList.add('active');
 }
 
 
@@ -1993,21 +1998,15 @@ supaClient.auth.getSession().then(({data:{session}})=>{
   if (session) {
     currentUser = session.user;
     if (window.innerWidth <= 768) {
-      // Mobile — show wizard login flow
-      document.getElementById('screen-login').style.display = 'none';
-      document.getElementById('screen-app').style.display = 'none';
-      document.getElementById('wizard-mode').style.display = 'flex';
+      // Mobile — activate wizard after confirming session exists
+      document.body.classList.add('wizard-active');
+      document.body.classList.remove('show-full-portal');
       loadProfile().then(() => { renderTesterInfo(); initWizard(); });
     } else {
       enterApp();
     }
-  } else {
-    // Not logged in — show login on all devices
-    if (window.innerWidth <= 768) {
-      document.getElementById('screen-login').style.display = 'flex';
-      document.getElementById('wizard-mode').style.display = 'none';
-    }
   }
+  // No session = login screen stays visible (default state — no CSS changes needed)
 });
 </script>
 
