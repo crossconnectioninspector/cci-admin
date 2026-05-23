@@ -1663,15 +1663,19 @@ function wizShowStep(step) {
   wizCurrentStep = step;
   WIZ_STEPS.forEach(s => {
     const el = document.getElementById('wiz-step-' + s);
-    if (el) el.style.display = 'none';
+    if (el) { el.style.display = 'none'; }
   });
   const target = document.getElementById('wiz-step-' + step);
   if (target) target.style.display = 'flex';
 
-  // Topbar
-  const titles = { home:'Field Mode', addr:'New Test', asm:'New Test', readings:'New Test', device:'New Test', result:'Complete!', history:'My Reports' };
-  document.getElementById('wiz-title').textContent = titles[step] || 'CCI Tester';
-  document.getElementById('wiz-back-btn').style.display = step === 'home' ? 'none' : 'flex';
+  // Topbar — show logo on home, back button on other steps
+  const isHome = step === 'home';
+  const backBtn = document.getElementById('wiz-back-btn');
+  const logoWrap = document.getElementById('wiz-logo-wrap');
+  const titles = { home:'CCI Tester', addr:'New Test — Step 1', asm:'New Test — Step 2', readings:'New Test — Step 3', device:'New Test — Step 4', result:'Test Complete', history:'My Reports' };
+  if (backBtn) backBtn.style.display = isHome ? 'none' : 'flex';
+  if (logoWrap) logoWrap.style.display = isHome ? 'flex' : 'none';
+  document.getElementById('wiz-title').textContent = isHome ? '' : (titles[step] || 'CCI Tester');
 }
 
 function wizBack() {
@@ -2017,8 +2021,11 @@ supaClient.auth.getSession().then(({data:{session}})=>{
 
   <!-- TOPBAR -->
   <div class="wiz-topbar">
-    <button class="wiz-back" id="wiz-back-btn" onclick="wizBack()">‹ Back</button>
-    <div class="wiz-title" id="wiz-title">Field Mode</div>
+    <button class="wiz-back" id="wiz-back-btn" onclick="wizBack()" style="display:none">‹ Back</button>
+    <div style="display:flex;align-items:center;gap:8px" id="wiz-logo-wrap">
+      <div style="width:28px;height:28px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 8px rgba(249,166,30,.3)">🛡️</div>
+      <div class="wiz-title" id="wiz-title">CCI Tester</div>
+    </div>
     <button class="wiz-switch" onclick="switchToFullPortal()">Full View</button>
   </div>
 
@@ -2026,47 +2033,86 @@ supaClient.auth.getSession().then(({data:{session}})=>{
   <div id="wiz-body" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
 
     <!-- STEP 0: HOME -->
-    <div id="wiz-step-home" class="wiz-content" style="padding-top:20px">
-      <div style="margin-bottom:20px">
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:4px">WELCOME BACK</div>
-        <div style="font-family:var(--cond);font-size:30px;font-weight:900;line-height:1" id="wiz-greeting">—</div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px" id="wiz-cert-display">—</div>
+    <div id="wiz-step-home" style="display:flex;flex-direction:column;flex:1;overflow-y:auto;overflow-x:hidden;width:100%;box-sizing:border-box">
+
+      <!-- HEADER -->
+      <div style="padding:20px 16px 0;width:100%">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:6px;text-transform:uppercase">Welcome Back</div>
+        <div style="font-family:var(--cond);font-size:28px;font-weight:900;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="wiz-greeting">—</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:5px" id="wiz-cert-display">—</div>
       </div>
 
-      <!-- stat row -->
-      <div class="stats-row" style="margin-bottom:20px">
-        <div class="stat-chip"><div class="stat-val" id="wiz-stat-total">—</div><div class="stat-label">TESTS</div></div>
-        <div class="stat-chip"><div class="stat-val" style="color:var(--green)" id="wiz-stat-pass">—</div><div class="stat-label">PASS</div></div>
-        <div class="stat-chip"><div class="stat-val" style="color:var(--red)" id="wiz-stat-fail">—</div><div class="stat-label">FAIL</div></div>
+      <!-- STATS — constrained 3-col grid -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:14px 16px;width:100%;box-sizing:border-box">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 6px;text-align:center">
+          <div style="font-family:var(--cond);font-size:28px;font-weight:900;line-height:1" id="wiz-stat-total">—</div>
+          <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;margin-top:4px">TESTS</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 6px;text-align:center">
+          <div style="font-family:var(--cond);font-size:28px;font-weight:900;line-height:1;color:var(--green)" id="wiz-stat-pass">—</div>
+          <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;margin-top:4px">PASS</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 6px;text-align:center">
+          <div style="font-family:var(--cond);font-size:28px;font-weight:900;line-height:1;color:var(--red)" id="wiz-stat-fail">—</div>
+          <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;margin-top:4px">FAIL</div>
+        </div>
       </div>
 
-      <div id="wiz-home-alerts"></div>
+      <!-- ALERTS -->
+      <div style="padding:0 16px;width:100%;box-sizing:border-box" id="wiz-home-alerts"></div>
 
-      <!-- START TEST — big primary action -->
-      <button onclick="wizStartTest()" style="width:100%;padding:22px 16px;background:var(--accent);color:#000;border:none;border-radius:16px;font-family:var(--cond);font-size:24px;font-weight:900;letter-spacing:.5px;cursor:pointer;box-shadow:0 8px 32px rgba(249,166,30,.4);margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:10px;-webkit-tap-highlight-color:transparent">
-        📋 Start New Test Report
-      </button>
+      <!-- MAIN ACTIONS -->
+      <div style="padding:0 16px 24px;width:100%;box-sizing:border-box">
 
-      <!-- Secondary actions -->
-      <button onclick="wizGoHistory()" class="action-btn">
-        <div class="action-btn-icon">📁</div>
-        <div class="action-btn-text">
-          <div class="action-btn-title">My Reports</div>
-          <div class="action-btn-sub">VIEW & DOWNLOAD PAST TESTS</div>
-        </div>
-        <div class="action-btn-arrow">›</div>
-      </button>
-      <button onclick="switchToFullPortal()" class="action-btn">
-        <div class="action-btn-icon">🖥️</div>
-        <div class="action-btn-text">
-          <div class="action-btn-title">Full Portal</div>
-          <div class="action-btn-sub">PROFILE, SEARCH, SETTINGS</div>
-        </div>
-        <div class="action-btn-arrow">›</div>
-      </button>
+        <!-- PRIMARY — Start Test -->
+        <button onclick="wizStartTest()"
+          style="width:100%;padding:20px 16px;background:var(--accent);color:#000;border:none;
+                 border-radius:16px;font-family:var(--cond);font-size:22px;font-weight:900;
+                 letter-spacing:.3px;cursor:pointer;box-shadow:0 8px 28px rgba(249,166,30,.4);
+                 margin-bottom:10px;display:flex;align-items:center;justify-content:center;
+                 gap:10px;box-sizing:border-box;-webkit-tap-highlight-color:transparent;
+                 text-align:center;line-height:1.2">
+          📋&nbsp; Start New Test Report
+        </button>
 
-      <div style="text-align:center;margin-top:20px">
-        <button onclick="wizDoLogout()" style="font-family:var(--mono);font-size:10px;color:var(--red);background:none;border:none;cursor:pointer;letter-spacing:1px;padding:8px">↩ SIGN OUT</button>
+        <!-- SECONDARY — My Reports -->
+        <button onclick="wizGoHistory()"
+          style="width:100%;padding:16px;background:var(--elevated);color:var(--text);
+                 border:1.5px solid var(--border);border-radius:14px;margin-bottom:8px;
+                 display:flex;align-items:center;gap:12px;cursor:pointer;
+                 box-sizing:border-box;-webkit-tap-highlight-color:transparent;text-align:left">
+          <div style="width:42px;height:42px;border-radius:11px;background:rgba(100,149,237,.12);
+                      display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">📁</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:15px;font-weight:700;margin-bottom:2px">My Reports</div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.5px">VIEW & DOWNLOAD PAST TESTS</div>
+          </div>
+          <div style="color:var(--muted);font-size:18px;flex-shrink:0">›</div>
+        </button>
+
+        <!-- SECONDARY — Full Portal -->
+        <button onclick="switchToFullPortal()"
+          style="width:100%;padding:16px;background:var(--elevated);color:var(--text);
+                 border:1.5px solid var(--border);border-radius:14px;margin-bottom:20px;
+                 display:flex;align-items:center;gap:12px;cursor:pointer;
+                 box-sizing:border-box;-webkit-tap-highlight-color:transparent;text-align:left">
+          <div style="width:42px;height:42px;border-radius:11px;background:rgba(150,100,237,.12);
+                      display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">⚙️</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:15px;font-weight:700;margin-bottom:2px">Full Portal</div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.5px">PROFILE, SEARCH, SETTINGS</div>
+          </div>
+          <div style="color:var(--muted);font-size:18px;flex-shrink:0">›</div>
+        </button>
+
+        <!-- SIGN OUT -->
+        <button onclick="wizDoLogout()"
+          style="width:100%;padding:14px;background:rgba(224,82,82,.08);color:var(--red);
+                 border:1px solid rgba(224,82,82,.2);border-radius:12px;
+                 font-family:var(--mono);font-size:11px;letter-spacing:1px;
+                 cursor:pointer;box-sizing:border-box;-webkit-tap-highlight-color:transparent">
+          ↩ SIGN OUT
+        </button>
       </div>
     </div>
 
