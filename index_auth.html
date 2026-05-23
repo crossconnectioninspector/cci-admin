@@ -73,13 +73,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 .sbar{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:14px 18px;margin-bottom:16px;display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
 .sg{display:flex;flex-direction:column;gap:4px;flex:1;min-width:160px}
 .sl{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase}
-.si,.ss{background:var(--elevated);border:1px solid var(--border);border-radius:7px;padding:9px 12px;color:var(--text);font-family:var(--sans);font-size:13px;outline:none;transition:border-color .2s;width:100%}
+.si,.ss{background:var(--elevated);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:var(--sans);font-size:14px;font-weight:600;outline:none;transition:border-color .2s;width:100%}
 .si:focus,.ss:focus{border-color:var(--accent)}
 .si::placeholder{color:var(--muted)}
 .ss option{background:var(--elevated)}
 
 /* BUTTONS */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:7px;font-family:var(--sans);font-size:13px;font-weight:600;border:none;cursor:pointer;transition:opacity .15s,transform .1s;white-space:nowrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:10px;font-family:var(--sans);font-size:14px;font-weight:700;border:none;cursor:pointer;transition:opacity .15s,transform .1s;white-space:nowrap}
 .btn:hover{opacity:.88;transform:translateY(-1px)}
 .btn-ac{background:var(--accent);color:#000}
 .btn-gh{background:var(--elevated);color:var(--text);border:1px solid var(--border)}
@@ -256,30 +256,38 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
   border-radius:8px;
 }
 .mob-nb-icon{font-size:20px;width:36px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:background .15s}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 
 <!-- CHANGE 2: Login Screen -->
-<div id="login-screen" style="position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:380px;padding:32px">
-    <div style="text-align:center;margin-bottom:28px">
-      <div style="width:48px;height:48px;background:var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 12px">🛡️</div>
-      <div style="font-family:var(--cond);font-size:22px;font-weight:700">Cross Connection Inspector</div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;margin-top:4px">ADMIN PORTAL</div>
+<div id="login-screen" style="position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;padding:24px">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:400px;padding:36px 32px;box-shadow:0 24px 64px rgba(0,0,0,.5)">
+    <div style="text-align:center;margin-bottom:32px">
+      <div style="width:56px;height:56px;background:var(--accent);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 14px">🛡️</div>
+      <div style="font-family:var(--cond);font-size:26px;font-weight:900;line-height:1.1">Cross Connection<br>Inspector</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;margin-top:8px">ADMIN PORTAL</div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:12px">
-      <div>
-        <label class="sl">Email</label>
-        <input type="email" class="si" id="login-email" placeholder="you@example.com" style="width:100%;margin-top:4px">
-      </div>
-      <div>
-        <label class="sl">Password</label>
-        <input type="password" class="si" id="login-password" placeholder="••••••••" style="width:100%;margin-top:4px" onkeydown="if(event.key==='Enter')doLogin()">
-      </div>
-      <div id="login-error" style="font-size:12px;color:var(--red);display:none;text-align:center"></div>
-      <button class="btn btn-ac" style="width:100%;justify-content:center;margin-top:4px" onclick="doLogin()">Sign In</button>
+    <div style="margin-bottom:16px">
+      <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;display:block;margin-bottom:6px">Email</label>
+      <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email"
+        style="background:var(--elevated);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-family:var(--sans);font-size:15px;font-weight:600;outline:none;width:100%;transition:border-color .2s"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
     </div>
+    <div style="margin-bottom:16px">
+      <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;display:block;margin-bottom:6px">Password</label>
+      <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"
+        style="background:var(--elevated);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-family:var(--sans);font-size:15px;font-weight:600;outline:none;width:100%;transition:border-color .2s"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div id="login-error" style="font-size:12px;color:var(--red);display:none;text-align:center;margin-bottom:8px"></div>
+    <button id="login-btn" onclick="doLogin()"
+      style="background:var(--accent);color:#000;width:100%;padding:14px;border-radius:10px;font-family:var(--sans);font-size:15px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s">
+      Sign In
+    </button>
+    <div style="text-align:center;margin-top:16px;font-family:var(--mono);font-size:10px;color:var(--muted)">Admin access only — contact your administrator</div>
   </div>
 </div>
 
@@ -757,10 +765,14 @@ async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
   const errEl = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
   errEl.style.display = 'none';
+  if(btn){ btn.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite"></span>'; btn.disabled = true; }
   const { error } = await supaClient.auth.signInWithPassword({ email, password });
-  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; }
-  else { document.getElementById('login-screen').style.display = 'none'; renderDashboard(); }
+  if (error) {
+    errEl.textContent = error.message; errEl.style.display = 'block';
+    if(btn){ btn.innerHTML = 'Sign In'; btn.disabled = false; }
+  } else { document.getElementById('login-screen').style.display = 'none'; renderDashboard(); }
 }
 
 async function doLogout() {
@@ -1728,6 +1740,131 @@ async function fetchAllRiskLocations() {
   }
 }
 
+
+// ── CITY RISK MAP — CORE HELPERS ─────────────────────────────────────────────
+
+async function overpassQuery(query) {
+  if(riskStopped) return [];
+  for(let attempt = 0; attempt < OVERPASS_ENDPOINTS.length; attempt++) {
+    const url = OVERPASS_ENDPOINTS[(overpassEndpointIdx + attempt) % OVERPASS_ENDPOINTS.length];
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 30000);
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'data=' + encodeURIComponent(query),
+        signal: controller.signal
+      });
+      clearTimeout(timer);
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      console.log(`✅ Overpass: ${(data.elements||[]).length} elements`);
+      riskErrorCount = 0;
+      overpassEndpointIdx = (overpassEndpointIdx + attempt) % OVERPASS_ENDPOINTS.length;
+      return data.elements || [];
+    } catch(e) {
+      clearTimeout(timer);
+      console.warn(`❌ Overpass attempt ${attempt+1}: ${e.message}`);
+    }
+  }
+  riskErrorCount++;
+  if(riskErrorCount >= 5) {
+    riskStopped = true;
+    if(el('risk-header-counts')) el('risk-header-counts').innerHTML = '<span style="color:var(--red)">⚠ Overpass unavailable — tap ↻ to retry</span>';
+  }
+  return [];
+}
+
+function classifyAndAdd(elements, seen, gasKw, foodTags) {
+  for(const elem of elements) {
+    const name = elem.tags && elem.tags.name;
+    if(!name || !name.trim()) continue;
+    const lat = elem.lat || (elem.center && elem.center.lat);
+    const lon = elem.lon  || (elem.center && elem.center.lon);
+    if(!lat || !lon) continue;
+    const key = name.toLowerCase().slice(0,30) + '_' + Math.round(lat*1000) + '_' + Math.round(lon*1000);
+    if(seen.has(key)) continue;
+
+    // Match by OSM tag rules first
+    let catIdx = -1;
+    if(elem.tags) {
+      for(const rule of OSM_CLASS_RULES) {
+        const tagVal = elem.tags[rule.key];
+        if(tagVal !== undefined) {
+          if(rule.value === '' || tagVal === rule.value) {
+            const matchedTag = rule.key + '=' + tagVal;
+            if(foodTags.has(matchedTag)) {
+              const lower = name.toLowerCase();
+              if(gasKw.some(kw => lower.includes(kw))) break;
+            }
+            catIdx = rule.idx;
+            break;
+          }
+        }
+      }
+    }
+    // Fall back to name keyword rules
+    if(catIdx < 0) {
+      const lower = name.toLowerCase();
+      for(const rule of NAME_KEYWORD_RULES) {
+        if(rule.keywords.some(kw => lower.includes(kw))) { catIdx = rule.idx; break; }
+      }
+    }
+    if(catIdx < 0 || catIdx >= TCEQ_CATEGORIES.length) continue;
+    seen.add(key);
+    const cat = TCEQ_CATEGORIES[catIdx];
+    const addr = [(elem.tags && elem.tags['addr:housenumber']), (elem.tags && elem.tags['addr:street'])].filter(Boolean).join(' ');
+    riskLocations.push({name, lat, lng:lon, label:cat.label, cat:cat.cat, device:cat.device, rating:cat.rating, code:cat.code, reason:cat.reason, address:addr, id:key});
+  }
+}
+
+async function nominatimSearch(term, seen) {
+  if(riskStopped) return [];
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 10000);
+  try {
+    const encoded = encodeURIComponent(term);
+    const url = `${NOMINATIM_URL}?q=${encoded}&format=json&addressdetails=1&extratags=1&limit=10&viewbox=-99.86,32.33,-99.60,32.65&bounded=1&countrycodes=us`;
+    const res = await fetch(url, {signal: controller.signal, headers:{'User-Agent':'CrossConnectionInspector/1.0'}});
+    clearTimeout(timer);
+    if(!res.ok) return [];
+    const data = await res.json();
+    riskErrorCount = 0;
+    const results = [];
+    const GAS_KW = ['allsup','stripes','valero','exxon','chevron','shell','murphy','7-eleven','circle k','loves','flying j','pilot'];
+    for(const item of data) {
+      const name = (item.display_name||'').split(',')[0].trim();
+      if(!name) continue;
+      const lat = parseFloat(item.lat), lon = parseFloat(item.lon);
+      if(isNaN(lat)||isNaN(lon)) continue;
+      const key = name.toLowerCase().slice(0,30)+'_'+Math.round(lat*1000)+'_'+Math.round(lon*1000);
+      if(seen.has(key)) continue;
+      const lower = name.toLowerCase();
+      let catIdx = -1;
+      for(const rule of NAME_KEYWORD_RULES) {
+        if(rule.keywords.some(kw => lower.includes(kw))) { catIdx = rule.idx; break; }
+      }
+      if(catIdx < 0 && item.extratags) {
+        for(const rule of OSM_CLASS_RULES) {
+          const tagVal = item.extratags[rule.key];
+          if(tagVal !== undefined && (rule.value === '' || tagVal === rule.value)) { catIdx = rule.idx; break; }
+        }
+      }
+      if(catIdx < 0 || catIdx >= TCEQ_CATEGORIES.length) continue;
+      seen.add(key);
+      const cat = TCEQ_CATEGORIES[catIdx];
+      const addr = [item.address && item.address.house_number, item.address && item.address.road].filter(Boolean).join(' ');
+      results.push({name, lat, lng:lon, label:cat.label, cat:cat.cat, device:cat.device, rating:cat.rating, code:cat.code, reason:cat.reason, address:addr, id:key});
+    }
+    console.log(`✅ Nominatim "${term}": ${results.length} results`);
+    return results;
+  } catch(e) {
+    clearTimeout(timer);
+    console.warn(`❌ Nominatim "${term}": ${e.message}`);
+    return [];
+  }
+}
 
 // ── CITY RISK MAP — UI FUNCTIONS ─────────────────────────────────────────────
 
