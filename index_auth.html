@@ -256,29 +256,105 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
   border-radius:8px;
 }
 .mob-nb-icon{font-size:20px;width:36px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:background .15s}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══════════════════════════════════════════════════
+   MOBILE ADMIN MODE — activates on phones ≤768px
+══════════════════════════════════════════════════ */
+#mobile-admin { display: none; flex-direction: column; min-height: 100dvh; background: var(--bg); }
+
+@media (max-width: 768px) {
+  body.mobile-admin-active #mobile-admin { display: flex; }
+  body.mobile-admin-active .main,
+  body.mobile-admin-active .sidebar { display: none !important; }
+}
+@media (min-width: 769px) {
+  #mobile-admin { display: none !important; }
+}
+
+/* Mobile admin topbar */
+.ma-topbar {
+  height: 56px; background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; padding: 0 16px;
+  position: sticky; top: 0; z-index: 50; flex-shrink: 0;
+}
+.ma-logo { display: flex; align-items: center; gap: 9px; }
+.ma-logo-icon { width: 30px; height: 30px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 2px 8px rgba(249,166,30,.3); }
+.ma-logo-text { font-family: var(--cond); font-size: 16px; font-weight: 900; }
+.ma-admin-pill { font-family: var(--mono); font-size: 8px; color: var(--accent); background: rgba(249,166,30,.08); border: 1px solid rgba(249,166,30,.2); padding: 3px 8px; border-radius: 20px; letter-spacing: 1px; }
+
+/* Mobile admin content */
+.ma-content { flex: 1; overflow-y: auto; padding: 14px; overflow-x: hidden; }
+
+/* Mobile admin bottom nav */
+.ma-bottom-nav { height: 66px; background: var(--surface); border-top: 1px solid var(--border); display: flex; align-items: stretch; flex-shrink: 0; position: sticky; bottom: 0; padding-bottom: env(safe-area-inset-bottom); }
+.ma-bn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border: none; background: transparent; color: var(--muted); font-family: var(--mono); font-size: 7px; letter-spacing: .8px; cursor: pointer; transition: color .15s; padding: 0; position: relative; }
+.ma-bn.active { color: var(--accent); }
+.ma-bn.active::before { content: ''; position: absolute; top: 0; left: 15%; right: 15%; height: 2px; background: var(--accent); border-radius: 0 0 2px 2px; }
+.ma-bn-icon { font-size: 20px; line-height: 1; }
+
+/* Mobile admin stat cards */
+.ma-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.ma-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 12px; }
+.ma-stat-val { font-family: var(--cond); font-size: 32px; font-weight: 900; line-height: 1; }
+.ma-stat-label { font-family: var(--mono); font-size: 8px; color: var(--muted); letter-spacing: 1.5px; margin-top: 4px; text-transform: uppercase; }
+
+/* Mobile admin report card */
+.ma-report-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 10px; }
+.ma-report-addr { font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+.ma-report-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.ma-report-field { display: flex; flex-direction: column; gap: 2px; }
+.ma-report-label { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: 1px; }
+.ma-report-val { font-size: 12px; font-weight: 600; }
+
+/* Switch to desktop button */
+.ma-desktop-btn { width: 100%; padding: 13px; background: var(--elevated); border: 1.5px solid var(--border); border-radius: 12px; color: var(--muted); font-family: var(--mono); font-size: 10px; letter-spacing: 1px; cursor: pointer; margin-top: 14px; }
+
 </style>
 </head>
 <body>
 
 <!-- CHANGE 2: Login Screen -->
-<div id="login-screen" style="position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:380px;padding:32px">
-    <div style="text-align:center;margin-bottom:28px">
-      <div style="width:48px;height:48px;background:var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 12px">🛡️</div>
-      <div style="font-family:var(--cond);font-size:22px;font-weight:700">Cross Connection Inspector</div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;margin-top:4px">ADMIN PORTAL</div>
+<div id="login-screen" style="position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse at 50% 0%, rgba(249,166,30,.08) 0%, transparent 60%), var(--bg)">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:24px;width:100%;max-width:400px;padding:40px 32px;box-shadow:0 12px 48px rgba(0,0,0,.6)">
+
+    <!-- Logo -->
+    <div style="text-align:center;margin-bottom:36px">
+      <div style="width:64px;height:64px;background:var(--accent);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px;box-shadow:0 8px 32px rgba(249,166,30,.35)">🛡️</div>
+      <div style="font-family:var(--cond);font-size:28px;font-weight:900;line-height:1.05;letter-spacing:-.5px">Cross Connection<br>Inspector</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:3px;margin-top:8px;text-transform:uppercase">Admin Portal</div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:12px">
-      <div>
-        <label class="sl">Email</label>
-        <input type="email" class="si" id="login-email" placeholder="you@example.com" style="width:100%;margin-top:4px">
-      </div>
-      <div>
-        <label class="sl">Password</label>
-        <input type="password" class="si" id="login-password" placeholder="••••••••" style="width:100%;margin-top:4px" onkeydown="if(event.key==='Enter')doLogin()">
-      </div>
-      <div id="login-error" style="font-size:12px;color:var(--red);display:none;text-align:center"></div>
-      <button class="btn btn-ac" style="width:100%;justify-content:center;margin-top:4px" onclick="doLogin()">Sign In</button>
+
+    <!-- Email -->
+    <div style="margin-bottom:16px">
+      <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:7px;font-weight:700">Email</label>
+      <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email"
+        style="background:var(--elevated);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;color:var(--text);font-family:var(--sans);font-size:15px;font-weight:600;outline:none;width:100%;transition:border-color .2s,box-shadow .2s;box-sizing:border-box"
+        onfocus="this.style.borderColor='var(--accent)';this.style.boxShadow='0 0 0 3px rgba(249,166,30,.1)'"
+        onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+    </div>
+
+    <!-- Password -->
+    <div style="margin-bottom:16px">
+      <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:7px;font-weight:700">Password</label>
+      <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"
+        style="background:var(--elevated);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;color:var(--text);font-family:var(--sans);font-size:15px;font-weight:600;outline:none;width:100%;transition:border-color .2s,box-shadow .2s;box-sizing:border-box"
+        onfocus="this.style.borderColor='var(--accent)';this.style.boxShadow='0 0 0 3px rgba(249,166,30,.1)'"
+        onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+
+    <!-- Error -->
+    <div id="login-error" style="font-size:12px;color:var(--red);display:none;text-align:center;margin-bottom:10px;padding:8px 12px;background:rgba(224,82,82,.08);border-radius:9px;border:1px solid rgba(224,82,82,.2)"></div>
+
+    <!-- Button -->
+    <button id="login-btn" onclick="doLogin()"
+      style="background:var(--accent);color:#000;width:100%;padding:15px;border-radius:12px;font-family:var(--sans);font-size:16px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s;box-shadow:0 4px 16px rgba(249,166,30,.3);margin-top:4px">
+      Sign In
+    </button>
+
+    <div style="text-align:center;margin-top:16px;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.5px">
+      Admin access only — contact your administrator
     </div>
   </div>
 </div>
@@ -757,10 +833,24 @@ async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
   const errEl = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
   errEl.style.display = 'none';
+  if (btn) { btn.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite"></span>'; btn.disabled = true; }
   const { error } = await supaClient.auth.signInWithPassword({ email, password });
-  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; }
-  else { document.getElementById('login-screen').style.display = 'none'; renderDashboard(); }
+  if (error) {
+    errEl.textContent = error.message;
+    errEl.style.display = 'block';
+    if (btn) { btn.innerHTML = 'Sign In'; btn.disabled = false; }
+  } else {
+    // Route to mobile or desktop
+    if (window.innerWidth <= 768) {
+      document.getElementById('login-screen').style.display = 'none';
+      showMobileAdmin();
+    } else {
+      document.getElementById('login-screen').style.display = 'none';
+      renderDashboard();
+    }
+  }
 }
 
 async function doLogout() {
@@ -2307,10 +2397,244 @@ setupPsidFields('RPZ');
 supaClient.auth.getSession().then(({ data: { session } }) => {
   if (session) {
     document.getElementById('login-screen').style.display = 'none';
-    renderDashboard();
+    if (window.innerWidth <= 768) {
+      showMobileAdmin();
+    } else {
+      renderDashboard();
+    }
   }
-  // No session = login screen stays visible (display:flex)
+  // No session = login screen stays visible
 });
+
+// ══════════════════════════════════════════════════
+//  MOBILE ADMIN — JS
+// ══════════════════════════════════════════════════
+
+function showMobileAdmin() {
+  document.body.classList.add('mobile-admin-active');
+  loadMobileDashboard();
+}
+
+function switchMobileToDesktop() {
+  document.body.classList.remove('mobile-admin-active');
+  renderDashboard();
+}
+
+function switchMobilePage(page) {
+  ['dashboard','reports','risk','add'].forEach(p => {
+    const el = document.getElementById('ma-page-' + p);
+    if (el) el.style.display = 'none';
+    const bn = document.getElementById('ma-bn-' + p);
+    if (bn) bn.classList.remove('active');
+  });
+  const target = document.getElementById('ma-page-' + page);
+  if (target) target.style.display = page === 'risk' ? 'flex' : 'block';
+  const bn = document.getElementById('ma-bn-' + page);
+  if (bn) bn.classList.add('active');
+  if (page === 'reports') loadMobileReports();
+  if (page === 'risk') initMobileRiskMap();
+}
+
+async function loadMobileDashboard() {
+  try {
+    const headers = await getHeaders();
+    const res = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?select=*&order=date.desc&limit=100`, { headers });
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    const pass = data.filter(r => r.result === 'PASS').length;
+    const fail = data.filter(r => r.result === 'FAIL').length;
+    const today = new Date();
+    const overdue = data.filter(r => {
+      if (!r.date) return false;
+      const d = new Date(r.date + 'T12:00:00');
+      const diff = (today - d) / (1000*60*60*24);
+      return diff > 365;
+    }).length;
+    document.getElementById('ma-total').textContent = data.length;
+    document.getElementById('ma-pass').textContent = pass;
+    document.getElementById('ma-fail').textContent = fail;
+    document.getElementById('ma-overdue').textContent = overdue;
+    // Recent 10
+    const recent = data.slice(0, 10);
+    document.getElementById('ma-recent-list').innerHTML = recent.map(r => mobileReportCard(r)).join('');
+  } catch(e) {
+    document.getElementById('ma-recent-list').innerHTML = '<div style="text-align:center;padding:20px;color:var(--red);font-family:var(--mono);font-size:10px">Error loading data</div>';
+  }
+}
+
+async function loadMobileReports() {
+  const container = document.getElementById('ma-all-reports-list');
+  container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);font-family:var(--mono);font-size:10px">Loading…</div>';
+  try {
+    const headers = await getHeaders();
+    const res = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?select=*&order=date.desc&limit=50`, { headers });
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    container.innerHTML = data.length ? data.map(r => mobileReportCard(r)).join('') : '<div style="text-align:center;padding:32px;color:var(--muted);font-family:var(--mono);font-size:10px">No reports yet</div>';
+  } catch(e) {
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--red);font-family:var(--mono);font-size:10px">Error loading reports</div>';
+  }
+}
+
+function mobileReportCard(r) {
+  const pass = r.result === 'PASS';
+  const badgeStyle = pass
+    ? 'background:rgba(61,184,112,.12);color:#3db870;border:1px solid rgba(61,184,112,.25)'
+    : 'background:rgba(224,82,82,.12);color:#e05252;border:1px solid rgba(224,82,82,.25)';
+  const date = r.date ? new Date(r.date + 'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+  return `<div class="ma-report-card">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;gap:8px">
+      <div class="ma-report-addr" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.address || '—'}</div>
+      <span style="display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-family:var(--mono);font-size:9px;font-weight:700;white-space:nowrap;flex-shrink:0;${badgeStyle}">${pass ? '✓ PASS' : '✗ FAIL'}</span>
+    </div>
+    <div class="ma-report-meta">
+      <div class="ma-report-field"><div class="ma-report-label">DATE</div><div class="ma-report-val">${date}</div></div>
+      <div class="ma-report-field"><div class="ma-report-label">TESTER</div><div class="ma-report-val" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.tester || '—'}</div></div>
+      <div class="ma-report-field"><div class="ma-report-label">ASSEMBLY</div><div class="ma-report-val">${r.assembly || '—'}</div></div>
+      <div class="ma-report-field"><div class="ma-report-label">SERIAL</div><div class="ma-report-val">${r.serial || '—'}</div></div>
+    </div>
+  </div>`;
+}
+
+let mobileRiskMapInited = false;
+function initMobileRiskMap() {
+  if (mobileRiskMapInited) return;
+  mobileRiskMapInited = true;
+  const mapEl = document.getElementById('ma-risk-map');
+  if (!mapEl || typeof L === 'undefined') return;
+  const map = L.map('ma-risk-map', { center: [32.4487, -99.7331], zoom: 12, zoomControl: true });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OSM &copy; CARTO', maxZoom: 19
+  }).addTo(map);
+  // Plot risk locations if loaded
+  if (typeof riskLocations !== 'undefined' && riskLocations.length) {
+    riskLocations.forEach(loc => {
+      const color = loc.rating >= 9 ? '#e05252' : loc.rating >= 7 ? '#f9a61e' : loc.rating >= 5 ? '#f0c040' : '#3db870';
+      L.circleMarker([loc.lat, loc.lng], { radius: 6, fillColor: color, color: '#000', weight: 1, opacity: .8, fillOpacity: .8 })
+        .bindPopup(`<b>${loc.name}</b><br>${loc.label}<br>Rating: ${loc.rating}/10`)
+        .addTo(map);
+    });
+  }
+}
+
+async function mobileAdminLogout() {
+  await supaClient.auth.signOut();
+  document.body.classList.remove('mobile-admin-active');
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+// ── Check session on load — route to mobile if on phone ──────────────────────
+// This runs after the existing session check in the file
+
 </script>
+
+<!-- ══════════════════════════════════════════════════════
+     MOBILE ADMIN — Activates on phones after login
+══════════════════════════════════════════════════════ -->
+<div id="mobile-admin">
+
+  <!-- TOPBAR -->
+  <div class="ma-topbar">
+    <div class="ma-logo">
+      <div class="ma-logo-icon">🛡️</div>
+      <div class="ma-logo-text">CCI Admin</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="ma-admin-pill">ADMIN</div>
+      <button onclick="switchMobileToDesktop()"
+        style="font-family:var(--mono);font-size:8px;color:var(--muted);background:var(--elevated);border:1px solid var(--border);border-radius:7px;padding:5px 9px;cursor:pointer;letter-spacing:.5px">
+        🖥 DESKTOP
+      </button>
+      <button onclick="mobileAdminLogout()"
+        style="font-family:var(--mono);font-size:8px;color:var(--red);background:rgba(224,82,82,.08);border:1px solid rgba(224,82,82,.2);border-radius:7px;padding:5px 9px;cursor:pointer;letter-spacing:.5px;font-weight:700">
+        ↩ OUT
+      </button>
+    </div>
+  </div>
+
+  <!-- PAGE: DASHBOARD -->
+  <div class="ma-content" id="ma-page-dashboard">
+    <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:14px">OVERVIEW</div>
+
+    <div class="ma-stats" id="ma-stats-grid">
+      <div class="ma-stat">
+        <div class="ma-stat-val" id="ma-total">—</div>
+        <div class="ma-stat-label">TOTAL TESTS</div>
+      </div>
+      <div class="ma-stat">
+        <div class="ma-stat-val" style="color:var(--green)" id="ma-pass">—</div>
+        <div class="ma-stat-label">PASSED</div>
+      </div>
+      <div class="ma-stat">
+        <div class="ma-stat-val" style="color:var(--red)" id="ma-fail">—</div>
+        <div class="ma-stat-label">FAILED</div>
+      </div>
+      <div class="ma-stat">
+        <div class="ma-stat-val" style="color:var(--yellow)" id="ma-overdue">—</div>
+        <div class="ma-stat-label">OVERDUE</div>
+      </div>
+    </div>
+
+    <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:10px;margin-top:4px">RECENT REPORTS</div>
+    <div id="ma-recent-list">
+      <div style="text-align:center;padding:32px;color:var(--muted);font-family:var(--mono);font-size:10px">Loading…</div>
+    </div>
+
+    <button class="ma-desktop-btn" onclick="switchMobileToDesktop()">🖥 Switch to Full Desktop View</button>
+  </div>
+
+  <!-- PAGE: REPORTS -->
+  <div class="ma-content" id="ma-page-reports" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-family:var(--cond);font-size:20px;font-weight:900">All Reports</div>
+      <button onclick="loadMobileReports()" style="font-family:var(--mono);font-size:9px;color:var(--accent);background:rgba(249,166,30,.08);border:1px solid rgba(249,166,30,.2);border-radius:7px;padding:5px 10px;cursor:pointer">↻ Refresh</button>
+    </div>
+    <div id="ma-all-reports-list">
+      <div style="text-align:center;padding:32px;color:var(--muted);font-family:var(--mono);font-size:10px">Loading…</div>
+    </div>
+  </div>
+
+  <!-- PAGE: RISK MAP -->
+  <div id="ma-page-risk" style="display:none;flex-direction:column;flex:1">
+    <div style="padding:14px 14px 0;flex-shrink:0">
+      <div style="font-family:var(--cond);font-size:20px;font-weight:900;margin-bottom:4px">City Risk Map</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:10px">TCEQ 290.47(f) APPENDIX F</div>
+    </div>
+    <div style="flex:1;position:relative;min-height:0">
+      <div id="ma-risk-map" style="width:100%;height:100%;min-height:400px"></div>
+    </div>
+  </div>
+
+  <!-- PAGE: ADD REPORT -->
+  <div class="ma-content" id="ma-page-add" style="display:none">
+    <div style="font-family:var(--cond);font-size:20px;font-weight:900;margin-bottom:14px">Add Report</div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:12px">USE DESKTOP FOR FULL FORM</div>
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:14px">The full report submission form is available in Desktop view. For quick field submissions, use the Tester Portal.</p>
+      <button onclick="switchMobileToDesktop()" style="width:100%;padding:14px;background:var(--accent);color:#000;border:none;border-radius:12px;font-family:var(--cond);font-size:18px;font-weight:900;cursor:pointer">Open Desktop View</button>
+      <div style="margin-top:10px;text-align:center">
+        <a href="tester.html" style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:1px">Or open Tester Portal →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="ma-bottom-nav">
+    <button class="ma-bn active" id="ma-bn-dashboard" onclick="switchMobilePage('dashboard')">
+      <span class="ma-bn-icon">📊</span>OVERVIEW
+    </button>
+    <button class="ma-bn" id="ma-bn-reports" onclick="switchMobilePage('reports')">
+      <span class="ma-bn-icon">📋</span>REPORTS
+    </button>
+    <button class="ma-bn" id="ma-bn-risk" onclick="switchMobilePage('risk')">
+      <span class="ma-bn-icon">🗺️</span>RISK MAP
+    </button>
+    <button class="ma-bn" id="ma-bn-add" onclick="switchMobilePage('add')">
+      <span class="ma-bn-icon">➕</span>ADD
+    </button>
+  </div>
+
+</div>
+
 </body>
 </html>
