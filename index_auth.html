@@ -73,13 +73,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 .sbar{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:14px 18px;margin-bottom:16px;display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
 .sg{display:flex;flex-direction:column;gap:4px;flex:1;min-width:160px}
 .sl{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase}
-.si,.ss{background:var(--elevated);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:var(--sans);font-size:14px;font-weight:600;outline:none;transition:border-color .2s;width:100%}
+.si,.ss{background:var(--elevated);border:1px solid var(--border);border-radius:7px;padding:9px 12px;color:var(--text);font-family:var(--sans);font-size:13px;outline:none;transition:border-color .2s;width:100%}
 .si:focus,.ss:focus{border-color:var(--accent)}
 .si::placeholder{color:var(--muted)}
 .ss option{background:var(--elevated)}
 
 /* BUTTONS */
-.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:10px;font-family:var(--sans);font-size:14px;font-weight:700;border:none;cursor:pointer;transition:opacity .15s,transform .1s;white-space:nowrap}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:7px;font-family:var(--sans);font-size:13px;font-weight:600;border:none;cursor:pointer;transition:opacity .15s,transform .1s;white-space:nowrap}
 .btn:hover{opacity:.88;transform:translateY(-1px)}
 .btn-ac{background:var(--accent);color:#000}
 .btn-gh{background:var(--elevated);color:var(--text);border:1px solid var(--border)}
@@ -256,38 +256,30 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
   border-radius:8px;
 }
 .mob-nb-icon{font-size:20px;width:36px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:background .15s}
-@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 
 <!-- CHANGE 2: Login Screen -->
-<div id="login-screen" style="position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;padding:24px">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:400px;padding:36px 32px;box-shadow:0 24px 64px rgba(0,0,0,.5)">
-    <div style="text-align:center;margin-bottom:32px">
-      <div style="width:56px;height:56px;background:var(--accent);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 14px">🛡️</div>
-      <div style="font-family:var(--cond);font-size:26px;font-weight:900;line-height:1.1">Cross Connection<br>Inspector</div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;margin-top:8px">ADMIN PORTAL</div>
+<div id="login-screen" style="position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:380px;padding:32px">
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="width:48px;height:48px;background:var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 12px">🛡️</div>
+      <div style="font-family:var(--cond);font-size:22px;font-weight:700">Cross Connection Inspector</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;margin-top:4px">ADMIN PORTAL</div>
     </div>
-    <div style="margin-bottom:16px">
-      <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;display:block;margin-bottom:6px">Email</label>
-      <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email"
-        style="background:var(--elevated);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-family:var(--sans);font-size:15px;font-weight:600;outline:none;width:100%;transition:border-color .2s"
-        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div>
+        <label class="sl">Email</label>
+        <input type="email" class="si" id="login-email" placeholder="you@example.com" style="width:100%;margin-top:4px">
+      </div>
+      <div>
+        <label class="sl">Password</label>
+        <input type="password" class="si" id="login-password" placeholder="••••••••" style="width:100%;margin-top:4px" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div id="login-error" style="font-size:12px;color:var(--red);display:none;text-align:center"></div>
+      <button class="btn btn-ac" style="width:100%;justify-content:center;margin-top:4px" onclick="doLogin()">Sign In</button>
     </div>
-    <div style="margin-bottom:16px">
-      <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;display:block;margin-bottom:6px">Password</label>
-      <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"
-        style="background:var(--elevated);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-family:var(--sans);font-size:15px;font-weight:600;outline:none;width:100%;transition:border-color .2s"
-        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
-        onkeydown="if(event.key==='Enter')doLogin()">
-    </div>
-    <div id="login-error" style="font-size:12px;color:var(--red);display:none;text-align:center;margin-bottom:8px"></div>
-    <button id="login-btn" onclick="doLogin()"
-      style="background:var(--accent);color:#000;width:100%;padding:14px;border-radius:10px;font-family:var(--sans);font-size:15px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s">
-      Sign In
-    </button>
-    <div style="text-align:center;margin-top:16px;font-family:var(--mono);font-size:10px;color:var(--muted)">Admin access only — contact your administrator</div>
   </div>
 </div>
 
@@ -765,14 +757,10 @@ async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
   const errEl = document.getElementById('login-error');
-  const btn = document.getElementById('login-btn');
   errEl.style.display = 'none';
-  if(btn){ btn.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite"></span>'; btn.disabled = true; }
   const { error } = await supaClient.auth.signInWithPassword({ email, password });
-  if (error) {
-    errEl.textContent = error.message; errEl.style.display = 'block';
-    if(btn){ btn.innerHTML = 'Sign In'; btn.disabled = false; }
-  } else { document.getElementById('login-screen').style.display = 'none'; renderDashboard(); }
+  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; }
+  else { document.getElementById('login-screen').style.display = 'none'; renderDashboard(); }
 }
 
 async function doLogout() {
@@ -1271,12 +1259,21 @@ function initDeviceMap() {
   if(!deviceMap) {
     deviceMap = L.map('device-map', {center:[32.4487,-99.7331], zoom:13,
       attributionControl:true});
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
-      attribution:'&copy; OSM &copy; CARTO', maxZoom:19}).addTo(deviceMap);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom:19}).addTo(deviceMap);
+    // Dark overlay so markers still pop
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png',{
+      attribution:'',maxZoom:19,opacity:0.35}).addTo(deviceMap);
     deviceMarkers = L.markerClusterGroup({maxClusterRadius:50,
       iconCreateFunction: c => L.divIcon({html:`<div style="background:var(--accent);color:#000;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;font-family:var(--cond);border:2px solid rgba(249,166,30,.5)">${c.getChildCount()}</div>`,iconSize:[32,32],className:''})
     });
     deviceMap.addLayer(deviceMarkers);
+
+    // Abilene city boundary — same polygon as risk map
+    const devicePolyStyle = {color:'#f9a61e',weight:2,opacity:0.7,fillColor:'#f9a61e',fillOpacity:0.04,dashArray:'6,4'};
+    const deviceBoundaryCoords = [[32.6243596,-99.6793492],[32.6244341,-99.6712882],[32.6235264,-99.6716389],[32.6222881,-99.6703228],[32.6209653,-99.6697914],[32.6219313,-99.6590055],[32.6154048,-99.6581495],[32.6205287,-99.6547265],[32.6193273,-99.6518751],[32.6155658,-99.6541806],[32.6117337,-99.6544735],[32.6115679,-99.6555249],[32.6110580,-99.6556980],[32.6082470,-99.6549103],[32.5994316,-99.6551372],[32.5995350,-99.6654956],[32.5967021,-99.6667789],[32.5899610,-99.6667301],[32.5899319,-99.6751773],[32.5778509,-99.6751547],[32.5778403,-99.6771315],[32.5641335,-99.6771540],[32.5641764,-99.6653098],[32.5637800,-99.6652846],[32.5637666,-99.6645998],[32.5637776,-99.6601253],[32.5643064,-99.6601142],[32.5642395,-99.6277069],[32.5671279,-99.6279434],[32.5678621,-99.6183299],[32.5596909,-99.6174582],[32.5606297,-99.6072318],[32.5534166,-99.6064764],[32.5529150,-99.6119907],[32.5408537,-99.6119923],[32.5414183,-99.6059635],[32.5330309,-99.6050375],[32.5329872,-99.6119937],[32.5367857,-99.6119933],[32.5367237,-99.6222407],[32.5257294,-99.6222384],[32.5257353,-99.6288755],[32.5281815,-99.6291842],[32.5288483,-99.6299429],[32.5330045,-99.6299816],[32.5329556,-99.6393154],[32.5402717,-99.6393218],[32.5402643,-99.6480387],[32.5504282,-99.6480763],[32.5504243,-99.6395587],[32.5614431,-99.6395816],[32.5610265,-99.6781370],[32.5538259,-99.6781400],[32.5538239,-99.6745541],[32.5486243,-99.6745505],[32.5486544,-99.6858816],[32.5476472,-99.6859014],[32.5476483,-99.6793528],[32.5396840,-99.6857889],[32.5397153,-99.6875524],[32.5159542,-99.6872835],[32.5159223,-99.6906136],[32.5329282,-99.6908115],[32.5330307,-99.7097632],[32.5320672,-99.7107957],[32.5300340,-99.7102703],[32.5287094,-99.7106612],[32.5278419,-99.7092606],[32.5270337,-99.7092630],[32.5266808,-99.7123274],[32.5248468,-99.7123754],[32.5251925,-99.7139258],[32.5218353,-99.7135166],[32.5195595,-99.7139564],[32.5087058,-99.7193023],[32.5084167,-99.7052992],[32.5075310,-99.7052097],[32.5066957,-99.7058833],[32.5063345,-99.7069802],[32.5056006,-99.7066892],[32.5051725,-99.7056303],[32.5038470,-99.7044955],[32.5038547,-99.6873112],[32.4964800,-99.6872951],[32.4964444,-99.6737093],[32.4890640,-99.6738000],[32.4890960,-99.6394467],[32.4818046,-99.6394331],[32.4817915,-99.6308094],[32.4745245,-99.6307752],[32.4744397,-99.6862734],[32.4599851,-99.6682055],[32.4466897,-99.6481871],[32.4455647,-99.6456258],[32.4429416,-99.6362232],[32.4416033,-99.6362248],[32.4409131,-99.6335337],[32.4302793,-99.6333895],[32.4318987,-99.6397395],[32.4233279,-99.6396470],[32.4234561,-99.6565569],[32.4305170,-99.6565614],[32.4305031,-99.6599888],[32.4320327,-99.6601582],[32.4337287,-99.6614509],[32.4374669,-99.6613818],[32.4407090,-99.6739441],[32.4305699,-99.6738976],[32.4305962,-99.6653052],[32.3723049,-99.6656273],[32.3722460,-99.6829002],[32.3868473,-99.6828195],[32.3867841,-99.7058915],[32.3812810,-99.7058680],[32.3812812,-99.7050011],[32.3795412,-99.7049933],[32.3795402,-99.7082094],[32.3724750,-99.7082127],[32.3724724,-99.7166644],[32.3562628,-99.7166920],[32.3562386,-99.7327515],[32.3551017,-99.7315144],[32.3506205,-99.7315250],[32.3488725,-99.7341030],[32.3484588,-99.7338566],[32.3483323,-99.7365263],[32.3471160,-99.7366022],[32.3450325,-99.7349300],[32.3445394,-99.7349301],[32.3439606,-99.7362254],[32.3432066,-99.7362255],[32.3432583,-99.7423570],[32.3502465,-99.7420095],[32.3505480,-99.7717302],[32.3487672,-99.7717185],[32.3487464,-99.7691534],[32.3478926,-99.7691825],[32.3478699,-99.7673687],[32.3486172,-99.7671470],[32.3466361,-99.7671941],[32.3467036,-99.7900804],[32.3508189,-99.7875040],[32.3508585,-99.7900761],[32.3502808,-99.7904164],[32.3508623,-99.7925725],[32.3508850,-99.8083819],[32.3521477,-99.8079104],[32.3543099,-99.8085453],[32.3555435,-99.8082217],[32.3563493,-99.8058523],[32.3575476,-99.8045675],[32.3588399,-99.8054455],[32.3600177,-99.8051261],[32.3630472,-99.8029595],[32.3642759,-99.8037881],[32.3662247,-99.8032617],[32.3662627,-99.8046173],[32.3671117,-99.8049128],[32.3692362,-99.8039175],[32.3691895,-99.8013028],[32.3695309,-99.8011211],[32.3699854,-99.8018181],[32.3712851,-99.8012144],[32.3719994,-99.7998198],[32.3716387,-99.7971231],[32.3723474,-99.7970399],[32.3724896,-99.7965844],[32.3717184,-99.7942293],[32.3717303,-99.7921701],[32.3729603,-99.7906125],[32.3737005,-99.7905418],[32.3746406,-99.7912045],[32.3746214,-99.7889120],[32.3756406,-99.7887437],[32.3763982,-99.7874703],[32.3772247,-99.7871013],[32.3771877,-99.7804708],[32.3746887,-99.7804547],[32.3746869,-99.7778675],[32.3775971,-99.7775535],[32.3789404,-99.7768507],[32.3807474,-99.7772133],[32.3808754,-99.7768716],[32.3821193,-99.7774093],[32.3823394,-99.7781876],[32.3835540,-99.7779652],[32.3842898,-99.7784496],[32.3853285,-99.7774286],[32.3868646,-99.7776171],[32.3875106,-99.7758821],[32.3886812,-99.7756909],[32.3891370,-99.7766497],[32.3896299,-99.7761615],[32.3901668,-99.7766163],[32.3907128,-99.7763155],[32.3910165,-99.7767261],[32.3931678,-99.7767026],[32.3931663,-99.7960640],[32.3946647,-99.7960294],[32.3946999,-99.8126303],[32.3984208,-99.8134325],[32.3987679,-99.8129995],[32.4013416,-99.8129995],[32.4014469,-99.8280558],[32.3983572,-99.8281058],[32.3982868,-99.8388259],[32.4023075,-99.8399760],[32.4008862,-99.8464994],[32.3995973,-99.8462130],[32.3981287,-99.8549153],[32.4063428,-99.8573264],[32.4055091,-99.8612103],[32.4098083,-99.8662053],[32.4127365,-99.8675947],[32.4240645,-99.8673954],[32.4274158,-99.8644422],[32.4296848,-99.8641379],[32.4305357,-99.8600976],[32.4325132,-99.8601162],[32.4451666,-99.8631867],[32.4461460,-99.8572438],[32.4406464,-99.8555221],[32.4409185,-99.8537842],[32.4373334,-99.8529558],[32.4383461,-99.8480432],[32.4457518,-99.8502865],[32.4463293,-99.8468863],[32.4573261,-99.8498155],[32.4571700,-99.8436876],[32.4582660,-99.8456327],[32.4618704,-99.8466117],[32.4634882,-99.8381187],[32.4700433,-99.8137587],[32.4793876,-99.7877404],[32.4802154,-99.7874338],[32.4791860,-99.7903279],[32.4852091,-99.7921605],[32.4856747,-99.7910138],[32.4867663,-99.7909909],[32.4886589,-99.7931021],[32.4916455,-99.7930984],[32.4916447,-99.7938163],[32.4921835,-99.7938160],[32.4921779,-99.8018357],[32.4994788,-99.8038236],[32.5020227,-99.7905652],[32.5032975,-99.7905543],[32.5032940,-99.7899251],[32.5061578,-99.7944503],[32.5073178,-99.7884097],[32.5097791,-99.7891069],[32.5106691,-99.7847518],[32.5132066,-99.7834783],[32.5128974,-99.7826490],[32.5080125,-99.7850975],[32.5085234,-99.7833290],[32.5124227,-99.7813712],[32.5068565,-99.7694531],[32.5028402,-99.7694574],[32.5028339,-99.7646918],[32.5044044,-99.7642601],[32.5023546,-99.7588852],[32.5035081,-99.7576264],[32.5063633,-99.7562233],[32.5139124,-99.7539676],[32.5191263,-99.7545280],[32.5208999,-99.7552745],[32.5208765,-99.7504026],[32.5118916,-99.7425179],[32.5146310,-99.7391151],[32.5141351,-99.7384306],[32.5120054,-99.7384311],[32.5120001,-99.7361221],[32.5090166,-99.7338278],[32.5088775,-99.7312705],[32.5071058,-99.7287756],[32.5079595,-99.7282087],[32.5082853,-99.7272310],[32.5094598,-99.7272947],[32.5096126,-99.7281087],[32.5110901,-99.7272807],[32.5125368,-99.7274807],[32.5125761,-99.7264252],[32.5132540,-99.7259824],[32.5143655,-99.7271433],[32.5162569,-99.7271216],[32.5172599,-99.7284113],[32.5208515,-99.7275779],[32.5207429,-99.7236826],[32.5244852,-99.7236271],[32.5245130,-99.7257755],[32.5346666,-99.7252312],[32.5346767,-99.7241984],[32.5429475,-99.7241860],[32.5429373,-99.7225614],[32.5588961,-99.7223865],[32.5694130,-99.7200301],[32.5808757,-99.7196028],[32.5809115,-99.7133303],[32.5851515,-99.7114185],[32.5862248,-99.7114271],[32.5862846,-99.7109239],[32.5939203,-99.7077088],[32.5966785,-99.7068575],[32.5987653,-99.7068399],[32.5982148,-99.7049914],[32.5988230,-99.7038243],[32.6001401,-99.7027993],[32.6038929,-99.7024603],[32.6052483,-99.7010192],[32.6065656,-99.7007318],[32.6120036,-99.7009534],[32.6120562,-99.6880468],[32.6141531,-99.6868559],[32.6141772,-99.6855661],[32.6157851,-99.6856385],[32.6158087,-99.6843078],[32.6243119,-99.6843818],[32.6243596,-99.6793492]];
+    L.polygon(deviceBoundaryCoords, devicePolyStyle).addTo(deviceMap);
   }
   rebuildDeviceMarkers();
 }
@@ -1338,7 +1335,7 @@ function mapReset()    { if(deviceMap) deviceMap.setView([32.4487,-99.7331],13);
 // ── CITY RISK MAP — Overpass API (OpenStreetMap) — No Google, No cost ────────
 
 // Abilene bounding box for Overpass: south,west,north,east
-const ABILENE_BBOX = '32.33,-99.86,32.65,-99.60';
+const ABILENE_BBOX = '32.30,-99.90,32.68,-99.58'; // Expanded bbox for better coverage
 // Multiple Overpass endpoints — browser will try each if one fails
 const OVERPASS_ENDPOINTS = [
   'https://overpass-api.de/api/interpreter',
@@ -1559,8 +1556,12 @@ function updateRiskStats() {
 async function initRiskMap() {
   if(!riskMap) {
     riskMap = L.map('risk-map',{center:[32.4487,-99.7331],zoom:13});
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
-      attribution:'&copy; OSM &copy; CARTO',maxZoom:19}).addTo(riskMap);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom:19}).addTo(riskMap);
+    // Dark label overlay so pins stay visible
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png',{
+      attribution:'',maxZoom:19,opacity:0.4}).addTo(riskMap);
     riskMarkers = L.layerGroup().addTo(riskMap);
 
     // Abilene City Boundary
@@ -1740,131 +1741,6 @@ async function fetchAllRiskLocations() {
   }
 }
 
-
-// ── CITY RISK MAP — CORE HELPERS ─────────────────────────────────────────────
-
-async function overpassQuery(query) {
-  if(riskStopped) return [];
-  for(let attempt = 0; attempt < OVERPASS_ENDPOINTS.length; attempt++) {
-    const url = OVERPASS_ENDPOINTS[(overpassEndpointIdx + attempt) % OVERPASS_ENDPOINTS.length];
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 30000);
-    try {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'data=' + encodeURIComponent(query),
-        signal: controller.signal
-      });
-      clearTimeout(timer);
-      if(!res.ok) throw new Error('HTTP ' + res.status);
-      const data = await res.json();
-      console.log(`✅ Overpass: ${(data.elements||[]).length} elements`);
-      riskErrorCount = 0;
-      overpassEndpointIdx = (overpassEndpointIdx + attempt) % OVERPASS_ENDPOINTS.length;
-      return data.elements || [];
-    } catch(e) {
-      clearTimeout(timer);
-      console.warn(`❌ Overpass attempt ${attempt+1}: ${e.message}`);
-    }
-  }
-  riskErrorCount++;
-  if(riskErrorCount >= 5) {
-    riskStopped = true;
-    if(el('risk-header-counts')) el('risk-header-counts').innerHTML = '<span style="color:var(--red)">⚠ Overpass unavailable — tap ↻ to retry</span>';
-  }
-  return [];
-}
-
-function classifyAndAdd(elements, seen, gasKw, foodTags) {
-  for(const elem of elements) {
-    const name = elem.tags && elem.tags.name;
-    if(!name || !name.trim()) continue;
-    const lat = elem.lat || (elem.center && elem.center.lat);
-    const lon = elem.lon  || (elem.center && elem.center.lon);
-    if(!lat || !lon) continue;
-    const key = name.toLowerCase().slice(0,30) + '_' + Math.round(lat*1000) + '_' + Math.round(lon*1000);
-    if(seen.has(key)) continue;
-
-    // Match by OSM tag rules first
-    let catIdx = -1;
-    if(elem.tags) {
-      for(const rule of OSM_CLASS_RULES) {
-        const tagVal = elem.tags[rule.key];
-        if(tagVal !== undefined) {
-          if(rule.value === '' || tagVal === rule.value) {
-            const matchedTag = rule.key + '=' + tagVal;
-            if(foodTags.has(matchedTag)) {
-              const lower = name.toLowerCase();
-              if(gasKw.some(kw => lower.includes(kw))) break;
-            }
-            catIdx = rule.idx;
-            break;
-          }
-        }
-      }
-    }
-    // Fall back to name keyword rules
-    if(catIdx < 0) {
-      const lower = name.toLowerCase();
-      for(const rule of NAME_KEYWORD_RULES) {
-        if(rule.keywords.some(kw => lower.includes(kw))) { catIdx = rule.idx; break; }
-      }
-    }
-    if(catIdx < 0 || catIdx >= TCEQ_CATEGORIES.length) continue;
-    seen.add(key);
-    const cat = TCEQ_CATEGORIES[catIdx];
-    const addr = [(elem.tags && elem.tags['addr:housenumber']), (elem.tags && elem.tags['addr:street'])].filter(Boolean).join(' ');
-    riskLocations.push({name, lat, lng:lon, label:cat.label, cat:cat.cat, device:cat.device, rating:cat.rating, code:cat.code, reason:cat.reason, address:addr, id:key});
-  }
-}
-
-async function nominatimSearch(term, seen) {
-  if(riskStopped) return [];
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 10000);
-  try {
-    const encoded = encodeURIComponent(term);
-    const url = `${NOMINATIM_URL}?q=${encoded}&format=json&addressdetails=1&extratags=1&limit=10&viewbox=-99.86,32.33,-99.60,32.65&bounded=1&countrycodes=us`;
-    const res = await fetch(url, {signal: controller.signal, headers:{'User-Agent':'CrossConnectionInspector/1.0'}});
-    clearTimeout(timer);
-    if(!res.ok) return [];
-    const data = await res.json();
-    riskErrorCount = 0;
-    const results = [];
-    const GAS_KW = ['allsup','stripes','valero','exxon','chevron','shell','murphy','7-eleven','circle k','loves','flying j','pilot'];
-    for(const item of data) {
-      const name = (item.display_name||'').split(',')[0].trim();
-      if(!name) continue;
-      const lat = parseFloat(item.lat), lon = parseFloat(item.lon);
-      if(isNaN(lat)||isNaN(lon)) continue;
-      const key = name.toLowerCase().slice(0,30)+'_'+Math.round(lat*1000)+'_'+Math.round(lon*1000);
-      if(seen.has(key)) continue;
-      const lower = name.toLowerCase();
-      let catIdx = -1;
-      for(const rule of NAME_KEYWORD_RULES) {
-        if(rule.keywords.some(kw => lower.includes(kw))) { catIdx = rule.idx; break; }
-      }
-      if(catIdx < 0 && item.extratags) {
-        for(const rule of OSM_CLASS_RULES) {
-          const tagVal = item.extratags[rule.key];
-          if(tagVal !== undefined && (rule.value === '' || tagVal === rule.value)) { catIdx = rule.idx; break; }
-        }
-      }
-      if(catIdx < 0 || catIdx >= TCEQ_CATEGORIES.length) continue;
-      seen.add(key);
-      const cat = TCEQ_CATEGORIES[catIdx];
-      const addr = [item.address && item.address.house_number, item.address && item.address.road].filter(Boolean).join(' ');
-      results.push({name, lat, lng:lon, label:cat.label, cat:cat.cat, device:cat.device, rating:cat.rating, code:cat.code, reason:cat.reason, address:addr, id:key});
-    }
-    console.log(`✅ Nominatim "${term}": ${results.length} results`);
-    return results;
-  } catch(e) {
-    clearTimeout(timer);
-    console.warn(`❌ Nominatim "${term}": ${e.message}`);
-    return [];
-  }
-}
 
 // ── CITY RISK MAP — UI FUNCTIONS ─────────────────────────────────────────────
 
