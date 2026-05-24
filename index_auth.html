@@ -386,7 +386,7 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
     <div class="sb-sec">Submit</div>
     <button class="nb" onclick="nav('import-page',this)"><span class="nb-icon">📤</span>Add Report</button>
   </nav>
-  <div class="sb-foot">Snider Backflow Solutions<br>Abilene · Taylor County · TX<br><span id="clock-foot"></span></div>
+  <div class="sb-foot">Cross Connection Inspector<br>Abilene · Taylor County · TX<br><span id="clock-foot"></span></div>
 </aside>
 
 <!-- MAIN -->
@@ -686,7 +686,7 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
         </div>
         <div class="if-group">
           <label class="sl">Tester / Inspector Name</label>
-          <input type="text" class="si" id="imp-tester" placeholder="Matt Snider">
+          <input type="text" class="si" id="imp-tester" placeholder="Tester Name">
         </div>
         <!-- Backflow fields -->
         <div class="if-group" id="f-assembly">
@@ -861,26 +861,38 @@ async function doLogout() {
 
 async function loadAllData() {
   try {
-    const [bf, csi, insp] = await Promise.all([
-      sbFetch('backflow_reports', { query: '?order=created_at.desc', headers:{'Prefer':'return=representation'} }),
-      sbFetch('csi_reports',      { query: '?order=created_at.desc', headers:{'Prefer':'return=representation'} }),
-      sbFetch('inspections',      { query: '?order=created_at.desc', headers:{'Prefer':'return=representation'} }),
-    ]);
-    // Normalize to unified DB format
-    DB = [
-      ...bf.map(r=>({...r, type:'backflow', mfr:r.manufacturer, certNum:r.cert_num,
-        repairs:r.repairs, repairDetails:r.repair_details, pwsName:r.pws_name, pwsId:r.pws_id })),
-      ...csi.map(r=>({...r, type:'csi', inspector:r.inspector, licType:r.lic_type, licNum:r.lic_num,
-        serviceLines:r.service_lines, pwsName:r.pws_name, pwsId:r.pws_id,
-        c1:r.c1,c2:r.c2,c3:r.c3,c4:r.c4,c5:r.c5,c6:r.c6 })),
-      ...insp.map(r=>({...r, type:'inspection', bizType:r.biz_type, hazardRating:r.hazard_rating,
-        complianceStatus:r.compliance_status })),
-    ];
-    DB.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+    // Primary — backflow_reports (always exists)
+    const bf = await sbFetch('backflow_reports', { query: '?order=date.desc&limit=500' });
+    const bfNorm = (Array.isArray(bf) ? bf : []).map(r=>({
+      ...r, type:'backflow', mfr:r.manufacturer, certNum:r.cert_num,
+      repairs:r.repairs, repairDetails:r.repair_details,
+      pwsName:r.pws_name, pwsId:r.pws_id,
+      date: r.date || r.created_at || ''
+    }));
+
+    // Optional tables — don't fail if they don't exist
+    let csiNorm = [], inspNorm = [];
+    try {
+      const csi = await sbFetch('csi_reports', { query: '?order=date.desc&limit=200' });
+      csiNorm = (Array.isArray(csi) ? csi : []).map(r=>({...r, type:'csi', date:r.date||r.created_at||''}));
+    } catch(e) { /* table may not exist yet */ }
+    try {
+      const insp = await sbFetch('inspections', { query: '?order=date.desc&limit=200' });
+      inspNorm = (Array.isArray(insp) ? insp : []).map(r=>({...r, type:'inspection',
+        bizType:r.biz_type, hazardRating:r.hazard_rating, complianceStatus:r.compliance_status,
+        date:r.date||r.created_at||''
+      }));
+    } catch(e) { /* table may not exist yet */ }
+
+    DB = [...bfNorm, ...csiNorm, ...inspNorm];
+    DB.sort((a,b) => (b.date||'') > (a.date||'') ? 1 : -1);
+    console.log(`✅ Loaded ${DB.length} records (${bfNorm.length} backflow, ${csiNorm.length} CSI, ${inspNorm.length} inspections)`);
     return true;
   } catch(e) {
     console.error('Supabase load error:', e);
-    toast('Could not connect to database', 'error');
+    toast('Could not load data — check connection', 'error');
+    DB = [];
+    buildDashboard(); // Build empty dashboard rather than hang
     return false;
   }
 }
@@ -897,8 +909,8 @@ async function saveRecord(rec) {
         repairs:rec.repairs||false, repair_details:rec.repairDetails||'',
         check1:rec.check1||'', check2:rec.check2||'', relief:rec.relief||'',
         air_inlet:rec.air_inlet||'', remarks:rec.remarks||'',
-        pws_name:rec.pwsName||'City of Abilene', pws_id:rec.pwsId||'TX0100023',
-        firm:rec.firm||'Snider Backflow Solutions',
+        pws_name:rec.pwsName||'Abilene TX', pws_id:rec.pwsId||'',
+        firm:rec.firm||'Cross Connection Inspector',
         lat:rec.lat||32.4487, lng:rec.lng||-99.7331 };
     } else if (rec.type === 'csi') {
       table = 'csi_reports';
@@ -909,8 +921,8 @@ async function saveRecord(rec) {
         c4:rec.c4??true, c5:rec.c5??true, c6:rec.c6??true,
         service_lines:rec.serviceLines||rec.service_lines||'',
         solder:rec.solder||'', remarks:rec.remarks||'',
-        pws_name:rec.pwsName||'City of Abilene', pws_id:rec.pwsId||'TX0100023',
-        firm:rec.firm||'Snider Backflow Solutions',
+        pws_name:rec.pwsName||'Abilene TX', pws_id:rec.pwsId||'',
+        firm:rec.firm||'Cross Connection Inspector',
         lat:rec.lat||32.4487, lng:rec.lng||-99.7331 };
     } else {
       table = 'inspections';
@@ -941,41 +953,41 @@ let activeTab = { insp:'all', bf:'all', csi:'all' };
 if (false) {
   DB = [
     { id:'BF001', type:'backflow', date:'2026-05-10', address:'1234 Pine St, Abilene TX 79601',
-      tester:'Matt Snider', certNum:'TX-BPAT-12345', assembly:'RPZ', mfr:'Watts', model:'LF009',
+      tester:'CCI Tester', certNum:'', assembly:'RPZ', mfr:'Watts', model:'LF009',
       serial:'SN-48291', size:'3/4"', result:'PASS', repairs:false, repairDetails:'',
       check1:'14.2 psid — Closed Tight', check2:'11.8 psid — Closed Tight', relief:'10.1 psid — Opened At',
-      remarks:'Assembly in good condition.', pwsName:'City of Abilene', pwsId:'TX0100023',
-      firm:'Snider Backflow Solutions', lat:32.449, lng:-99.745 },
+      remarks:'Assembly in good condition.', pwsName:'Abilene TX', pwsId:'',
+      firm:'Cross Connection Inspector', lat:32.449, lng:-99.745 },
     { id:'BF002', type:'backflow', date:'2026-05-12', address:'567 Mockingbird Ln, Abilene TX 79603',
-      tester:'Matt Snider', certNum:'TX-BPAT-12345', assembly:'DCVA', mfr:'Febco', model:'805Y',
+      tester:'CCI Tester', certNum:'', assembly:'DCVA', mfr:'Febco', model:'805Y',
       serial:'SN-77301', size:'1"', result:'FAIL', repairs:true, repairDetails:'1st check debris removed. 2nd check replaced.',
       check1:'2.1 psid — Leaked', check2:'8.4 psid — Closed Tight', relief:'',
-      remarks:'Cleaned and re-tested. PASS after repair.', pwsName:'City of Abilene', pwsId:'TX0100023',
-      firm:'Snider Backflow Solutions', lat:32.435, lng:-99.733 },
+      remarks:'Cleaned and re-tested. PASS after repair.', pwsName:'Abilene TX', pwsId:'',
+      firm:'Cross Connection Inspector', lat:32.435, lng:-99.733 },
     { id:'CSI001', type:'csi', date:'2026-05-08', address:'890 S 1st St, Abilene TX 79601',
-      inspector:'Matt Snider', licType:'TCEQ Licensed Customer Service Inspector', licNum:'TX-CSI-98765',
+      inspector:'CCI Inspector', licType:'Licensed Inspector', licNum:'',
       reason:'New Construction', status:'compliant',
       c1:true,c2:true,c3:true,c4:true,c5:true,c6:true,
       serviceLines:'PVC', solder:'Lead Free', remarks:'All systems compliant.',
-      pwsName:'City of Abilene', pwsId:'TX0100023', firm:'Snider Backflow Solutions',
+      pwsName:'Abilene TX', pwsId:'', firm:'Cross Connection Inspector',
       lat:32.455, lng:-99.728 },
     { id:'CSI002', type:'csi', date:'2026-05-14', address:'2200 N Clack St, Abilene TX 79601',
-      inspector:'Matt Snider', licType:'TCEQ Licensed Customer Service Inspector', licNum:'TX-CSI-98765',
+      inspector:'CCI Inspector', licType:'Licensed Inspector', licNum:'',
       reason:'Existing Service — Hazard Suspected', status:'noncompliant',
       c1:false,c2:true,c3:true,c4:true,c5:true,c6:true,
       serviceLines:'Copper', solder:'Lead Free',
       remarks:'Direct connection found. Install RPZ assembly required.',
-      pwsName:'City of Abilene', pwsId:'TX0100023', firm:'Snider Backflow Solutions',
+      pwsName:'Abilene TX', pwsId:'', firm:'Cross Connection Inspector',
       lat:32.461, lng:-99.730 },
     { id:'INSP001', type:'inspection', date:'2026-05-11', address:'749 Chanticleers Ln, Abilene TX',
       owner:'SNIDER MATTHEW', bizType:'Residential', hazardRating:2, complianceStatus:'compliant',
-      tester:'Matt Snider', remarks:'Residential — low hazard.', lat:32.4487, lng:-99.7331 },
+      tester:'CCI Tester', remarks:'Residential — low hazard.', lat:32.4487, lng:-99.7331 },
     { id:'INSP002', type:'inspection', date:'2026-05-13', address:'2800 S Clack, Abilene TX',
       owner:'CAR WASH PARTNERS', bizType:'Car Wash', hazardRating:8, complianceStatus:'violation',
-      tester:'Matt Snider', remarks:'Chemical injection system found without RPZ protection.', lat:32.428, lng:-99.750 },
+      tester:'CCI Tester', remarks:'Chemical injection system found without RPZ protection.', lat:32.428, lng:-99.750 },
     { id:'INSP003', type:'inspection', date:'2026-05-09', address:'2200 Medical Dr, Abilene TX',
       owner:'HENDRICK HEALTH', bizType:'Hospital / Medical Center', hazardRating:9, complianceStatus:'partial',
-      tester:'Matt Snider', remarks:'RPZ present but requires annual test. Scheduled.', lat:32.458, lng:-99.746 },
+      tester:'CCI Tester', remarks:'RPZ present but requires annual test. Scheduled.', lat:32.458, lng:-99.746 },
   ];
   saveDB();
 }
@@ -1048,9 +1060,10 @@ function getWidgetVisible(id) {
 }
 
 async function renderDashboard() {
-  el('dash-widgets').innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px">⏳ Loading data...</div>';
+  const w = el('dash-widgets');
+  if (w) w.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px">⏳ Loading data...</div>';
   await loadAllData();
-  applyDashTheme();
+  if (typeof applyDashTheme === 'function') applyDashTheme();
   buildDashboard();
 }
 
@@ -1943,10 +1956,10 @@ async function importRecord() {
   const addr=el('imp-addr').value.trim();
   if(!addr){toast('Please enter an address','error');return;}
   const date=el('imp-date').value||new Date().toISOString().split('T')[0];
-  const tester=el('imp-tester').value||'Matt Snider';
+  const tester=el('imp-tester').value||'';
   const notes=el('imp-notes').value;
   let rec={id:t.toUpperCase().slice(0,2)+Date.now(),type:t,date,address:addr,tester,remarks:notes,
-    pwsName:'City of Abilene',pwsId:'TX0100023',firm:'Snider Backflow Solutions',
+    pwsName:'Abilene TX',pwsId:'',firm:'Cross Connection Inspector',
     lat:32.4487+(Math.random()-.5)*.1, lng:-99.7331+(Math.random()-.5)*.1};
   if(t==='backflow') {
     const asm=el('imp-assembly').value.split(' ')[0];
@@ -1969,7 +1982,7 @@ async function importRecord() {
       fail_reasons:fails.join('; ')});
   }
   if(t==='csi') Object.assign(rec,{status:el('imp-csi-status').value,reason:el('imp-reason').value,
-    inspector:tester,licType:'TCEQ Licensed Customer Service Inspector',licNum:'TX-CSI-98765',
+    inspector:tester,licType:'Licensed Inspector',licNum:'',
     c1:true,c2:true,c3:true,c4:true,c5:true,c6:true,serviceLines:'',solder:''});
   if(t==='inspection') Object.assign(rec,{owner:'',bizType:el('imp-biz').value,
     hazardRating:parseInt(el('imp-hazard').value)||5,complianceStatus:el('imp-compliance').value});
