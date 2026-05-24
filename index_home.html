@@ -32,7 +32,17 @@ nav{position:sticky;top:0;z-index:100;height:60px;background:rgba(15,17,20,.92);
 @media(max-width:600px){.nav-links .nav-link:not(.primary){display:none}}
 
 /* ── HERO ── */
-.hero{min-height:92dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 24px;background:radial-gradient(ellipse at 50% -20%,rgba(249,166,30,.12) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(100,149,237,.06) 0%,transparent 50%),var(--bg);position:relative;overflow:hidden}
+.hero{min-height:94dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 24px 80px;background:radial-gradient(ellipse at 50% -20%,rgba(249,166,30,.12) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(100,149,237,.06) 0%,transparent 50%),var(--bg);position:relative;overflow:hidden}
+
+/* Scroll indicator */
+.scroll-hint{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;opacity:1;transition:opacity .6s;pointer-events:none}
+.scroll-hint.hidden{opacity:0}
+.scroll-hint-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.scroll-arrow{width:28px;height:28px;border:1.5px solid rgba(249,166,30,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;animation:bounce 2s infinite;color:var(--accent);font-size:12px}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+
+/* Peek — next section bleeds up */
+.hero-peek{position:absolute;bottom:0;left:0;right:0;height:40px;background:linear-gradient(to top,var(--surface) 0%,transparent 100%);pointer-events:none}
 .hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.015'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
 .hero-badge{font-family:var(--mono);font-size:10px;color:var(--accent);background:rgba(249,166,30,.1);border:1px solid rgba(249,166,30,.25);padding:6px 16px;border-radius:20px;letter-spacing:2px;margin-bottom:24px;display:inline-block}
 .hero-title{font-family:var(--cond);font-size:clamp(42px,8vw,80px);font-weight:900;line-height:1;letter-spacing:-1px;margin-bottom:12px}
@@ -165,18 +175,21 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:32px
  <div class="nav-links">
  <a href="#education" class="nav-link">Learn</a>
  <a href="#portals" class="nav-link">Portals</a>
- <a href="owner.html" class="nav-link primary">Check My Device</a>
+ <a href="#portals" class="nav-link primary">Get Started ↓</a>
  </div>
 </nav>
 
 <!-- ═══ HERO ═══ -->
-<section class="hero">
+<section class="hero" id="top">
  <div class="hero-badge">BACKFLOW COMPLIANCE PROGRAM</div>
  <h1 class="hero-title">Is Your Backflow<br><span>Device Up to Date?</span></h1>
  <p class="hero-sub">Annual backflow prevention testing is required to protect your drinking water. Check your device status in seconds.</p>
  <div class="hero-btns">
- <a href="owner.html" class="btn-hero btn-hero-primary">🏠 Check My Device Status</a>
- <a href="#education" class="btn-hero btn-hero-ghost">What is backflow? →</a>
+ <span class="btn-hero btn-hero-primary" style="opacity:.45;cursor:not-allowed;pointer-events:none;position:relative">
+      🏠 Check My Device Status
+      <span style="position:absolute;top:-10px;right:-10px;background:var(--surface);color:var(--muted);border:1px solid var(--border);border-radius:20px;font-family:var(--mono);font-size:8px;padding:2px 8px;letter-spacing:1px;white-space:nowrap">COMING SOON</span>
+    </span>
+ <a href="#education" class="btn-hero btn-hero-ghost" style="opacity:.55;pointer-events:none;cursor:default">What is backflow? ↓</a>
  </div>
  <div class="hero-stats">
  <div class="hero-stat">
@@ -195,7 +208,7 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:32px
 </section>
 
 <!-- ═══ PORTALS ═══ -->
-<section class="section" id="portals">
+<section class="section" id="portals" style="scroll-margin-top:70px">
  <div class="section-label">Access Portals</div>
  <h2 class="section-title">Who are you?</h2>
  <p class="section-sub">Choose your portal below. All portals are secure and free to use.</p>
@@ -206,7 +219,10 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:32px
  <div class="portal-card-label orange">Property Owner</div>
  <div class="portal-card-title">I own a property<br>with a backflow device</div>
  <div class="portal-card-desc">Check your device status, see your last test date, find out if you're overdue, and get notified when your next test is due.</div>
- <a href="owner.html" class="portal-card-link orange">Check My Status →</a>
+ <span class="portal-card-link orange" style="opacity:.45;cursor:not-allowed;pointer-events:none;position:relative;display:inline-flex;align-items:center;gap:8px">
+        Check My Status →
+        <span style="background:rgba(0,0,0,.2);border-radius:6px;font-size:8px;padding:1px 6px;letter-spacing:.5px">SOON</span>
+      </span>
  </div>
 
  <div class="portal-card">
@@ -226,12 +242,19 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:32px
  </div>
 
  </div>
+  <!-- Scroll peek gradient -->
+  <div class="hero-peek"></div>
+  <!-- Scroll hint -->
+  <div class="scroll-hint" id="scroll-hint">
+    <div class="scroll-hint-label">Scroll to learn more</div>
+    <div class="scroll-arrow">↓</div>
+  </div>
 </section>
 
 <div class="divider"></div>
 
 <!-- ═══ EDUCATION ═══ -->
-<section class="edu-section" id="education">
+<section class="edu-section" id="education" style="scroll-margin-top:70px">
  <div class="edu-inner">
  <div class="section-label" style="text-align:center">Backflow 101</div>
  <h2 class="section-title" style="margin-bottom:16px">What is backflow and<br>why does it matter?</h2>
@@ -362,7 +385,10 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:32px
  <h2 class="cta-title">Check your device status now</h2>
  <p class="cta-sub">It only takes 30 seconds. Log in or create a free account to see your backflow device status, last test date, and when your next test is due.</p>
  <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center">
- <a href="owner.html" class="btn-hero btn-hero-primary">🏠 Property Owner Login</a>
+ <span class="btn-hero btn-hero-primary" style="opacity:.45;cursor:not-allowed;pointer-events:none;position:relative">
+    🏠 Property Owner Login
+    <span style="position:absolute;top:-10px;right:-10px;background:var(--surface);color:var(--muted);border:1px solid var(--border);border-radius:20px;font-family:var(--mono);font-size:8px;padding:2px 8px;letter-spacing:1px">COMING SOON</span>
+  </span>
  <a href="tester.html" class="btn-hero btn-hero-ghost">🔧 Tester Portal</a>
  </div>
 </section>
@@ -392,6 +418,11 @@ function toggleFAQ(item) {
  document.querySelectorAll('.faq-item').forEach(f => f.classList.remove('open'));
  if (!isOpen) item.classList.add('open');
 }
+
+window.addEventListener('scroll', () => {
+  const hint = document.getElementById('scroll-hint');
+  if (hint) { if (window.scrollY > 80) hint.classList.add('hidden'); else hint.classList.remove('hidden'); }
+}, { passive: true });
 </script>
 </body>
 </html>
