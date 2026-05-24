@@ -577,12 +577,17 @@ select.field-input option{background:var(--elevated)}
   pointer-events: auto;
 }
 .ac-item {
-  padding: 13px 14px; font-size: 14px; font-weight: 600; cursor: pointer;
+  padding: 14px 16px; font-size: 14px; font-weight: 600; cursor: pointer;
   border-bottom: 1px solid var(--border); transition: background .15s;
   display: flex; flex-direction: column; gap: 3px;
+  -webkit-tap-highlight-color: rgba(249,166,30,.2);
+  user-select: none; -webkit-user-select: none;
 }
 .ac-item:last-child { border-bottom: none; }
-.ac-item:active { background: rgba(249,166,30,.1); }
+.ac-item:active, .ac-item:hover { background: rgba(249,166,30,.12); }
+.ac-item-main { color: var(--text); }
+.ac-item-sub { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+.ac-loading { padding: 14px 16px; font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 1px; }
 .ac-item-main { color: var(--text); }
 .ac-item-sub { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .5px; }
 .ac-loading { padding: 14px; text-align: center; font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 1px; }
@@ -733,10 +738,10 @@ select.field-input option{background:var(--elevated)}
     <div class="form-section">
       <div class="form-section-title">LOCATION</div>
       <div class="form-row full">
-        <div class="form-field">
+        <div class="form-field" style="position:relative">
           <span class="field-label">Street Address <span style="color:var(--red)">*</span></span>
-          <input type="text" class="field-input req-field" id="sub-addr" placeholder="123 Main St, Abilene TX 79601" autocomplete="street-address" style="position:relative;z-index:20">
-          <div class="ac-dropdown" id="sub-addr-dropdown" style="display:none;position:absolute;z-index:200;width:100%"></div>
+          <input type="text" class="field-input req-field" id="sub-addr" placeholder="123 Main St, Abilene TX 79601" autocomplete="off" autocapitalize="words">
+          <div id="sub-addr-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:500;background:var(--elevated);border:1.5px solid var(--accent);border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.6);margin-top:4px;max-height:220px;overflow-y:auto"></div>
         </div>
       </div>
       <div class="form-row">
@@ -985,7 +990,7 @@ function switchPage(id) {
   if (bn) bn.classList.add('active');
   if (id === 'history') loadHistory();
   if (id === 'profile') renderProfilePage();
-  if (id === 'submit') checkProfileWarning();
+  if (id === 'submit') { checkProfileWarning(); setTimeout(() => initPortalAutocompletes(), 100); }
 }
 
 // ── PROFILE ────────────────────────────────────────
@@ -2361,24 +2366,13 @@ function checkLeadFree(brand, model) {
 
 // ── Init all autocompletes when wizard address step shows ──────────────────────
 function initWizardAutocompletes() {
-  // Address autocomplete
-  initAddrAutocomplete('wiz-addr', 'wiz-addr-dropdown', (result) => {
-    // If we got CAD data, could pre-fill other fields
-    console.log('CAD result:', result);
-  });
-  // Manufacturer autocomplete
+  initAddrAutocomplete('wiz-addr', 'wiz-addr-dropdown', null);
   initMfrAutocomplete('wiz-mfr', 'wiz-mfr-dropdown', 'wiz-model', 'wiz-model-dropdown');
-  // Model autocomplete (starts empty until brand selected)
-  initModelAutocomplete('', 'wiz-model', 'wiz-model-dropdown');
 }
 
-// ── Init full portal autocompletes ────────────────────────────────────────────
 function initPortalAutocompletes() {
-  initAddrAutocomplete('sub-addr', 'sub-addr-dropdown', (result) => {
-    console.log('Portal CAD result:', result);
-  });
+  initAddrAutocomplete('sub-addr', 'sub-addr-dropdown', null);
   initMfrAutocomplete('sub-mfr', 'sub-mfr-dropdown', 'sub-model', 'sub-model-dropdown');
-  initModelAutocomplete('', 'sub-model', 'sub-model-dropdown');
 }
 
 </script>
@@ -2500,10 +2494,10 @@ function initPortalAutocompletes() {
         <div class="wiz-step-sub">Enter the service address</div>
       </div>
       <div class="wiz-content">
-        <div class="wiz-field-group">
+        <div class="wiz-field-group" style="position:relative">
           <label class="wiz-field-label">SERVICE ADDRESS <span style="color:var(--red)">*</span></label>
-          <input type="text" class="wiz-field-input" id="wiz-addr" placeholder="123 Main St, Abilene TX" autocomplete="street-address" autocorrect="off" style="position:relative;z-index:20">
-          <div class="ac-dropdown" id="wiz-addr-dropdown" style="display:none;position:absolute;z-index:200;width:100%"></div>
+          <input type="text" class="wiz-field-input" id="wiz-addr" placeholder="123 Main St, Abilene TX" autocomplete="off" autocorrect="off" autocapitalize="words">
+          <div id="wiz-addr-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:500;background:var(--elevated);border:1.5px solid var(--accent);border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.6);margin-top:4px;max-height:220px;overflow-y:auto"></div>
         </div>
         <div class="wiz-field-row">
           <div>
