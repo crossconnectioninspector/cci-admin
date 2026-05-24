@@ -162,6 +162,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
   border-radius:10px;padding:12px 13px;color:var(--text);
   font-family:var(--sans);font-size:14px;font-weight:600;
   outline:none;transition:border-color .2s,box-shadow .2s;width:100%;
+  position:relative;z-index:11;
 }
 .field-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(249,166,30,.08)}
 .field-input::placeholder{color:var(--muted);font-weight:400}
@@ -481,6 +482,7 @@ select.field-input option{background:var(--elevated)}
   border-radius: 12px; padding: 16px 14px; color: var(--text);
   font-family: var(--sans); font-size: 16px; font-weight: 600; outline: none;
   transition: border-color .2s; -webkit-appearance: none;
+  position: relative; z-index: 11;
 }
 .wiz-field-input:focus { border-color: var(--accent); }
 .wiz-field-input::placeholder { color: var(--muted); font-weight: 400; }
@@ -566,12 +568,13 @@ select.field-input option{background:var(--elevated)}
 
 
 /* ── ADDRESS & DEVICE AUTOCOMPLETE ── */
-.ac-wrap { position: relative; width: 100%; }
+.ac-wrap { position: relative; width: 100%; z-index: 10; }
 .ac-dropdown {
   position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 200;
   background: var(--elevated); border: 1.5px solid var(--accent);
   border-radius: 12px; overflow: hidden;
   box-shadow: 0 8px 32px rgba(0,0,0,.5); max-height: 220px; overflow-y: auto;
+  pointer-events: auto;
 }
 .ac-item {
   padding: 13px 14px; font-size: 14px; font-weight: 600; cursor: pointer;
@@ -732,10 +735,8 @@ select.field-input option{background:var(--elevated)}
       <div class="form-row full">
         <div class="form-field">
           <span class="field-label">Street Address <span style="color:var(--red)">*</span></span>
-          <div class="ac-wrap">
-            <input type="text" class="field-input" id="sub-addr" placeholder="123 Main St, Abilene TX" autocomplete="off">
-            <div class="ac-dropdown" id="sub-addr-dropdown" style="display:none"></div>
-          </div>
+          <input type="text" class="field-input req-field" id="sub-addr" placeholder="123 Main St, Abilene TX 79601" autocomplete="street-address" style="position:relative;z-index:20">
+          <div class="ac-dropdown" id="sub-addr-dropdown" style="display:none;position:absolute;z-index:200;width:100%"></div>
         </div>
       </div>
       <div class="form-row">
@@ -2093,54 +2094,51 @@ supaClient.auth.getSession().then(({data:{session}})=>{
 });
 
 // ════════════════════════════════════════════════════════════════
-//  ADDRESS AUTOCOMPLETE — Taylor CAD via ngrok FastAPI
+//  ADDRESS AUTOCOMPLETE — Nominatim (OpenStreetMap) fast geocoder
+//  No API key needed · Free · Abilene TX bounded
 // ════════════════════════════════════════════════════════════════
 
-const CAD_BASE = 'https://scroll-rebel-bottle.ngrok-free.dev';
 let addrSearchTimer = null;
-let addrDropdownOpen = false;
 
-async function lookupCADAddress(query) {
-  if (!query || query.length < 4) return [];
+async function searchAddresses(query) {
+  if (!query || query.length < 3) return [];
   try {
+    // Search within Abilene TX bounding box for speed
     const encoded = encodeURIComponent(query);
-    const res = await fetch(`${CAD_BASE}/cad_lookup?address=${encoded}`, {
-      headers: { 'ngrok-skip-browser-warning': 'true' }
+    const url = `https://nominatim.openstreetmap.org/search` +
+      `?q=${encoded}` +
+      `&format=json` +
+      `&addressdetails=1` +
+      `&limit=6` +
+      `&countrycodes=us` +
+      `&viewbox=-99.90,32.30,-99.55,32.68` +
+      `&bounded=0`;
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'CrossConnectionInspector/1.0 (sniderbackflowsolutions@gmail.com)' }
     });
     if (!res.ok) return [];
     const data = await res.json();
-    // Single result — wrap in array
-    if (data.propertyAddress || data.ownerName) return [data];
-    return [];
+    return data.map(item => {
+      const addr = item.address;
+      // Build clean address string
+      const parts = [
+        addr.house_number,
+        addr.road,
+        addr.city || addr.town || addr.village || 'Abilene',
+        addr.state ? addr.state.replace('Texas','TX') : 'TX'
+      ].filter(Boolean);
+      return {
+        display: parts.join(' '),
+        full: item.display_name,
+        lat: item.lat,
+        lon: item.lon,
+        type: item.type
+      };
+    }).filter(r => r.display.length > 4);
   } catch(e) {
-    console.warn('CAD lookup error:', e.message);
+    console.warn('Address search error:', e.message);
     return [];
   }
-}
-
-async function searchCADMultiple(query) {
-  // Try both the exact lookup and a partial Nominatim fallback
-  const results = [];
-  // 1. Taylor CAD exact
-  const cadResult = await lookupCADAddress(query);
-  results.push(...cadResult);
-  // 2. Nominatim fallback for partial matches
-  if (results.length === 0 && query.length >= 4) {
-    try {
-      const encoded = encodeURIComponent(query + ' Abilene TX');
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&limit=5&countrycodes=us&viewbox=-99.86,32.33,-99.60,32.65&bounded=1`, {
-        headers: { 'User-Agent': 'CrossConnectionInspector/1.0' }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        data.forEach(item => {
-          const name = item.display_name.split(',')[0].trim();
-          results.push({ propertyAddress: name, ownerName: null, _nominatim: true, _fullAddr: item.display_name });
-        });
-      }
-    } catch(e) {}
-  }
-  return results;
 }
 
 function initAddrAutocomplete(inputId, dropdownId, onSelect) {
@@ -2152,43 +2150,48 @@ function initAddrAutocomplete(inputId, dropdownId, onSelect) {
     clearTimeout(addrSearchTimer);
     const q = input.value.trim();
     if (q.length < 3) { dropdown.style.display = 'none'; return; }
-    dropdown.style.display = 'block';
-    dropdown.innerHTML = '<div class="ac-loading">🔍 SEARCHING TAYLOR CAD…</div>';
+    // Fast 250ms debounce — feels instant
     addrSearchTimer = setTimeout(async () => {
-      const results = await searchCADMultiple(q);
-      if (results.length === 0) {
-        dropdown.innerHTML = '<div class="ac-empty">No matches — type full address</div>';
+      dropdown.style.display = 'block';
+      dropdown.innerHTML = '<div class="ac-loading">🔍 SEARCHING…</div>';
+      const results = await searchAddresses(q);
+      if (!results.length) {
+        dropdown.style.display = 'none';
         return;
       }
-      dropdown.innerHTML = results.map((r, i) => {
-        const addr = r.propertyAddress || r._fullAddr || '—';
-        const owner = r.ownerName ? `Owner: ${r.ownerName}` : (r._nominatim ? 'OpenStreetMap result' : '');
-        return `<div class="ac-item" onclick="selectAddr_${inputId}(${i})">
-          <div class="ac-item-main">${addr}</div>
-          ${owner ? `<div class="ac-item-sub">${owner}</div>` : ''}
-        </div>`;
-      }).join('');
-      // Store results for selection
-      window['_cadResults_' + inputId] = results;
-      // Dynamic select handlers
-      results.forEach((r, i) => {
-        window[`selectAddr_${inputId}`] = (idx) => {
-          const res = window['_cadResults_' + inputId][idx];
-          const addr = res.propertyAddress || res._fullAddr || '';
-          input.value = addr;
-          dropdown.style.display = 'none';
-          if (onSelect) onSelect(res);
-        };
-      });
-    }, 400);
+      dropdown.innerHTML = results.map((r, i) =>
+        `<div class="ac-item" ontouchend="pickAddr(event,'${inputId}','${dropdownId}',${i})" onclick="pickAddr(event,'${inputId}','${dropdownId}',${i})">
+          <div class="ac-item-main">${r.display}</div>
+          <div class="ac-item-sub">${r.type || 'address'}</div>
+        </div>`
+      ).join('');
+      window['_addrResults_' + inputId] = results;
+    }, 250);
   });
 
-  // Close on outside click
+  // Close dropdown on outside tap/click
+  document.addEventListener('touchstart', (e) => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.style.display = 'none';
+    }
+  }, { passive: true });
   document.addEventListener('click', (e) => {
     if (!input.contains(e.target) && !dropdown.contains(e.target)) {
       dropdown.style.display = 'none';
     }
   });
+}
+
+function pickAddr(e, inputId, dropdownId, idx) {
+  e.preventDefault();
+  e.stopPropagation();
+  const results = window['_addrResults_' + inputId] || [];
+  const r = results[idx];
+  if (!r) return;
+  const input = document.getElementById(inputId);
+  const dropdown = document.getElementById(dropdownId);
+  if (input) input.value = r.display;
+  if (dropdown) dropdown.style.display = 'none';
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -2499,10 +2502,8 @@ function initPortalAutocompletes() {
       <div class="wiz-content">
         <div class="wiz-field-group">
           <label class="wiz-field-label">SERVICE ADDRESS <span style="color:var(--red)">*</span></label>
-          <div class="ac-wrap">
-            <input type="text" class="wiz-field-input" id="wiz-addr" placeholder="123 Main St, Abilene TX" autocomplete="off" autocorrect="off">
-            <div class="ac-dropdown" id="wiz-addr-dropdown" style="display:none"></div>
-          </div>
+          <input type="text" class="wiz-field-input" id="wiz-addr" placeholder="123 Main St, Abilene TX" autocomplete="street-address" autocorrect="off" style="position:relative;z-index:20">
+          <div class="ac-dropdown" id="wiz-addr-dropdown" style="display:none;position:absolute;z-index:200;width:100%"></div>
         </div>
         <div class="wiz-field-row">
           <div>
