@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Cross Connection Inspector — Property Owner Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@400;600;700;900&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg:#0f1114; --surface:#181c22; --elevated:#1f242d;
+  --accent:#f9a61e; --text:#eef0f3; --muted:#7a8494; --border:#252b36;
+  --red:#e05252; --green:#3db870; --yellow:#f0c040; --blue:#6495ed;
+  --mono:'Share Tech Mono',monospace; --sans:'Barlow',sans-serif; --cond:'Barlow Condensed',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100dvh;font-weight:500;-webkit-font-smoothing:antialiased}
+
+/* LOGIN */
+#screen-login{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,rgba(249,166,30,.08) 0%,transparent 60%),var(--bg)}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:24px;width:100%;max-width:420px;padding:40px 32px;box-shadow:0 12px 48px rgba(0,0,0,.6)}
+.login-icon{width:64px;height:64px;background:var(--accent);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px;box-shadow:0 8px 32px rgba(249,166,30,.35)}
+.login-title{font-family:var(--cond);font-size:26px;font-weight:900;text-align:center;line-height:1.1;margin-bottom:6px}
+.login-sub{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:3px;text-align:center;margin-bottom:32px;text-transform:uppercase}
+.field-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:7px;font-weight:700}
+.field-input{background:var(--elevated);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;color:var(--text);font-family:var(--sans);font-size:15px;font-weight:600;outline:none;width:100%;transition:border-color .2s,box-shadow .2s;margin-bottom:16px}
+.field-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(249,166,30,.1)}
+.field-input::placeholder{color:var(--muted);font-weight:400}
+.btn-primary{width:100%;padding:15px;background:var(--accent);color:#000;border:none;border-radius:12px;font-family:var(--sans);font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(249,166,30,.3);transition:opacity .15s}
+.btn-primary:active{opacity:.85}
+.err-box{background:rgba(224,82,82,.08);border:1px solid rgba(224,82,82,.2);border-radius:9px;padding:10px 14px;font-size:12px;color:var(--red);text-align:center;margin-bottom:12px;display:none}
+.register-link{text-align:center;margin-top:16px;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.5px}
+.register-link a{color:var(--accent);text-decoration:none}
+
+/* APP */
+#screen-app{display:none;flex-direction:column;min-height:100dvh}
+.topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;z-index:50}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.topbar-icon{width:30px;height:30px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(249,166,30,.3)}
+.topbar-title{font-family:var(--cond);font-size:16px;font-weight:900}
+.owner-pill{font-family:var(--mono);font-size:9px;color:var(--accent);background:rgba(249,166,30,.08);border:1px solid rgba(249,166,30,.2);padding:3px 9px;border-radius:20px;letter-spacing:1px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.signout-btn{font-family:var(--mono);font-size:9px;color:var(--red);background:rgba(224,82,82,.08);border:1px solid rgba(224,82,82,.2);border-radius:8px;padding:5px 10px;cursor:pointer;font-weight:700;letter-spacing:.5px}
+.content{flex:1;padding:16px;max-width:640px;margin:0 auto;width:100%}
+
+/* STATUS CARDS */
+.status-hero{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:24px;margin-bottom:14px;text-align:center}
+.status-icon-wrap{width:80px;height:80px;border-radius:40px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:36px}
+.status-icon-wrap.good{background:rgba(61,184,112,.12);border:2px solid rgba(61,184,112,.3)}
+.status-icon-wrap.warn{background:rgba(240,192,64,.12);border:2px solid rgba(240,192,64,.3)}
+.status-icon-wrap.bad{background:rgba(224,82,82,.12);border:2px solid rgba(224,82,82,.3)}
+.status-title{font-family:var(--cond);font-size:28px;font-weight:900;margin-bottom:4px}
+.status-title.good{color:var(--green)}
+.status-title.warn{color:var(--yellow)}
+.status-title.bad{color:var(--red)}
+.status-sub{font-size:13px;color:var(--muted);line-height:1.5}
+
+/* DEVICE CARDS */
+.device-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px}
+.device-card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:10px}
+.device-address{font-weight:700;font-size:15px;line-height:1.3;flex:1}
+.badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:20px;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.5px;white-space:nowrap;flex-shrink:0}
+.badge-pass{background:rgba(61,184,112,.12);color:var(--green);border:1px solid rgba(61,184,112,.25)}
+.badge-fail{background:rgba(224,82,82,.12);color:var(--red);border:1px solid rgba(224,82,82,.25)}
+.badge-overdue{background:rgba(240,192,64,.12);color:var(--yellow);border:1px solid rgba(240,192,64,.3)}
+.badge-pending{background:rgba(140,149,159,.1);color:var(--muted);border:1px solid var(--border)}
+.device-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.device-field{display:flex;flex-direction:column;gap:3px}
+.device-field-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.device-field-val{font-size:13px;font-weight:600}
+.device-next-due{margin-top:12px;padding:10px 14px;border-radius:10px;font-family:var(--mono);font-size:11px;line-height:1.5}
+.device-next-due.good{background:rgba(61,184,112,.08);border:1px solid rgba(61,184,112,.2);color:var(--green)}
+.device-next-due.warn{background:rgba(240,192,64,.08);border:1px solid rgba(240,192,64,.2);color:var(--yellow)}
+.device-next-due.bad{background:rgba(224,82,82,.08);border:1px solid rgba(224,82,82,.2);color:var(--red)}
+
+/* INFO CARD */
+.info-card{background:rgba(100,149,237,.06);border:1px solid rgba(100,149,237,.2);border-radius:14px;padding:16px;margin-bottom:14px}
+.info-card-title{font-family:var(--mono);font-size:9px;color:var(--blue);letter-spacing:2px;margin-bottom:8px}
+.info-card-text{font-size:13px;color:var(--muted);line-height:1.6}
+
+/* REGISTER */
+#screen-register{display:none;min-height:100dvh;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,rgba(249,166,30,.08) 0%,transparent 60%),var(--bg)}
+
+/* EMPTY */
+.empty{text-align:center;padding:48px 24px;color:var(--muted)}
+.empty-icon{font-size:48px;margin-bottom:12px;display:block;opacity:.5}
+.empty-title{font-family:var(--cond);font-size:20px;font-weight:900;color:var(--text);margin-bottom:6px}
+.empty-sub{font-family:var(--mono);font-size:10px;letter-spacing:1px;line-height:1.8}
+
+/* SPINNER */
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--elevated);border:1px solid var(--border);border-radius:100px;padding:10px 20px;font-family:var(--mono);font-size:11px;letter-spacing:.5px;opacity:0;transition:all .25s;pointer-events:none;z-index:999;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{border-color:var(--green);color:var(--green)}
+.toast.error{border-color:var(--red);color:var(--red)}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ LOGIN ═══════════ -->
+<div id="screen-login">
+  <div class="login-card">
+    <div class="login-icon">🏠</div>
+    <div class="login-title">Property Owner Portal</div>
+    <div class="login-sub">Cross Connection Inspector</div>
+
+    <label class="field-label">Email Address</label>
+    <input type="email" class="field-input" id="login-email" placeholder="you@example.com" autocomplete="email">
+    <label class="field-label">Password</label>
+    <input type="password" class="field-input" id="login-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="err-box" id="login-err"></div>
+    <button class="btn-primary" id="login-btn" onclick="doLogin()">Sign In</button>
+    <div class="register-link">
+      Don't have an account? <a href="#" onclick="showRegister()">Register here</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ REGISTER ═══════════ -->
+<div id="screen-register">
+  <div class="login-card">
+    <div class="login-icon">📋</div>
+    <div class="login-title">Create Account</div>
+    <div class="login-sub">Property Owner Registration</div>
+
+    <label class="field-label">Full Name</label>
+    <input type="text" class="field-input" id="reg-name" placeholder="John Smith">
+    <label class="field-label">Email Address</label>
+    <input type="email" class="field-input" id="reg-email" placeholder="you@example.com">
+    <label class="field-label">Password</label>
+    <input type="password" class="field-input" id="reg-password" placeholder="Create a password">
+    <label class="field-label">Property Address</label>
+    <input type="text" class="field-input" id="reg-address" placeholder="123 Main St, Abilene TX 79601">
+    <div class="err-box" id="reg-err"></div>
+    <button class="btn-primary" id="reg-btn" onclick="doRegister()">Create Account</button>
+    <div class="register-link" style="margin-top:14px">
+      Already have an account? <a href="#" onclick="showLogin()">Sign in</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ APP ═══════════ -->
+<div id="screen-app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-icon">🏠</div>
+      <div class="topbar-title">My Devices</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="owner-pill" id="owner-pill">OWNER</div>
+      <button class="signout-btn" onclick="doLogout()">↩ OUT</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- Overall status hero -->
+    <div id="status-hero-wrap"></div>
+
+    <!-- Info card -->
+    <div class="info-card">
+      <div class="info-card-title">ℹ TCEQ REQUIREMENT</div>
+      <div class="info-card-text">
+        Per <strong style="color:var(--text)">TCEQ 30 TAC §290.47(f)</strong>, all backflow prevention assemblies must be tested annually by a certified tester. Failure to test may result in water service interruption.
+      </div>
+    </div>
+
+    <!-- Device list -->
+    <div id="device-list">
+      <div class="empty">
+        <span class="empty-icon">⏳</span>
+        <div class="empty-title">Loading your devices…</div>
+      </div>
+    </div>
+
+    <!-- Contact -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:24px;text-align:center">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">NEED HELP?</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6">Contact the City of Abilene Cross-Connection Control Program</div>
+      <a href="mailto:sniderbackflowsolutions@gmail.com" style="font-family:var(--mono);font-size:11px;color:var(--accent);display:block;margin-top:8px;letter-spacing:.5px">sniderbackflowsolutions@gmail.com</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════
+const SUPA_URL = 'https://reondjywvejywbfhohgm.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJlb25kanl3dmVqeXdiZmhvaGdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5OTMzNjYsImV4cCI6MjA5NDU2OTM2Nn0.xpjq6ccrAB6yHUCH-q6X58CZbsg-DSTV_nh96MQ5eGM';
+// ═══════════════════════════════════════════
+
+const supaClient = supabase.createClient(SUPA_URL, SUPA_KEY);
+let currentUser = null;
+
+// ── AUTH ─────────────────────────────────────────────────────────
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-err');
+  const btn = document.getElementById('login-btn');
+  errEl.style.display = 'none';
+  btn.innerHTML = '<span class="spinner"></span>';
+  btn.disabled = true;
+  const { data, error } = await supaClient.auth.signInWithPassword({ email, password });
+  if (error) {
+    errEl.textContent = error.message;
+    errEl.style.display = 'block';
+    btn.innerHTML = 'Sign In';
+    btn.disabled = false;
+  } else {
+    currentUser = data.user;
+    enterApp();
+  }
+}
+
+async function doRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const address = document.getElementById('reg-address').value.trim();
+  const errEl = document.getElementById('reg-err');
+  const btn = document.getElementById('reg-btn');
+  if (!name || !email || !password || !address) {
+    errEl.textContent = 'All fields are required';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+  btn.innerHTML = '<span class="spinner"></span>';
+  btn.disabled = true;
+  const { data, error } = await supaClient.auth.signUp({
+    email, password,
+    options: { data: { full_name: name, property_address: address, role: 'owner' } }
+  });
+  if (error) {
+    errEl.textContent = error.message;
+    errEl.style.display = 'block';
+    btn.innerHTML = 'Create Account';
+    btn.disabled = false;
+  } else {
+    currentUser = data.user;
+    toast('Account created! Loading your devices…', 'success');
+    setTimeout(() => enterApp(), 1000);
+  }
+}
+
+async function doLogout() {
+  await supaClient.auth.signOut();
+  currentUser = null;
+  showScreen('login');
+}
+
+// ── SCREENS ───────────────────────────────────────────────────────
+
+function showScreen(id) {
+  ['login','register','app'].forEach(s => {
+    const el = document.getElementById('screen-' + s);
+    if (el) el.style.display = 'none';
+  });
+  const target = document.getElementById('screen-' + id);
+  if (target) target.style.display = id === 'app' ? 'flex' : 'flex';
+  if (id === 'app') target.style.flexDirection = 'column';
+}
+
+function showRegister() { showScreen('register'); }
+function showLogin() { showScreen('login'); }
+
+// ── APP ───────────────────────────────────────────────────────────
+
+async function enterApp() {
+  showScreen('app');
+  const meta = currentUser?.user_metadata || {};
+  const name = meta.full_name || currentUser?.email || 'Owner';
+  document.getElementById('owner-pill').textContent = name.split(' ')[0].toUpperCase();
+  await loadDevices();
+}
+
+async function loadDevices() {
+  const container = document.getElementById('device-list');
+  const heroWrap = document.getElementById('status-hero-wrap');
+  try {
+    const { data: { session } } = await supaClient.auth.getSession();
+    const token = session?.access_token || SUPA_KEY;
+    const headers = {
+      'Content-Type': 'application/json',
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + token
+    };
+    const meta = currentUser?.user_metadata || {};
+    const ownerEmail = currentUser?.email || '';
+    const ownerAddress = meta.property_address || '';
+
+    // Search by owner email OR property address
+    let url = `${SUPA_URL}/rest/v1/backflow_reports?select=*&order=date.desc`;
+    if (ownerEmail) url += `&or=(owner_email.eq.${encodeURIComponent(ownerEmail)},tester_email.eq.${encodeURIComponent(ownerEmail)})`;
+
+    const res = await fetch(url, { headers });
+    if (!res.ok) throw new Error();
+    let devices = await res.json();
+
+    // Also search by address if we have one
+    if (ownerAddress && devices.length === 0) {
+      const addrRes = await fetch(
+        `${SUPA_URL}/rest/v1/backflow_reports?select=*&address=ilike.${encodeURIComponent('%' + ownerAddress + '%')}&order=date.desc`,
+        { headers }
+      );
+      if (addrRes.ok) devices = await addrRes.json();
+    }
+
+    // Deduplicate by serial/address — show latest per device
+    const seen = new Map();
+    devices.forEach(r => {
+      const key = (r.serial && r.serial !== '') ? r.serial : r.address;
+      if (!seen.has(key)) seen.set(key, r);
+    });
+    const myDevices = [...seen.values()];
+
+    if (myDevices.length === 0) {
+      heroWrap.innerHTML = heroHTML('warn', '❓', 'No Devices Found', 'We don\'t have any devices registered to your account yet. Contact the Cross-Connection Control Program to register your device.');
+      container.innerHTML = `<div class="empty">
+        <span class="empty-icon">🔧</span>
+        <div class="empty-title">No Devices Registered</div>
+        <div class="empty-sub">CONTACT CITY OF ABILENE TO REGISTER<br>YOUR BACKFLOW PREVENTION ASSEMBLY</div>
+      </div>`;
+      return;
+    }
+
+    // Overall status
+    const today = new Date();
+    const oneYearAgo = new Date(); oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    const allCurrent = myDevices.every(r => r.result === 'PASS' && r.date && new Date(r.date + 'T12:00:00') >= oneYearAgo);
+    const anyOverdue = myDevices.some(r => !r.date || new Date(r.date + 'T12:00:00') < oneYearAgo);
+    const anyFail = myDevices.some(r => r.result === 'FAIL');
+
+    if (allCurrent) {
+      heroWrap.innerHTML = heroHTML('good', '✓', 'All Devices Current', `All ${myDevices.length} device${myDevices.length > 1 ? 's are' : ' is'} tested and passing. You're in compliance with TCEQ requirements.`);
+    } else if (anyFail) {
+      heroWrap.innerHTML = heroHTML('bad', '✗', 'Test Failed', 'One or more devices have failed their backflow test. Contact a certified tester immediately to make repairs.');
+    } else if (anyOverdue) {
+      heroWrap.innerHTML = heroHTML('warn', '⚠', 'Testing Overdue', 'One or more of your devices are past due for their annual test. Please contact a certified tester.');
+    }
+
+    // Render device cards
+    container.innerHTML = myDevices.map(r => deviceCardHTML(r, oneYearAgo)).join('');
+
+  } catch(e) {
+    console.error(e);
+    container.innerHTML = '<div class="empty"><span class="empty-icon">⚠️</span><div class="empty-title">Could not load devices</div><div class="empty-sub">Check your connection and try again</div></div>';
+  }
+}
+
+function heroHTML(type, icon, title, sub) {
+  return `<div class="status-hero">
+    <div class="status-icon-wrap ${type}">${icon}</div>
+    <div class="status-title ${type}">${title}</div>
+    <div class="status-sub">${sub}</div>
+  </div>`;
+}
+
+function deviceCardHTML(r, oneYearAgo) {
+  const pass = r.result === 'PASS';
+  const fail = r.result === 'FAIL';
+  const testDate = r.date ? new Date(r.date + 'T12:00:00') : null;
+  const isOverdue = !testDate || testDate < oneYearAgo;
+  const fmtDate = d => d ? new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '—';
+
+  // Next due date
+  let nextDueHTML = '';
+  if (testDate && !isOverdue) {
+    const nextDue = new Date(testDate);
+    nextDue.setFullYear(nextDue.getFullYear() + 1);
+    const daysLeft = Math.ceil((nextDue - new Date()) / (1000 * 60 * 60 * 24));
+    const dueFmt = nextDue.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    const dueType = daysLeft <= 30 ? 'warn' : 'good';
+    nextDueHTML = `<div class="device-next-due ${dueType}">📅 Next test due: ${dueFmt} (${daysLeft} days)</div>`;
+  } else {
+    nextDueHTML = `<div class="device-next-due bad">⚠ OVERDUE — Annual test required immediately per TCEQ §290.47(f)</div>`;
+  }
+
+  const badgeClass = fail ? 'badge-fail' : isOverdue ? 'badge-overdue' : pass ? 'badge-pass' : 'badge-pending';
+  const badgeLabel = fail ? '✗ FAIL' : isOverdue ? '⚠ OVERDUE' : pass ? '✓ PASS' : '? PENDING';
+
+  return `<div class="device-card">
+    <div class="device-card-header">
+      <div class="device-address">${r.address || '—'}</div>
+      <span class="badge ${badgeClass}">${badgeLabel}</span>
+    </div>
+    <div class="device-grid">
+      <div class="device-field"><div class="device-field-label">Assembly Type</div><div class="device-field-val">${r.assembly || '—'}</div></div>
+      <div class="device-field"><div class="device-field-label">Serial #</div><div class="device-field-val">${r.serial || '—'}</div></div>
+      <div class="device-field"><div class="device-field-label">Manufacturer</div><div class="device-field-val">${r.manufacturer || '—'}</div></div>
+      <div class="device-field"><div class="device-field-label">Model</div><div class="device-field-val">${r.model || '—'}</div></div>
+      <div class="device-field"><div class="device-field-label">Last Test Date</div><div class="device-field-val">${fmtDate(r.date)}</div></div>
+      <div class="device-field"><div class="device-field-label">Tested By</div><div class="device-field-val">${r.tester || '—'}</div></div>
+    </div>
+    ${nextDueHTML}
+    ${r.fail_reasons ? `<div style="margin-top:10px;background:rgba(224,82,82,.08);border:1px solid rgba(224,82,82,.2);border-radius:8px;padding:10px 12px;font-family:var(--mono);font-size:10px;color:var(--red);line-height:1.6">FAIL REASON: ${r.fail_reasons}</div>` : ''}
+  </div>`;
+}
+
+function toast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
+supaClient.auth.getSession().then(({ data: { session } }) => {
+  if (session) {
+    currentUser = session.user;
+    enterApp();
+  } else {
+    showScreen('login');
+  }
+});
+</script>
+</body>
+</html>
