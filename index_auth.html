@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
 <!-- CHANGE 1: Supabase Auth SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root {
   --bg:#13161a; --surface:#1e2228; --elevated:#272c35;
@@ -407,7 +408,7 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
     <div>
       <div style="font-family:var(--cond);font-size:22px;font-weight:700" id="dash-year-label">2026 Program Dashboard</div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px">Cross-Connection Control Program · City of Abilene · TCEQ</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px">Cross-Connection Control Program</div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
       <button class="btn btn-gh btn-sm" onclick="openThemePicker()" title="Change theme">🎨 Theme</button>
@@ -762,7 +763,7 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.8">
       📌 <strong style="color:var(--accent)">Dev Phase</strong> — Records saved here persist in your browser.<br>
       🔜 <strong style="color:var(--accent)">Next Phase</strong> — App hits a Supabase API endpoint on Save, dashboard updates in real time. No email needed.<br>
-      📧 <strong style="color:var(--accent)">Right Now</strong> — When you save a report on the app, it emails to sniderbackflowsolutions@gmail.com. You paste the details here to see them on the dashboard.
+      📧 <strong style="color:var(--accent)">Right Now</strong> — When you save a report on the app, it emails to crossconnectioninspector@outlook.com. You paste the details here to see them on the dashboard.
     </div>
   </div>
 </div>
@@ -1055,590 +1056,225 @@ async function renderDashboard() {
 
 function buildDashboard() {
   const year = new Date().getFullYear();
-  const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const yearStart  = new Date(year, 0, 1);
-  const yearEnd    = new Date(year, 11, 31, 23, 59, 59);
+  const now  = new Date();
+  const oneYearAgo = new Date(); oneYearAgo.setFullYear(oneYearAgo.getFullYear()-1);
 
-  // ── Data slices ──
-  const bf   = DB.filter(r=>r.type==='backflow');
-  const csi  = DB.filter(r=>r.type==='csi');
-  const insp = DB.filter(r=>r.type==='inspection');
+  const bf = DB.filter(r => r.type === 'backflow');
 
-  const inYear  = r => { const d=new Date(r.date); return d>=yearStart && d<=yearEnd; };
-  const inMonth = r => new Date(r.date) >= monthStart;
+  // ── Latest test per device ───────────────────────────────────────────────
+  const deviceMap = new Map();
+  bf.forEach(r => {
+    const key = (r.serial && r.serial !== '') ? r.serial : r.address;
+    if (!deviceMap.has(key)) deviceMap.set(key, r);
+  });
+  const devices = [...deviceMap.values()];
+  const total      = devices.length;
+  const compliant  = devices.filter(r => r.result==='PASS' && r.date && new Date(r.date+'T12:00:00') >= oneYearAgo).length;
+  const nonComp    = devices.filter(r => r.result==='FAIL').length;
+  const overdue    = devices.filter(r => !r.date || new Date(r.date+'T12:00:00') < oneYearAgo).length;
+  const incomplete = devices.filter(r => !r.date || r.result==='PENDING').length;
+  const compRate   = total > 0 ? Math.round((compliant/total)*100) : 0;
 
-  const bfYear   = bf.filter(inYear);
-  const bfMonth  = bf.filter(inMonth);
-  const csiYear  = csi.filter(inYear);
-  const inspYear = insp.filter(inYear);
-
-  const lettersSent   = bfYear.length + csiYear.length; // proxied by tests + CSI
-  const testsThisYear = bfYear.length;
-  const testsMonth    = bfMonth.length;
-  const passYear      = bfYear.filter(r=>r.result==='PASS').length;
-  const failYear      = bfYear.filter(r=>r.result==='FAIL').length;
-  const ncYear        = DB.filter(r=>inYear(r)&&(r.result==='FAIL'||r.status==='noncompliant'||r.complianceStatus==='violation')).length;
-  const compRate      = testsThisYear > 0 ? Math.round((passYear/testsThisYear)*100) : 0;
-  const pctComplete   = dashGoals.tests > 0 ? Math.min(100,Math.round((testsThisYear/dashGoals.tests)*100)) : 0;
-
-  // ── Monthly chart data ──
+  // ── Monthly trend (last 12 months) ───────────────────────────────────────
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const monthlyTests = Array(12).fill(0);
-  bfYear.forEach(r=>{ const m=new Date(r.date).getMonth(); if(m>=0&&m<12) monthlyTests[m]++; });
-  const maxMonthly = Math.max(...monthlyTests, 1);
+  const monthlyPass  = Array(12).fill(0);
+  const monthlyFail  = Array(12).fill(0);
+  bf.forEach(r => {
+    if (!r.date) return;
+    const d = new Date(r.date+'T12:00:00');
+    if (d.getFullYear() === year) {
+      const m = d.getMonth();
+      if (r.result === 'PASS') monthlyPass[m]++;
+      else if (r.result === 'FAIL') monthlyFail[m]++;
+    }
+  });
 
-  // ── Overdue: tested > 30 days ago or never ──
-  const overdue = insp.filter(r=>{
-    if(r.complianceStatus==='notInspected') return true;
-    const d = new Date(r.date);
-    return (now - d) > 30*24*60*60*1000 && r.complianceStatus !== 'compliant';
-  }).slice(0,5);
+  // ── Assembly type breakdown ───────────────────────────────────────────────
+  const asmCounts = {};
+  bf.forEach(r => { if (r.assembly) asmCounts[r.assembly] = (asmCounts[r.assembly]||0)+1; });
 
-  // ── Device type breakdown ──
-  const deviceCounts = {};
-  bfYear.forEach(r=>{ if(r.assembly) deviceCounts[r.assembly]=(deviceCounts[r.assembly]||0)+1; });
+  // ── Non-compliant list ────────────────────────────────────────────────────
+  const nonCompList = devices.filter(r => r.result==='FAIL').slice(0,8);
+  const overdueList = devices
+    .filter(r => !r.date || new Date(r.date+'T12:00:00') < oneYearAgo)
+    .sort((a,b) => (a.date||'') < (b.date||'') ? -1 : 1)
+    .slice(0,8);
 
-  // ── Build ordered visible widgets ──
+  // ── Build dashboard HTML ──────────────────────────────────────────────────
   const container = el('dash-widgets');
-  container.innerHTML = '';
+  container.innerHTML = `
 
-  const widgets = {
-    'w-month': () => buildWidget('w-month', '📅 This Month', `
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-        ${statChip('Tests Run', testsMonth, 'var(--accent)')}
-        ${statChip('Pass', bfMonth.filter(r=>r.result==='PASS').length, 'var(--green)')}
-        ${statChip('Fail', bfMonth.filter(r=>r.result==='FAIL').length, 'var(--red)')}
-      </div>`),
-
-    'w-year': () => buildWidget('w-year', `📊 ${year} Annual Tally`, `
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px">
-        ${bigStat('Letters Sent', lettersSent, dashGoals.letters, 'var(--accent)')}
-        ${bigStat('Tests Performed', testsThisYear, dashGoals.tests, 'var(--blue)')}
-        ${bigStat('% Complete', pctComplete+'%', null, pctComplete>=80?'var(--green)':pctComplete>=50?'var(--yellow)':'var(--red)')}
-        ${bigStat('% Out of Compliance', testsThisYear>0?Math.round((ncYear/testsThisYear)*100)+'%':'—', null, ncYear>0?'var(--red)':'var(--green)')}
+    <!-- TOP STATS ROW -->
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:4px" id="dash-top-stats">
+      <div class="scard" style="text-align:center;padding:20px 12px">
+        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;margin-bottom:8px;text-transform:uppercase">Total Assemblies</div>
+        <div style="font-family:var(--cond);font-size:48px;font-weight:900;line-height:1;color:var(--text)">${total}</div>
       </div>
-      <div style="background:var(--elevated);border-radius:8px;padding:10px 14px">
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-          <span style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px">ANNUAL PROGRESS</span>
-          <span style="font-family:var(--mono);font-size:10px;color:var(--accent)">${pctComplete}% of goal</span>
-        </div>
-        <div style="background:var(--border);border-radius:4px;height:8px;overflow:hidden">
-          <div style="background:var(--accent);width:${pctComplete}%;height:100%;border-radius:4px;transition:width .6s ease"></div>
-        </div>
-        <div style="display:flex;justify-content:space-between;margin-top:5px;font-family:var(--mono);font-size:9px;color:var(--muted)">
-          <span>Jan 1</span><span>Goal: ${dashGoals.tests} tests</span><span>Dec 31</span>
-        </div>
-      </div>`),
+      <div class="scard" style="text-align:center;padding:20px 12px">
+        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;margin-bottom:8px;text-transform:uppercase">Compliance Rate</div>
+        <div style="font-family:var(--cond);font-size:48px;font-weight:900;line-height:1;color:${compRate>=90?'var(--green)':compRate>=70?'var(--yellow)':'var(--red)'}">${compRate}%</div>
+      </div>
+      <div class="scard" style="text-align:center;padding:20px 12px">
+        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;margin-bottom:8px;text-transform:uppercase">Non-Compliant</div>
+        <div style="font-family:var(--cond);font-size:48px;font-weight:900;line-height:1;color:var(--red)">${nonComp}</div>
+      </div>
+      <div class="scard" style="text-align:center;padding:20px 12px">
+        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;margin-bottom:8px;text-transform:uppercase">Overdue (>1yr)</div>
+        <div style="font-family:var(--cond);font-size:48px;font-weight:900;line-height:1;color:var(--yellow)">${overdue}</div>
+      </div>
+    </div>
 
-    'w-chart': () => buildWidget('w-chart', '📈 Monthly Tests — '+year, `
-      <div style="display:flex;align-items:flex-end;gap:4px;height:100px;padding:0 4px">
-        ${MONTHS.map((m,i)=>{
-          const h = Math.round((monthlyTests[i]/maxMonthly)*90);
-          const isNow = i===now.getMonth();
-          return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
-            <div style="font-family:var(--mono);font-size:8px;color:var(--muted)">${monthlyTests[i]||''}</div>
-            <div style="width:100%;height:${h}px;background:${isNow?'var(--accent)':'rgba(249,166,30,.3)'};border-radius:3px 3px 0 0;min-height:3px;transition:height .4s"></div>
-            <div style="font-family:var(--mono);font-size:8px;color:${isNow?'var(--accent)':'var(--muted)'}">${m}</div>
-          </div>`;
-        }).join('')}
-      </div>`),
-
-    'w-overdue': () => buildWidget('w-overdue', '⚠️ Overdue / Needs Attention', overdue.length===0
-      ? '<div style="text-align:center;padding:20px;color:var(--green);font-weight:600">✓ No overdue items</div>'
-      : overdue.map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
-          <div>
-            <div style="font-size:13px;font-weight:600">${r.address}</div>
-            <div style="font-family:var(--mono);font-size:10px;color:var(--muted)">${r.bizType||'—'} · ${r.complianceStatus}</div>
+    <!-- COMPLIANCE RATE DONUT + ASSEMBLY TYPES PIE -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="scard">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:14px;display:flex;align-items:center;gap:6px"><span style="width:3px;height:10px;background:var(--accent);display:inline-block;border-radius:2px"></span>ASSEMBLY COMPLIANCE</div>
+        <div style="position:relative;height:160px;display:flex;align-items:center;justify-content:center">
+          <canvas id="chart-donut" style="max-height:160px"></canvas>
+          <div style="position:absolute;text-align:center;pointer-events:none">
+            <div style="font-family:var(--cond);font-size:28px;font-weight:900;color:${compRate>=90?'var(--green)':compRate>=70?'var(--yellow)':'var(--red)'}">${compRate}%</div>
+            <div style="font-family:var(--mono);font-size:8px;color:var(--muted)">COMPLIANT</div>
           </div>
-          <span class="badge b-noncomp">OVERDUE</span>
-        </div>`).join('')),
+        </div>
+        <div style="display:flex;justify-content:center;gap:16px;margin-top:10px">
+          <div style="display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--muted)"><span style="width:10px;height:10px;background:var(--green);border-radius:2px;display:inline-block"></span>Compliant</div>
+          <div style="display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--muted)"><span style="width:10px;height:10px;background:var(--red);border-radius:2px;display:inline-block"></span>Non-Compliant</div>
+          <div style="display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--muted)"><span style="width:10px;height:10px;background:var(--yellow);border-radius:2px;display:inline-block"></span>Overdue</div>
+        </div>
+      </div>
+      <div class="scard">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:14px;display:flex;align-items:center;gap:6px"><span style="width:3px;height:10px;background:var(--accent);display:inline-block;border-radius:2px"></span>ASSEMBLY TYPES</div>
+        <div style="position:relative;height:160px;display:flex;align-items:center;justify-content:center">
+          <canvas id="chart-asm" style="max-height:160px"></canvas>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:10px">
+          ${Object.entries(asmCounts).map(([k,v],i)=>{
+            const colors=['var(--accent)','var(--blue)','var(--green)','var(--red)','#b464ff'];
+            return `<div style="display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:9px;color:var(--muted)"><span style="width:10px;height:10px;background:${colors[i%colors.length]};border-radius:2px;display:inline-block"></span>${k} (${v})</div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
 
-    'w-compliance': () => buildWidget('w-compliance', '✅ Compliance Breakdown — '+year, `
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-        ${compBar('Pass', passYear, testsThisYear, 'var(--green)')}
-        ${compBar('Fail', failYear, testsThisYear, 'var(--red)')}
-        ${compBar('Non-Compliant', ncYear, DB.filter(inYear).length, 'var(--yellow)')}
-      </div>`),
+    <!-- MONTHLY TREND BAR CHART -->
+    <div class="scard">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:10px;background:var(--accent);display:inline-block;border-radius:2px"></span>MONTHLY COMPLIANCE TREND — ${year}</div></div>
+      <div style="height:160px"><canvas id="chart-monthly"></canvas></div>
+      <div style="display:flex;justify-content:center;gap:16px;margin-top:10px">
+        <div style="display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--muted)"><span style="width:10px;height:10px;background:var(--green);border-radius:2px;display:inline-block"></span>Pass</div>
+        <div style="display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--muted)"><span style="width:10px;height:10px;background:var(--red);border-radius:2px;display:inline-block"></span>Fail</div>
+      </div>
+    </div>
 
-    'w-recent': () => buildWidget('w-recent', '🕐 Recent Activity', (() => {
-        const recent = [...DB].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,8);
-        return recent.length ? buildAllTable(recent) : es('📭','No reports yet','Submit your first report');
-      })()),
+    <!-- NON-COMPLIANT LIST + OVERDUE LIST -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="scard">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--red);letter-spacing:2px;margin-bottom:14px;display:flex;align-items:center;gap:6px"><span style="width:3px;height:10px;background:var(--red);display:inline-block;border-radius:2px"></span>NON-COMPLIANT</div>
+        ${nonCompList.length ? nonCompList.map(r=>`
+          <div style="padding:8px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+            <div style="min-width:0">
+              <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)">${r.address||'—'}</div>
+              <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">${r.assembly||'—'} · SN: ${r.serial||'—'}</div>
+            </div>
+            <span style="background:rgba(224,82,82,.12);color:var(--red);border:1px solid rgba(224,82,82,.25);padding:2px 8px;border-radius:20px;font-family:var(--mono);font-size:8px;font-weight:700;white-space:nowrap;flex-shrink:0">✗ FAIL</span>
+          </div>`).join('') : '<div style="text-align:center;padding:20px;color:var(--green);font-family:var(--mono);font-size:10px">✓ None</div>'}
+      </div>
+      <div class="scard">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--yellow);letter-spacing:2px;margin-bottom:14px;display:flex;align-items:center;gap:6px"><span style="width:3px;height:10px;background:var(--yellow);display:inline-block;border-radius:2px"></span>OVERDUE DEVICES</div>
+        ${overdueList.length ? overdueList.map(r=>`
+          <div style="padding:8px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+            <div style="min-width:0">
+              <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)">${r.address||'—'}</div>
+              <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">Last: ${r.date||'Never'}</div>
+            </div>
+            <span style="background:rgba(240,192,64,.12);color:var(--yellow);border:1px solid rgba(240,192,64,.3);padding:2px 8px;border-radius:20px;font-family:var(--mono);font-size:8px;font-weight:700;white-space:nowrap;flex-shrink:0">⚠ DUE</span>
+          </div>`).join('') : '<div style="text-align:center;padding:20px;color:var(--green);font-family:var(--mono);font-size:10px">✓ All current</div>'}
+      </div>
+    </div>
 
-    'w-devices': () => buildWidget('w-devices', '🔧 Device Types Tested — '+year, Object.keys(deviceCounts).length===0
-      ? '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">No backflow tests recorded this year</div>'
-      : Object.entries(deviceCounts).sort((a,b)=>b[1]-a[1]).map(([type,count])=>`
-        <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
-          <span class="badge b-bf" style="min-width:50px;justify-content:center">${type}</span>
-          <div style="flex:1;background:var(--elevated);border-radius:4px;height:6px;overflow:hidden">
-            <div style="background:var(--accent);width:${Math.round((count/bfYear.length)*100)}%;height:100%;border-radius:4px"></div>
-          </div>
-          <span style="font-family:var(--mono);font-size:11px;color:var(--accent);min-width:24px;text-align:right">${count}</span>
-        </div>`).join('')),
+    <!-- INCOMPLETE ASSEMBLIES (never tested) -->
+    <div class="scard">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:10px;background:var(--blue);display:inline-block;border-radius:2px"></span>INCOMPLETE ASSEMBLIES — NO TEST ON RECORD</div>
+        <span style="font-family:var(--cond);font-size:16px;font-weight:900;color:var(--blue)">${incomplete}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">
+        ${devices.filter(r=>!r.date||r.result==='PENDING').slice(0,6).map(r=>`
+          <div style="background:var(--elevated);border:1px solid var(--border);border-radius:10px;padding:10px 12px">
+            <div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.address||'—'}</div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px">${r.assembly||'—'} · ${r.manufacturer||'—'}</div>
+          </div>`).join('') || '<div style="font-family:var(--mono);font-size:10px;color:var(--green);padding:12px">✓ All assemblies have test records</div>'}
+      </div>
+    </div>
 
-    'w-pws': () => buildWidget('w-pws', '🏛️ PWS Summary — City of Abilene', `
-      <div class="rg">
-        <div class="rf"><div class="rfl">PWS ID</div><div class="rfv">TX0100023</div></div>
-        <div class="rf"><div class="rfl">PWS Name</div><div class="rfv">City of Abilene</div></div>
-        <div class="rf"><div class="rfl">Total Tests ${year}</div><div class="rfv" style="color:var(--accent)">${testsThisYear}</div></div>
-        <div class="rf"><div class="rfl">Compliance Rate</div><div class="rfv" style="color:${compRate>=80?'var(--green)':'var(--red)'}">${compRate}%</div></div>
-        <div class="rf"><div class="rfl">Firm</div><div class="rfv">Snider Backflow Solutions</div></div>
-        <div class="rf"><div class="rfl">Report Period</div><div class="rfv">Jan 1 – Dec 31 ${year}</div></div>
-      </div>`)
-  };
+    <!-- REFRESH BUTTON -->
+    <div style="text-align:center;padding:8px 0">
+      <button onclick="renderDashboard()" class="btn btn-gh btn-sm" style="width:auto">↻ Refresh Dashboard</button>
+    </div>
+  `;
 
-  dashWidgetOrder.forEach(wid => {
-    if (getWidgetVisible(wid) && widgets[wid]) {
-      const node = document.createElement('div');
-      node.innerHTML = widgets[wid]();
-      const widgetEl = node.firstElementChild;
-      widgetEl.dataset.wid = wid;
-      if (dashEditMode) addDragHandlers(widgetEl);
-      container.appendChild(widgetEl);
+  // ── Draw Chart.js charts ──────────────────────────────────────────────────
+  requestAnimationFrame(() => {
+    const chartDefaults = {
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1f242d', titleColor: '#eef0f3', bodyColor: '#7a8494', borderColor: '#252b36', borderWidth: 1 } },
+      responsive: true,
+      maintainAspectRatio: false,
+    };
+
+    // Donut — compliance
+    const donutCtx = document.getElementById('chart-donut');
+    if (donutCtx) {
+      if (donutCtx._chart) donutCtx._chart.destroy();
+      donutCtx._chart = new Chart(donutCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Compliant', 'Non-Compliant', 'Overdue'],
+          datasets: [{ data: [compliant, nonComp, Math.max(0, overdue - nonComp)], backgroundColor: ['#3db870','#e05252','#f0c040'], borderWidth: 0, hoverOffset: 4 }]
+        },
+        options: { ...chartDefaults, cutout: '72%' }
+      });
+    }
+
+    // Pie — assembly types
+    const asmCtx = document.getElementById('chart-asm');
+    if (asmCtx && Object.keys(asmCounts).length) {
+      if (asmCtx._chart) asmCtx._chart.destroy();
+      const asmColors = ['#f9a61e','#6495ed','#3db870','#e05252','#b464ff','#f0c040'];
+      asmCtx._chart = new Chart(asmCtx, {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(asmCounts),
+          datasets: [{ data: Object.values(asmCounts), backgroundColor: asmColors.slice(0, Object.keys(asmCounts).length), borderWidth: 0, hoverOffset: 4 }]
+        },
+        options: { ...chartDefaults, cutout: '55%' }
+      });
+    }
+
+    // Bar — monthly trend
+    const monthCtx = document.getElementById('chart-monthly');
+    if (monthCtx) {
+      if (monthCtx._chart) monthCtx._chart.destroy();
+      monthCtx._chart = new Chart(monthCtx, {
+        type: 'bar',
+        data: {
+          labels: MONTHS,
+          datasets: [
+            { label: 'Pass', data: monthlyPass, backgroundColor: 'rgba(61,184,112,.8)', borderRadius: 4, borderSkipped: false },
+            { label: 'Fail', data: monthlyFail, backgroundColor: 'rgba(224,82,82,.8)', borderRadius: 4, borderSkipped: false }
+          ]
+        },
+        options: {
+          ...chartDefaults,
+          plugins: { ...chartDefaults.plugins, legend: { display: false } },
+          scales: {
+            x: { stacked: true, grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#7a8494', font: { family: 'Share Tech Mono', size: 9 } } },
+            y: { stacked: true, grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#7a8494', font: { family: 'Share Tech Mono', size: 9 }, stepSize: 1 } }
+          }
+        }
+      });
     }
   });
 }
 
-function buildWidget(id, title, content) {
-  return `<div class="tw" id="${id}" style="transition:opacity .2s;${dashEditMode?'cursor:grab;outline:1px dashed rgba(249,166,30,.4);':''}">
-    <div class="th" style="display:flex;align-items:center;justify-content:space-between">
-      <span class="th-title">${title}</span>
-      ${dashEditMode?'<span style="color:var(--muted);font-size:14px">⠿</span>':''}
-    </div>
-    <div style="padding:14px 18px">${content}</div>
-  </div>`;
-}
-
-function statChip(label, val, color) {
-  return `<div style="background:var(--elevated);border-radius:8px;padding:12px;text-align:center">
-    <div style="font-family:var(--cond);font-size:28px;font-weight:900;color:${color}">${val}</div>
-    <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:3px">${label}</div>
-  </div>`;
-}
-
-function bigStat(label, val, goal, color) {
-  return `<div style="background:var(--elevated);border-radius:8px;padding:12px">
-    <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;margin-bottom:4px">${label.toUpperCase()}</div>
-    <div style="font-family:var(--cond);font-size:26px;font-weight:900;color:${color};line-height:1">${val}</div>
-    ${goal?`<div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px">Goal: ${goal}</div>`:''}
-  </div>`;
-}
-
-function compBar(label, val, total, color) {
-  const pct = total > 0 ? Math.round((val/total)*100) : 0;
-  return `<div style="background:var(--elevated);border-radius:8px;padding:12px;text-align:center">
-    <div style="font-family:var(--cond);font-size:26px;font-weight:900;color:${color}">${val}</div>
-    <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin:4px 0">${label}</div>
-    <div style="background:var(--border);border-radius:3px;height:4px"><div style="background:${color};width:${pct}%;height:100%;border-radius:3px"></div></div>
-    <div style="font-family:var(--mono);font-size:9px;color:${color};margin-top:3px">${pct}%</div>
-  </div>`;
-}
-
-// ── Drag & drop reordering ────────────────────────────────────────────────────
-function addDragHandlers(el_) {
-  el_.draggable = true;
-  el_.addEventListener('dragstart', e=>{ dashDragSrc=el_; e.dataTransfer.effectAllowed='move'; el_.style.opacity='.5'; });
-  el_.addEventListener('dragend',   ()=>{ el_.style.opacity='1'; });
-  el_.addEventListener('dragover',  e=>{ e.preventDefault(); e.dataTransfer.dropEffect='move'; });
-  el_.addEventListener('drop', e=>{
-    e.preventDefault();
-    if(dashDragSrc===el_)return;
-    const kids=[...el('dash-widgets').children];
-    const si=kids.indexOf(dashDragSrc), di=kids.indexOf(el_);
-    if(si<di) el_.after(dashDragSrc); else el_.before(dashDragSrc);
-  });
-}
-
-function toggleDashboardEdit() {
-  dashEditMode = !dashEditMode;
-  el('dash-edit-btn').textContent = dashEditMode ? '💾 Save Layout' : '✦ Arrange';
-  el('dash-edit-btn').style.color = dashEditMode ? 'var(--accent)' : '';
-  el('dash-edit-hint').style.display = dashEditMode ? 'block' : 'none';
-  if (!dashEditMode) {
-    dashWidgetOrder = [...el('dash-widgets').children].map(c=>c.dataset.wid);
-    localStorage.setItem('cci_widget_order', JSON.stringify(dashWidgetOrder));
-    toast('Layout saved', 'success');
-  }
-  buildDashboard();
-}
-
-// ── Theme ─────────────────────────────────────────────────────────────────────
-function applyDashTheme() {
-  const tid = localStorage.getItem('cci_theme')||'default';
-  const t = DASH_THEMES.find(x=>x.id===tid)||DASH_THEMES[0];
-  const root = document.documentElement;
-  root.style.setProperty('--bg', t.bg);
-  root.style.setProperty('--surface', t.surface);
-  root.style.setProperty('--accent', t.accent);
-  root.style.setProperty('--text', t.text);
-}
-
-function openThemePicker() {
-  const tid = localStorage.getItem('cci_theme')||'default';
-  el('theme-swatches').innerHTML = DASH_THEMES.map(t=>`
-    <div onclick="setTheme('${t.id}')" style="background:${t.bg};border:2px solid ${t.id===tid?t.accent:'transparent'};border-radius:10px;padding:14px;cursor:pointer;transition:border-color .2s">
-      <div style="display:flex;gap:6px;margin-bottom:8px">
-        <div style="width:16px;height:16px;border-radius:50%;background:${t.accent}"></div>
-        <div style="width:16px;height:16px;border-radius:50%;background:${t.surface};border:1px solid #ffffff22"></div>
-      </div>
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:${t.text}">${t.name}</div>
-      ${t.id===tid?'<div style="font-family:monospace;font-size:9px;color:'+t.accent+';margin-top:2px">ACTIVE</div>':''}
-    </div>`).join('');
-  el('theme-modal').classList.add('open');
-}
-
-function setTheme(id) {
-  localStorage.setItem('cci_theme', id);
-  closeThemeModal();
-  applyDashTheme();
-  buildDashboard();
-  toast('Theme applied', 'success');
-}
-function closeThemeModal(e) { if(!e||e.target===el('theme-modal')) el('theme-modal').classList.remove('open'); }
-
-// ── Widget manager ────────────────────────────────────────────────────────────
-function openWidgetManager() {
-  el('widget-toggle-list').innerHTML = WIDGET_DEFS.map(w=>`
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
-      <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:18px">${w.icon}</span>
-        <span style="font-size:13px;font-weight:600">${w.title}</span>
-      </div>
-      <div onclick="toggleWidget('${w.id}',this)" style="width:42px;height:24px;border-radius:12px;background:${getWidgetVisible(w.id)?'var(--accent)':'var(--border)'};cursor:pointer;position:relative;transition:background .2s" data-wid="${w.id}">
-        <div style="width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:3px;${getWidgetVisible(w.id)?'right:3px':'left:3px'};transition:all .2s"></div>
-      </div>
-    </div>`).join('');
-  el('widget-modal').classList.add('open');
-}
-
-function toggleWidget(id, toggleEl) {
-  const current = getWidgetVisible(id);
-  dashWidgetState[id] = !current;
-  localStorage.setItem('cci_widgets', JSON.stringify(dashWidgetState));
-  toggleEl.style.background = !current ? 'var(--accent)' : 'var(--border)';
-  toggleEl.children[0].style.right = !current ? '3px' : '';
-  toggleEl.children[0].style.left  = !current ? '' : '3px';
-  buildDashboard();
-}
-function closeWidgetModal(e) { if(!e||e.target===el('widget-modal')) el('widget-modal').classList.remove('open'); }
-
-// ── Goals ─────────────────────────────────────────────────────────────────────
-function openGoalEditor() {
-  el('goal-letters').value    = dashGoals.letters;
-  el('goal-tests').value      = dashGoals.tests;
-  el('goal-compliance').value = dashGoals.compliance;
-  el('goal-modal').classList.add('open');
-}
-function saveGoals() {
-  dashGoals = {
-    letters:    parseInt(el('goal-letters').value)||500,
-    tests:      parseInt(el('goal-tests').value)||500,
-    compliance: parseInt(el('goal-compliance').value)||90,
-  };
-  localStorage.setItem('cci_goals', JSON.stringify(dashGoals));
-  closeGoalModal();
-  buildDashboard();
-  toast('Goals saved', 'success');
-}
-function closeGoalModal(e) { if(!e||e.target===el('goal-modal')) el('goal-modal').classList.remove('open'); }
-
-// ── DEVICE MAP ────────────────────────────────────────────────────────────────
-let mapCurrentFilter = 'all';
-function initDeviceMap() {
-  if(!deviceMap) {
-    deviceMap = L.map('device-map', {center:[32.4487,-99.7331], zoom:13,
-      attributionControl:true});
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
-      attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
-      maxZoom:19}).addTo(deviceMap);
-    deviceMarkers = L.markerClusterGroup({maxClusterRadius:50,
-      iconCreateFunction: c => L.divIcon({html:`<div style="background:var(--accent);color:#000;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;font-family:var(--cond);border:2px solid rgba(249,166,30,.5)">${c.getChildCount()}</div>`,iconSize:[32,32],className:''})
-    });
-    deviceMap.addLayer(deviceMarkers);
-
-    // Abilene city boundary — same polygon as risk map
-    const devicePolyStyle = {color:'rgba(249,166,30,0.85)',weight:1.5,fillColor:'rgba(249,166,30,0.03)',fillOpacity:0.03,dashArray:'4,3'};
-    const deviceBoundaryCoords = [[32.6243596,-99.6793492],[32.6244341,-99.6712882],[32.6235264,-99.6716389],[32.6222881,-99.6703228],[32.6209653,-99.6697914],[32.6219313,-99.6590055],[32.6154048,-99.6581495],[32.6205287,-99.6547265],[32.6193273,-99.6518751],[32.6155658,-99.6541806],[32.6117337,-99.6544735],[32.6115679,-99.6555249],[32.6110580,-99.6556980],[32.6082470,-99.6549103],[32.5994316,-99.6551372],[32.5995350,-99.6654956],[32.5967021,-99.6667789],[32.5899610,-99.6667301],[32.5899319,-99.6751773],[32.5778509,-99.6751547],[32.5778403,-99.6771315],[32.5641335,-99.6771540],[32.5641764,-99.6653098],[32.5637800,-99.6652846],[32.5637666,-99.6645998],[32.5637776,-99.6601253],[32.5643064,-99.6601142],[32.5642395,-99.6277069],[32.5671279,-99.6279434],[32.5678621,-99.6183299],[32.5596909,-99.6174582],[32.5606297,-99.6072318],[32.5534166,-99.6064764],[32.5529150,-99.6119907],[32.5408537,-99.6119923],[32.5414183,-99.6059635],[32.5330309,-99.6050375],[32.5329872,-99.6119937],[32.5367857,-99.6119933],[32.5367237,-99.6222407],[32.5257294,-99.6222384],[32.5257353,-99.6288755],[32.5281815,-99.6291842],[32.5288483,-99.6299429],[32.5330045,-99.6299816],[32.5329556,-99.6393154],[32.5402717,-99.6393218],[32.5402643,-99.6480387],[32.5504282,-99.6480763],[32.5504243,-99.6395587],[32.5614431,-99.6395816],[32.5610265,-99.6781370],[32.5538259,-99.6781400],[32.5538239,-99.6745541],[32.5486243,-99.6745505],[32.5486544,-99.6858816],[32.5476472,-99.6859014],[32.5476483,-99.6793528],[32.5396840,-99.6857889],[32.5397153,-99.6875524],[32.5159542,-99.6872835],[32.5159223,-99.6906136],[32.5329282,-99.6908115],[32.5330307,-99.7097632],[32.5320672,-99.7107957],[32.5300340,-99.7102703],[32.5287094,-99.7106612],[32.5278419,-99.7092606],[32.5270337,-99.7092630],[32.5266808,-99.7123274],[32.5248468,-99.7123754],[32.5251925,-99.7139258],[32.5218353,-99.7135166],[32.5195595,-99.7139564],[32.5087058,-99.7193023],[32.5084167,-99.7052992],[32.5075310,-99.7052097],[32.5066957,-99.7058833],[32.5063345,-99.7069802],[32.5056006,-99.7066892],[32.5051725,-99.7056303],[32.5038470,-99.7044955],[32.5038547,-99.6873112],[32.4964800,-99.6872951],[32.4964444,-99.6737093],[32.4890640,-99.6738000],[32.4890960,-99.6394467],[32.4818046,-99.6394331],[32.4817915,-99.6308094],[32.4745245,-99.6307752],[32.4744397,-99.6862734],[32.4599851,-99.6682055],[32.4466897,-99.6481871],[32.4455647,-99.6456258],[32.4429416,-99.6362232],[32.4416033,-99.6362248],[32.4409131,-99.6335337],[32.4302793,-99.6333895],[32.4318987,-99.6397395],[32.4233279,-99.6396470],[32.4234561,-99.6565569],[32.4305170,-99.6565614],[32.4305031,-99.6599888],[32.4320327,-99.6601582],[32.4337287,-99.6614509],[32.4374669,-99.6613818],[32.4407090,-99.6739441],[32.4305699,-99.6738976],[32.4305962,-99.6653052],[32.3723049,-99.6656273],[32.3722460,-99.6829002],[32.3868473,-99.6828195],[32.3867841,-99.7058915],[32.3812810,-99.7058680],[32.3812812,-99.7050011],[32.3795412,-99.7049933],[32.3795402,-99.7082094],[32.3724750,-99.7082127],[32.3724724,-99.7166644],[32.3562628,-99.7166920],[32.3562386,-99.7327515],[32.3551017,-99.7315144],[32.3506205,-99.7315250],[32.3488725,-99.7341030],[32.3484588,-99.7338566],[32.3483323,-99.7365263],[32.3471160,-99.7366022],[32.3450325,-99.7349300],[32.3445394,-99.7349301],[32.3439606,-99.7362254],[32.3432066,-99.7362255],[32.3432583,-99.7423570],[32.3502465,-99.7420095],[32.3505480,-99.7717302],[32.3487672,-99.7717185],[32.3487464,-99.7691534],[32.3478926,-99.7691825],[32.3478699,-99.7673687],[32.3486172,-99.7671470],[32.3466361,-99.7671941],[32.3467036,-99.7900804],[32.3508189,-99.7875040],[32.3508585,-99.7900761],[32.3502808,-99.7904164],[32.3508623,-99.7925725],[32.3508850,-99.8083819],[32.3521477,-99.8079104],[32.3543099,-99.8085453],[32.3555435,-99.8082217],[32.3563493,-99.8058523],[32.3575476,-99.8045675],[32.3588399,-99.8054455],[32.3600177,-99.8051261],[32.3630472,-99.8029595],[32.3642759,-99.8037881],[32.3662247,-99.8032617],[32.3662627,-99.8046173],[32.3671117,-99.8049128],[32.3692362,-99.8039175],[32.3691895,-99.8013028],[32.3695309,-99.8011211],[32.3699854,-99.8018181],[32.3712851,-99.8012144],[32.3719994,-99.7998198],[32.3716387,-99.7971231],[32.3723474,-99.7970399],[32.3724896,-99.7965844],[32.3717184,-99.7942293],[32.3717303,-99.7921701],[32.3729603,-99.7906125],[32.3737005,-99.7905418],[32.3746406,-99.7912045],[32.3746214,-99.7889120],[32.3756406,-99.7887437],[32.3763982,-99.7874703],[32.3772247,-99.7871013],[32.3771877,-99.7804708],[32.3746887,-99.7804547],[32.3746869,-99.7778675],[32.3775971,-99.7775535],[32.3789404,-99.7768507],[32.3807474,-99.7772133],[32.3808754,-99.7768716],[32.3821193,-99.7774093],[32.3823394,-99.7781876],[32.3835540,-99.7779652],[32.3842898,-99.7784496],[32.3853285,-99.7774286],[32.3868646,-99.7776171],[32.3875106,-99.7758821],[32.3886812,-99.7756909],[32.3891370,-99.7766497],[32.3896299,-99.7761615],[32.3901668,-99.7766163],[32.3907128,-99.7763155],[32.3910165,-99.7767261],[32.3931678,-99.7767026],[32.3931663,-99.7960640],[32.3946647,-99.7960294],[32.3946999,-99.8126303],[32.3984208,-99.8134325],[32.3987679,-99.8129995],[32.4013416,-99.8129995],[32.4014469,-99.8280558],[32.3983572,-99.8281058],[32.3982868,-99.8388259],[32.4023075,-99.8399760],[32.4008862,-99.8464994],[32.3995973,-99.8462130],[32.3981287,-99.8549153],[32.4063428,-99.8573264],[32.4055091,-99.8612103],[32.4098083,-99.8662053],[32.4127365,-99.8675947],[32.4240645,-99.8673954],[32.4274158,-99.8644422],[32.4296848,-99.8641379],[32.4305357,-99.8600976],[32.4325132,-99.8601162],[32.4451666,-99.8631867],[32.4461460,-99.8572438],[32.4406464,-99.8555221],[32.4409185,-99.8537842],[32.4373334,-99.8529558],[32.4383461,-99.8480432],[32.4457518,-99.8502865],[32.4463293,-99.8468863],[32.4573261,-99.8498155],[32.4571700,-99.8436876],[32.4582660,-99.8456327],[32.4618704,-99.8466117],[32.4634882,-99.8381187],[32.4700433,-99.8137587],[32.4793876,-99.7877404],[32.4802154,-99.7874338],[32.4791860,-99.7903279],[32.4852091,-99.7921605],[32.4856747,-99.7910138],[32.4867663,-99.7909909],[32.4886589,-99.7931021],[32.4916455,-99.7930984],[32.4916447,-99.7938163],[32.4921835,-99.7938160],[32.4921779,-99.8018357],[32.4994788,-99.8038236],[32.5020227,-99.7905652],[32.5032975,-99.7905543],[32.5032940,-99.7899251],[32.5061578,-99.7944503],[32.5073178,-99.7884097],[32.5097791,-99.7891069],[32.5106691,-99.7847518],[32.5132066,-99.7834783],[32.5128974,-99.7826490],[32.5080125,-99.7850975],[32.5085234,-99.7833290],[32.5124227,-99.7813712],[32.5068565,-99.7694531],[32.5028402,-99.7694574],[32.5028339,-99.7646918],[32.5044044,-99.7642601],[32.5023546,-99.7588852],[32.5035081,-99.7576264],[32.5063633,-99.7562233],[32.5139124,-99.7539676],[32.5191263,-99.7545280],[32.5208999,-99.7552745],[32.5208765,-99.7504026],[32.5118916,-99.7425179],[32.5146310,-99.7391151],[32.5141351,-99.7384306],[32.5120054,-99.7384311],[32.5120001,-99.7361221],[32.5090166,-99.7338278],[32.5088775,-99.7312705],[32.5071058,-99.7287756],[32.5079595,-99.7282087],[32.5082853,-99.7272310],[32.5094598,-99.7272947],[32.5096126,-99.7281087],[32.5110901,-99.7272807],[32.5125368,-99.7274807],[32.5125761,-99.7264252],[32.5132540,-99.7259824],[32.5143655,-99.7271433],[32.5162569,-99.7271216],[32.5172599,-99.7284113],[32.5208515,-99.7275779],[32.5207429,-99.7236826],[32.5244852,-99.7236271],[32.5245130,-99.7257755],[32.5346666,-99.7252312],[32.5346767,-99.7241984],[32.5429475,-99.7241860],[32.5429373,-99.7225614],[32.5588961,-99.7223865],[32.5694130,-99.7200301],[32.5808757,-99.7196028],[32.5809115,-99.7133303],[32.5851515,-99.7114185],[32.5862248,-99.7114271],[32.5862846,-99.7109239],[32.5939203,-99.7077088],[32.5966785,-99.7068575],[32.5987653,-99.7068399],[32.5982148,-99.7049914],[32.5988230,-99.7038243],[32.6001401,-99.7027993],[32.6038929,-99.7024603],[32.6052483,-99.7010192],[32.6065656,-99.7007318],[32.6120036,-99.7009534],[32.6120562,-99.6880468],[32.6141531,-99.6868559],[32.6141772,-99.6855661],[32.6157851,-99.6856385],[32.6158087,-99.6843078],[32.6243119,-99.6843818],[32.6243596,-99.6793492]];
-    L.polygon(deviceBoundaryCoords, devicePolyStyle).addTo(deviceMap);
-  }
-  rebuildDeviceMarkers();
-}
-
-function ratingColor(r) {
-  if(r>=9) return '#e05252';
-  if(r>=7) return '#ff8c42';
-  if(r>=5) return '#f0c040';
-  if(r>=3) return '#9dc255';
-  return '#4caf79';
-}
-
-function resultColor(rec) {
-  if(rec.type==='backflow') return rec.result==='PASS'?'#4caf79':'#e05252';
-  if(rec.type==='csi') return rec.status==='compliant'?'#4caf79':'#e05252';
-  if(rec.type==='inspection') {
-    const m = {compliant:'#4caf79',partial:'#f0c040',violation:'#e05252',notInspected:'#8c959f'};
-    return m[rec.complianceStatus]||'#8c959f';
-  }
-  return '#8c959f';
-}
-
-function typeIcon(rec) {
-  if(rec.type==='backflow') return '🔧';
-  if(rec.type==='csi') return '📋';
-  return '📍';
-}
-
-function rebuildDeviceMarkers() {
-  if(!deviceMarkers) return;
-  deviceMarkers.clearLayers();
-  let data = DB.filter(r=>r.lat&&r.lng);
-  if(mapCurrentFilter!=='all') data=data.filter(r=>r.type===mapCurrentFilter||(mapCurrentFilter==='insp'&&r.type==='inspection'));
-  data.forEach(rec=>{
-    const color = resultColor(rec);
-    const icon = L.divIcon({
-      html:`<div style="background:${color};width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;border:2px solid rgba(255,255,255,.3);box-shadow:0 0 6px ${color}88">${typeIcon(rec)}</div>`,
-      iconSize:[24,24], className:''
-    });
-    const m = L.marker([rec.lat,rec.lng],{icon});
-    m.bindPopup(`
-      <div style="min-width:200px">
-        <div style="font-family:var(--cond);font-size:16px;font-weight:700;margin-bottom:4px">${rec.address}</div>
-        <div style="font-family:var(--mono);font-size:9px;color:${color};letter-spacing:1px;margin-bottom:8px">${rec.type.toUpperCase()} · ${rec.date}</div>
-        <div style="font-size:12px;margin-bottom:6px">${rec.type==='backflow'?rec.assembly+' — '+rec.mfr+' '+rec.model:rec.type==='csi'?rec.reason:rec.bizType||''}</div>
-        <div style="font-family:var(--mono);font-size:11px;font-weight:700;color:${color}">${rec.result||rec.status||rec.complianceStatus||''}</div>
-        <div style="margin-top:10px"><button onclick="openModal('${rec.id}')" style="background:var(--accent);color:#000;border:none;padding:6px 12px;border-radius:6px;font-weight:700;cursor:pointer;font-size:12px">View Full Report</button></div>
-      </div>`);
-    deviceMarkers.addLayer(m);
-  });
-}
-
-function mapFilter(f) { mapCurrentFilter=f; rebuildDeviceMarkers(); }
-function mapShowAll()  { mapCurrentFilter='all'; rebuildDeviceMarkers(); }
-function mapReset()    { if(deviceMap) deviceMap.setView([32.4487,-99.7331],13); }
-
-// ── CITY RISK MAP — matches app exactly ──────────────────────────────────────
-
-// ── CITY RISK MAP — Overpass API (OpenStreetMap) — No Google, No cost ────────
-
-// Abilene bounding box for Overpass: south,west,north,east
-const ABILENE_BBOX = '32.30,-99.90,32.68,-99.58'; // Expanded bbox for better coverage
-// Multiple Overpass endpoints — browser will try each if one fails
-const OVERPASS_ENDPOINTS = [
-  'https://overpass-api.de/api/interpreter',
-  'https://overpass.kumi.systems/api/interpreter',
-  'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
-];
-let overpassEndpointIdx = 0;
-function getOverpassURL() { return OVERPASS_ENDPOINTS[overpassEndpointIdx % OVERPASS_ENDPOINTS.length]; }
-const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
-// Note: User-Agent is a forbidden header in browser fetch — omit it
-
-// TCEQ 290.47(f) categories — each has osmTag for Overpass queries
-const TCEQ_CATEGORIES = [
-  {type:'hospital',        osmTag:'amenity=hospital',       label:'Hospital',                  cat:'Health',     device:'RPBA or AG', rating:10, code:'290.47(f)', reason:'Hospitals use sterilization equipment, chemical disinfectants, and medical gas systems. Backflow could introduce toxic chemicals or biological agents into the public supply.'},
-  {type:'dialysis_center', osmTag:'healthcare=dialysis',    label:'Dialysis Center',           cat:'Health',     device:'RPBA or AG', rating:10, code:'290.47(f)', reason:'Dialysis centers require ultra-pure water directly contacting patient blood. Any backflow contamination is immediately life-threatening.'},
-  {type:'funeral_home',    osmTag:'amenity=funeral_hall',   label:'Funeral Home / Mortuary',   cat:'Health',     device:'RPBA or AG', rating:10, code:'290.47(f)', reason:'Mortuaries use embalming chemicals including formaldehyde directly connected to water lines. Extreme health hazard per TCEQ 290.47(f)(1).'},
-  {type:'doctor',          osmTag:'amenity=doctors',        label:'Medical Office',             cat:'Health',     device:'RPBA or AG', rating:9,  code:'290.47(f)', reason:'Medical offices use autoclave sterilizers, dental units, and chemical solutions that can backflow into the potable water supply.'},
-  {type:'dentist',         osmTag:'amenity=dentist',        label:'Dental Clinic',             cat:'Health',     device:'RPBA or AG', rating:9,  code:'290.47(f)', reason:'Dental units contain water lines directly connected to handpieces. Oral bacteria, chemical disinfectants, and mercury from amalgam can backflow.'},
-  {type:'nursing_home',    osmTag:'amenity=nursing_home',   label:'Nursing Home / Assisted Living', cat:'Health', device:'RPBA or AG', rating:9, code:'290.47(f)', reason:'Nursing homes have medical equipment, sterilizers, and chemical cleaning systems. Vulnerable population increases hazard severity.'},
-  {type:'health',          osmTag:'amenity=clinic',         label:'Urgent Care / Clinic',      cat:'Health',     device:'RPBA or AG', rating:9,  code:'290.47(f)', reason:'Urgent care and walk-in clinics use autoclave sterilizers, chemical disinfectants, and medical equipment water connections.'},
-  {type:'food',            osmTag:'craft=food',             label:'Food Manufacturing',        cat:'Health',     device:'RPBA or AG', rating:9,  code:'290.47(f)', reason:'Food manufacturing facilities use large-scale chemical sanitizers, CO2 carbonation systems, and industrial process water connections.'},
-  {type:'car_wash',        osmTag:'amenity=car_wash',       label:'Car Wash',                  cat:'Health',     device:'RPBA',       rating:8,  code:'290.47(f)', reason:'Car washes inject detergents, waxes, and degreasers directly into water supply lines. High-pressure systems create significant backpressure risk.'},
-  {type:'car_repair',      osmTag:'shop=car_repair',        label:'Auto Repair / Service',     cat:'Health',     device:'RPBA',       rating:8,  code:'290.47(f)', reason:'Auto repair shops use radiator flush chemicals, brake fluid, antifreeze, and oil that can enter water lines through floor drains.'},
-  {type:'lodging',         osmTag:'tourism=hotel',          label:'Hotel / Motel',             cat:'Health',     device:'RPBA',       rating:8,  code:'290.47(f)', reason:'Hotels have boilers, cooling towers, swimming pools, and commercial kitchen equipment — all high-hazard cross-connection sources.'},
-  {type:'gas_station',     osmTag:'amenity=fuel',           label:'Gas Station / Petroleum',   cat:'Health',     device:'RPBA or AG', rating:8,  code:'290.47(f)', reason:'Gas stations have underground fuel storage near water connections and petroleum products that pose extreme contamination risk.'},
-  {type:'pharmacy',        osmTag:'amenity=pharmacy',       label:'Pharmacy',                  cat:'Health',     device:'RPBA',       rating:8,  code:'290.47(f)', reason:'Pharmacies use chemical compounding equipment and laboratory water systems. Drug compounds and chemical solvents can backflow.'},
-  {type:'physiotherapist', osmTag:'healthcare=physiotherapist', label:'Physical Therapy / Rehab', cat:'Health', device:'RPBA or AG', rating:8, code:'290.47(f)', reason:'Physical therapy facilities use hydrotherapy pools, whirlpool tubs, and ultrasound equipment connected to water lines.'},
-  {type:'veterinary_care', osmTag:'amenity=veterinary',     label:'Veterinary Clinic',         cat:'Health',     device:'RPBA',       rating:8,  code:'290.47(f)', reason:'Veterinary clinics use chemical disinfectants, animal waste water systems, and grooming connections presenting biological contamination risk.'},
-  {type:'golf_course',     osmTag:'leisure=golf_course',    label:'Golf Course',               cat:'Health',     device:'RPBA',       rating:8,  code:'290.47(f)', reason:'Golf courses inject chemical fertilizers and pesticides directly into irrigation systems — HIGH HAZARD per TCEQ 290.47(f)(1).'},
-  {type:'brewery',         osmTag:'craft=brewery',          label:'Brewery / Winery',          cat:'Health',     device:'RPBA',       rating:8,  code:'290.47(f)', reason:'Breweries use chemical sanitizers, CO2 carbonation systems, and chemical cleaning solutions connected directly to water supply lines.'},
-  {type:'pest_control',    osmTag:'craft=pest_control',     label:'Pest Control',              cat:'Health',     device:'RPBA',       rating:8,  code:'290.47(f)', reason:'Pest control companies mix chemical pesticides and herbicides using water supply connections for dilution.'},
-  {type:'animal_shelter',  osmTag:'amenity=animal_shelter', label:'Animal Shelter',            cat:'Health',     device:'RPBA',       rating:8,  code:'290.47(f)', reason:'Animal shelters use chemical disinfectants, kennel wash systems, and grooming water connections. Biological contamination risk.'},
-  {type:'stadium',         osmTag:'leisure=stadium',        label:'Stadium / Sports Facility', cat:'Health',     device:'RPBA',       rating:8,  code:'290.47(f)', reason:'Stadiums have large food service concessions with CO2 carbonation, irrigation systems, and HVAC cooling towers.'},
-  {type:'restaurant',      osmTag:'amenity=restaurant',     label:'Restaurant / Food Service', cat:'Health',     device:'RPBA',       rating:7,  code:'290.47(f)', reason:'Restaurants use CO2 carbonation systems, dishwashers with chemical sanitizers, and food prep sinks. Carbonators create backpressure risk.'},
-  {type:'meal_takeaway',   osmTag:'amenity=fast_food',      label:'Restaurant / Food Service', cat:'Health',     device:'RPBA',       rating:7,  code:'290.47(f)', reason:'Fast food and takeaway restaurants use carbonation equipment, dishwashers with chemical sanitizers, and food prep sinks.'},
-  {type:'cafe',            osmTag:'amenity=cafe',           label:'Restaurant / Food Service', cat:'Health',     device:'RPBA',       rating:7,  code:'290.47(f)', reason:'Cafes and coffee shops use commercial espresso machines, carbonated beverage systems, and dishwashers with chemical sanitizers.'},
-  {type:'bar',             osmTag:'amenity=bar',            label:'Restaurant / Food Service', cat:'Health',     device:'RPBA',       rating:7,  code:'290.47(f)', reason:'Bars use CO2 carbonation systems for draft beer and soda guns directly connected to water supply lines.'},
-  {type:'night_club',      osmTag:'amenity=nightclub',      label:'Restaurant / Food Service', cat:'Health',     device:'RPBA',       rating:7,  code:'290.47(f)', reason:'Night clubs use CO2 carbonation systems for draft beer and soda guns directly connected to water supply lines.'},
-  {type:'laundry',         osmTag:'shop=laundry',           label:'Laundry / Dry Cleaning',    cat:'Health',     device:'RPBA',       rating:7,  code:'290.47(f)', reason:'Commercial laundries use high-temperature water, chemical detergents, and dry cleaning solvents. Backpressure from equipment is common.'},
-  {type:'spa',             osmTag:'leisure=spa',            label:'Spa / Nail Salon',          cat:'Health',     device:'RPBA',       rating:7,  code:'290.47(f)', reason:'Spas use chemical pedicure basin disinfectants, whirlpool jets, and beauty chemical systems connected to water lines.'},
-  {type:'nail_salon',      osmTag:'shop=beauty',            label:'Spa / Nail Salon',          cat:'Health',     device:'RPBA',       rating:7,  code:'290.47(f)', reason:'Nail salons use chemical acrylic systems, pedicure basins with disinfectants, and UV lamp cooling water systems.'},
-  {type:'tattoo_parlor',   osmTag:'shop=tattoo',            label:'Tattoo / Piercing Studio',  cat:'Health',     device:'RPBA',       rating:7,  code:'290.47(f)', reason:'Tattoo and piercing studios use chemical disinfectants, autoclave sterilizers, and chemical cleaning solutions.'},
-  {type:'car_dealer',      osmTag:'shop=car',               label:'Auto Dealership / Service', cat:'Health',     device:'RPBA',       rating:7,  code:'290.47(f)', reason:'Auto dealerships with service bays use radiator flush chemicals, parts washers, and chemical cooling systems.'},
-  {type:'florist',         osmTag:'shop=florist',           label:'Nursery / Garden Center',   cat:'Health',     device:'RPBA',       rating:7,  code:'290.47(f)', reason:'Nurseries and garden centers use chemical fertilizer and pesticide injection into irrigation systems.'},
-  {type:'plumber',         osmTag:'craft=plumber',          label:'Plumbing / Mechanical',     cat:'Health',     device:'RPBA',       rating:7,  code:'290.47(f)', reason:'Plumbing contractor facilities use chemical pipe cleaning solutions, soldering flux chemicals, and pressure testing equipment.'},
-  {type:'sports_complex',  osmTag:'leisure=sports_centre',  label:'Stadium / Sports Facility', cat:'Health',     device:'RPBA',       rating:7,  code:'290.47(f)', reason:'Sports complexes have irrigation systems, food service, locker room connections, and HVAC systems.'},
-  {type:'beauty_salon',    osmTag:'shop=hairdresser',       label:'Beauty Salon / Barber',     cat:'Health',     device:'RPBA',       rating:6,  code:'290.47(f)', reason:'Beauty salons use chemical hair treatments, dyes, peroxide, and salon equipment connected directly to water supply lines.'},
-  {type:'gym',             osmTag:'leisure=fitness_centre', label:'Gym / Fitness Center',      cat:'Health',     device:'RPBA',       rating:6,  code:'290.47(f)', reason:'Gyms and fitness centers often have pools, spas, steam rooms, and chemical treatment systems.'},
-  {type:'school',          osmTag:'amenity=school',         label:'School',                    cat:'Non-Health', device:'DCVA or RPBA', rating:6, code:'290.47(f)', reason:'Schools have irrigation systems, lab connections, and commercial kitchen equipment. Irrigation backflow requires DCVA minimum.'},
-  {type:'university',      osmTag:'amenity=university',     label:'University / College',      cat:'Non-Health', device:'DCVA or RPBA', rating:6, code:'290.47(f)', reason:'Universities have research labs, irrigation systems, and large boiler/chiller plants.'},
-  {type:'bowling_alley',   osmTag:'leisure=bowling_alley',  label:'Bowling Alley / Entertainment', cat:'Health', device:'RPBA',       rating:6,  code:'290.47(f)', reason:'Bowling alleys have food service with CO2 carbonation, chemical lane oil systems, and commercial kitchen connections.'},
-  {type:'movie_theater',   osmTag:'amenity=cinema',         label:'Movie Theater',             cat:'Health',     device:'RPBA',       rating:6,  code:'290.47(f)', reason:'Movie theaters have food service concessions with CO2 carbonation and commercial HVAC systems.'},
-  {type:'church',          osmTag:'amenity=place_of_worship', label:'Church / Religious',      cat:'Non-Health', device:'DCVA',       rating:5,  code:'290.47(f)', reason:'Churches typically have irrigation systems and commercial kitchen connections for fellowship halls.'},
-  {type:'supermarket',     osmTag:'shop=supermarket',       label:'Grocery / Supermarket',     cat:'Non-Health', device:'DCVA',       rating:5,  code:'290.47(f)', reason:'Grocery stores have commercial refrigeration, produce misters, and food prep connections.'},
-  {type:'fire_station',    osmTag:'amenity=fire_station',   label:'Fire Station',              cat:'Non-Health', device:'DCVA',       rating:5,  code:'290.47(f)', reason:'Fire stations have vehicle wash systems, chemical foam storage near water connections, and fire suppression test connections.'},
-  {type:'cemetery',        osmTag:'landuse=cemetery',       label:'Cemetery',                  cat:'Non-Health', device:'DCVA or PVB', rating:5, code:'290.47(f)', reason:'Cemeteries have large irrigation systems for grounds maintenance. Without chemical injection, irrigation is a non-health hazard.'},
-  {type:'campground',      osmTag:'tourism=camp_site',      label:'Campground / RV Park',      cat:'Non-Health', device:'DCVA',       rating:5,  code:'290.47(f)', reason:'Campgrounds and RV parks have utility water hookup connections and irrigation systems.'},
-  {type:'storage',         osmTag:'shop=storage_rental',    label:'Storage Facility',          cat:'Non-Health', device:'DCVA',       rating:4,  code:'290.47(f)', reason:'Storage facilities have irrigation systems and fire suppression connections.'},
-  {type:'bank',            osmTag:'amenity=bank',           label:'Bank / Financial',          cat:'Non-Health', device:'DCVA',       rating:4,  code:'290.47(f)', reason:'Banks are commercial buildings with HVAC systems, irrigation, and utility connections requiring minimum DCVA protection.'},
-];
-
-// OSM tag → TCEQ category mapping for classifying broad Overpass results
-const OSM_CLASS_RULES = [
-  {key:'amenity', value:'hospital',         idx:0},
-  {key:'amenity', value:'clinic',           idx:6},
-  {key:'amenity', value:'doctors',          idx:3},
-  {key:'amenity', value:'dentist',          idx:4},
-  {key:'amenity', value:'pharmacy',         idx:12},
-  {key:'amenity', value:'veterinary',       idx:14},
-  {key:'amenity', value:'nursing_home',     idx:5},
-  {key:'amenity', value:'animal_shelter',   idx:18},
-  {key:'amenity', value:'funeral_hall',     idx:2},
-  {key:'amenity', value:'car_wash',         idx:8},
-  {key:'amenity', value:'fuel',             idx:11},
-  {key:'amenity', value:'car_rental',       idx:11},
-  {key:'amenity', value:'restaurant',       idx:20},
-  {key:'amenity', value:'fast_food',        idx:21},
-  {key:'amenity', value:'cafe',             idx:22},
-  {key:'amenity', value:'bar',              idx:23},
-  {key:'amenity', value:'pub',              idx:23},
-  {key:'amenity', value:'nightclub',        idx:24},
-  {key:'amenity', value:'school',           idx:35},
-  {key:'amenity', value:'university',       idx:36},
-  {key:'amenity', value:'college',          idx:36},
-  {key:'amenity', value:'place_of_worship', idx:40},
-  {key:'amenity', value:'bank',             idx:45},
-  {key:'amenity', value:'fire_station',     idx:42},
-  {key:'amenity', value:'cinema',           idx:38},
-  {key:'amenity', value:'laboratory',       idx:7},
-  {key:'shop',    value:'car_repair',       idx:9},
-  {key:'shop',    value:'car',              idx:29},
-  {key:'shop',    value:'hairdresser',      idx:33},
-  {key:'shop',    value:'beauty',           idx:27},
-  {key:'shop',    value:'tattoo',           idx:28},
-  {key:'shop',    value:'laundry',          idx:25},
-  {key:'shop',    value:'dry_cleaning',     idx:25},
-  {key:'shop',    value:'supermarket',      idx:41},
-  {key:'shop',    value:'grocery',          idx:41},
-  {key:'shop',    value:'convenience',      idx:11},
-  {key:'shop',    value:'pet',              idx:18},
-  {key:'shop',    value:'florist',          idx:30},
-  {key:'shop',    value:'bakery',           idx:21},
-  {key:'shop',    value:'storage_rental',   idx:45},
-  {key:'shop',    value:'alcohol',          idx:23},
-  {key:'leisure', value:'fitness_centre',   idx:34},
-  {key:'leisure', value:'golf_course',      idx:15},
-  {key:'leisure', value:'swimming_pool',    idx:7},
-  {key:'leisure', value:'bowling_alley',    idx:37},
-  {key:'leisure', value:'sports_centre',    idx:32},
-  {key:'leisure', value:'stadium',          idx:19},
-  {key:'leisure', value:'spa',              idx:26},
-  {key:'tourism', value:'hotel',            idx:10},
-  {key:'tourism', value:'motel',            idx:10},
-  {key:'tourism', value:'hostel',           idx:10},
-  {key:'tourism', value:'camp_site',        idx:44},
-  {key:'tourism', value:'aquarium',         idx:18},
-  {key:'healthcare', value:'dialysis',      idx:1},
-  {key:'healthcare', value:'physiotherapist', idx:13},
-  {key:'healthcare', value:'',              idx:6},
-  {key:'craft',   value:'brewery',          idx:16},
-  {key:'craft',   value:'winery',           idx:16},
-  {key:'craft',   value:'pest_control',     idx:17},
-  {key:'craft',   value:'plumber',          idx:31},
-  {key:'craft',   value:'food',             idx:7},
-  {key:'landuse', value:'cemetery',         idx:43},
-  {key:'aeroway', value:'aerodrome',        idx:7},
-];
-
-// Name keyword rules for classifying by business name
-const NAME_KEYWORD_RULES = [
-  {keywords:['dialysis','davita','fresenius','kidney'],                        idx:1},
-  {keywords:['funeral','mortuary','cremation','memorial chapel'],              idx:2},
-  {keywords:['hospital','medical center','hendrick','covenant health'],        idx:0},
-  {keywords:['urgent care','walk-in','concentra','patient first'],             idx:6},
-  {keywords:['dental','dentist','orthodont'],                                  idx:4},
-  {keywords:['veterinar','animal hospital','animal clinic','vca'],             idx:14},
-  {keywords:['pharmacy','walgreens','cvs','drug mart'],                        idx:12},
-  {keywords:['car wash','carwash','auto wash','express wash'],                 idx:8},
-  {keywords:['allsup','stripes','valero','exxon','chevron','shell','murphy','7-eleven','circle k','loves','flying j','pilot','quiktrip','conoco','texaco','fuel','gas station'], idx:11},
-  {keywords:['auto repair','auto service','muffler','transmission','brake','jiffy lube','oil change','tire'], idx:9},
-  {keywords:['hotel','motel','inn ','suites','hilton','marriott','hampton','holiday inn','best western','comfort inn','fairfield','courtyard','la quinta','days inn','super 8'], idx:10},
-  {keywords:['physical therapy','rehab','rehabilitation'],                     idx:13},
-  {keywords:['nursing home','assisted living','memory care','skilled nursing','senior living','retirement'], idx:5},
-  {keywords:['golf course','country club','golf club'],                        idx:15},
-  {keywords:['brewery','winery','distillery'],                                 idx:16},
-  {keywords:['pest control','exterminator','orkin','terminix'],                idx:17},
-  {keywords:['tattoo','piercing studio'],                                      idx:28},
-  {keywords:['nail salon','nail spa'],                                         idx:27},
-  {keywords:['bowling','bowlero'],                                             idx:37},
-  {keywords:['fitness','gym','crossfit','planet fitness','anytime fitness','ymca','snap fitness'], idx:34},
-  {keywords:['laundry','laundromat','dry clean','coin laundry'],               idx:25},
-  {keywords:['church','baptist','methodist','presbyterian','lutheran','catholic','assembly of god','pentecostal','mosque','synagogue','temple','worship','fellowship','ministries','chapel'], idx:40},
-  {keywords:['storage','self storage','public storage','extra space'],         idx:45},
-  {keywords:['cinema','movie','theater','theatre','amc','regal'],             idx:38},
-  {keywords:['spa','day spa','massage','wellness center'],                     idx:26},
-  {keywords:['beauty salon','salon','barber','hair salon'],                   idx:33},
-  {keywords:['school','elementary','middle school','high school','academy','isd '], idx:35},
-  {keywords:['supermarket','walmart','kroger','heb','united supermarket','brookshire','aldi'], idx:41},
-  {keywords:['bank','wells fargo','first financial','prosperity bank','bbva','chase bank','credit union'], idx:45},
-  {keywords:['car dealer','dealership','chevrolet','ford dealer','toyota dealer','honda dealer','dodge dealer'], idx:29},
-  {keywords:['restaurant','grill','kitchen','bistro','diner','steakhouse','pizza','burger','taco','bbq','barbeque','wings','ihop','applebee','chili'], idx:20},
-  {keywords:['starbucks','coffee','dunkin','dutch bros'],                      idx:22},
-  {keywords:['mcdonald','burger king','wendy','sonic','whataburger','dairy queen','jack in the box','taco bell','chick-fil-a','popeyes','kfc','subway','domino','papa john','little caesar'], idx:21},
-  {keywords:['bar ','saloon','tavern','cantina','lounge','nightclub'],        idx:23},
-  {keywords:['plumber','plumbing'],                                            idx:31},
-  {keywords:['fire station','fire dept'],                                      idx:42},
-];
-
-let riskLocations = [];
-let riskFilterRating_ = -1;
-let riskHealthOnly = false;
-let riskSelectedCat = null;
-let riskShowList = false;
-let riskLoading = false;
-let riskStopped = false;
-
-function ratingColorRisk(r) {
-  if(r>=9) return '#e05252';
-  if(r>=7) return '#ff8c42';
-  if(r>=5) return '#f0c040';
-  if(r>=3) return '#9dc255';
-  return '#4caf79';
-}
-
-function riskHazardLabel(r) {
-  if(r>=9) return 'Severe';
-  if(r>=7) return 'High';
-  if(r>=5) return 'Moderate';
-  if(r>=3) return 'Low';
-  return 'Very Low';
-}
-
-function filteredRiskLocations() {
-  let data = riskLocations;
-  if(riskHealthOnly) data = data.filter(l=>l.cat==='Health');
-  if(riskSelectedCat) data = data.filter(l=>l.label===riskSelectedCat);
-  if(riskFilterRating_===3) data = data.filter(l=>l.rating>=9);
-  else if(riskFilterRating_===2) data = data.filter(l=>l.rating>=7&&l.rating<9);
-  else if(riskFilterRating_===1) data = data.filter(l=>l.rating>=5&&l.rating<7);
-  else if(riskFilterRating_===0) data = data.filter(l=>l.rating<5);
-  const q=(el('risk-search')?.value||'').toLowerCase();
-  if(q) data = data.filter(l=>l.name.toLowerCase().includes(q)||l.address.toLowerCase().includes(q)||l.label.toLowerCase().includes(q));
-  return data;
-}
-
-function updateRiskStats() {
-  const all = riskLocations;
-  el('rs-severe').textContent = all.filter(l=>l.rating>=9).length;
-  el('rs-high').textContent   = all.filter(l=>l.rating>=7&&l.rating<9).length;
-  el('rs-mod').textContent    = all.filter(l=>l.rating>=5&&l.rating<7).length;
-  el('rs-low').textContent    = all.filter(l=>l.rating<5).length;
-  const hc = all.filter(l=>l.cat==='Health').length;
-  const filtered = filteredRiskLocations();
-  el('risk-count-label').textContent = filtered.length+' locations';
-  el('risk-header-counts').innerHTML = `${filtered.length} of ${all.length}<br><span style="color:#e05252">${hc} health hazards</span>`;
-}
 
 async function initRiskMap() {
   if(!riskMap) {
@@ -2212,7 +1848,7 @@ function emailCurrentReport() {
   } else {
     body=`PROPERTY INSPECTION\n${'='.repeat(40)}\nAddress: ${r.address}\nDate: ${fd(r.date)}\nOwner: ${r.owner||'—'}\nBusiness: ${r.bizType||'—'}\nHazard Rating: ${r.hazardRating}/10\nCompliance: ${r.complianceStatus}\nTester: ${r.tester||'—'}\nRemarks: ${r.remarks||'None'}`;
   }
-  window.location.href=`mailto:sniderbackflowsolutions@gmail.com?subject=${sub}&body=${encodeURIComponent(body)}`;
+  window.location.href=`mailto:crossconnectioninspector@outlook.com?subject=${sub}&body=${encodeURIComponent(body)}`;
   toast('Email client opened','success');
 }
 

@@ -196,8 +196,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
     <!-- Contact -->
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:24px;text-align:center">
       <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">NEED HELP?</div>
-      <div style="font-size:13px;color:var(--muted);line-height:1.6">Contact the City of Abilene Cross-Connection Control Program</div>
-      <a href="mailto:sniderbackflowsolutions@gmail.com" style="font-family:var(--mono);font-size:11px;color:var(--accent);display:block;margin-top:8px;letter-spacing:.5px">sniderbackflowsolutions@gmail.com</a>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6">Contact Cross Connection Inspector</div>
+      <a href="mailto:crossconnectioninspector@outlook.com" style="font-family:var(--mono);font-size:11px;color:var(--accent);display:block;margin-top:8px;letter-spacing:.5px">crossconnectioninspector@outlook.com</a>
     </div>
 
   </div>
@@ -314,23 +314,35 @@ async function loadDevices() {
     };
     const meta = currentUser?.user_metadata || {};
     const ownerEmail = currentUser?.email || '';
-    const ownerAddress = meta.property_address || '';
+    const ownerAddress = (meta.property_address || '').trim();
 
-    // Search by owner email OR property address
-    let url = `${SUPA_URL}/rest/v1/backflow_reports?select=*&order=date.desc`;
-    if (ownerEmail) url += `&or=(owner_email.eq.${encodeURIComponent(ownerEmail)},tester_email.eq.${encodeURIComponent(ownerEmail)})`;
+    let devices = [];
 
-    const res = await fetch(url, { headers });
-    if (!res.ok) throw new Error();
-    let devices = await res.json();
+    // Search 1: by owner_email field
+    if (ownerEmail) {
+      const r1 = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?select=*&owner_email=eq.${encodeURIComponent(ownerEmail)}&order=date.desc`, { headers });
+      if (r1.ok) devices = await r1.json();
+    }
 
-    // Also search by address if we have one
+    // Search 2: by registered property address
     if (ownerAddress && devices.length === 0) {
-      const addrRes = await fetch(
-        `${SUPA_URL}/rest/v1/backflow_reports?select=*&address=ilike.${encodeURIComponent('%' + ownerAddress + '%')}&order=date.desc`,
-        { headers }
-      );
-      if (addrRes.ok) devices = await addrRes.json();
+      const encoded = encodeURIComponent('%' + ownerAddress + '%');
+      const r2 = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?select=*&address=ilike.${encoded}&order=date.desc`, { headers });
+      if (r2.ok) devices = await r2.json();
+    }
+
+    // Search 3: show all reports if admin/tester email matches (for testing)
+    if (devices.length === 0 && ownerEmail) {
+      const r3 = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?select=*&order=date.desc&limit=50`, { headers });
+      if (r3.ok) {
+        const all = await r3.json();
+        // Only show if email appears anywhere in record
+        devices = all.filter(r =>
+          r.owner_email === ownerEmail ||
+          r.tester_email === ownerEmail ||
+          (ownerAddress && r.address && r.address.toLowerCase().includes(ownerAddress.toLowerCase()))
+        );
+      }
     }
 
     // Deduplicate by serial/address — show latest per device
@@ -342,11 +354,11 @@ async function loadDevices() {
     const myDevices = [...seen.values()];
 
     if (myDevices.length === 0) {
-      heroWrap.innerHTML = heroHTML('warn', '❓', 'No Devices Found', 'We don\'t have any devices registered to your account yet. Contact the Cross-Connection Control Program to register your device.');
+      heroWrap.innerHTML = heroHTML('warn', '❓', 'No Devices Found', 'We don\'t have any devices registered to your account yet. Contact Cross Connection Inspector to register your device.');
       container.innerHTML = `<div class="empty">
         <span class="empty-icon">🔧</span>
         <div class="empty-title">No Devices Registered</div>
-        <div class="empty-sub">CONTACT CITY OF ABILENE TO REGISTER<br>YOUR BACKFLOW PREVENTION ASSEMBLY</div>
+        <div class="empty-sub">CONTACT CROSS CONNECTION INSPECTOR<br>YOUR BACKFLOW PREVENTION ASSEMBLY</div>
       </div>`;
       return;
     }
