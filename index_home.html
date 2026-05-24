@@ -97,7 +97,7 @@ nav{position:sticky;top:0;z-index:100;height:60px;background:rgba(15,17,20,.92);
 .edu-intro strong{color:var(--text)}
 
 /* What is backflow */
-.explainer{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:48px}
+.explainer{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin-bottom:48px}
 @media(max-width:600px){.explainer{grid-template-columns:1fr}}
 .explainer-card{background:var(--elevated);border:1px solid var(--border);border-radius:16px;padding:24px}
 .explainer-icon{font-size:36px;margin-bottom:12px;display:block}
@@ -259,7 +259,282 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:32px
  <div class="explainer-card">
  <span class="explainer-icon">🚰</span>
  <div class="explainer-title">What is backflow?</div>
- <div class="explainer-text">Water in your pipes normally flows in one direction — from the city's water main into your home or business. <strong>Backflow is when water accidentally flows backwards</strong>, pushing water from your property back into the public water supply.<br><br>Think of it like this: imagine a garden hose sitting in a bucket of fertilizer. If pressure drops suddenly, that fertilizer could get sucked back through the hose into your drinking water — and your neighbor's too.</div>
+ <div class="explainer-text">Water in your pipes normally flows one direction — from the public water main into your home or business. <strong>Backflow is when water accidentally flows backwards</strong>, pushing contaminated water back into the public supply.<br><br>
+<strong>Backpressure</strong> — pressure on your side of the meter exceeds the main. Boilers, pumps, and elevated tanks can cause this.<br><br>
+<strong>Backsiphonage</strong> — a sudden pressure drop in the main creates a vacuum that sucks water backwards. A garden hose sitting in fertilizer gets sucked back into your drinking water when a nearby fire hydrant opens. This is the most common backflow cause in Texas.</div>
+ </div>
+ <div class="explainer-card">
+        <span class="explainer-icon">🌊</span>
+        <div class="explainer-title">Backsiphonage — the hidden risk</div>
+        <div class="explainer-text">Backsiphonage happens when a water main loses pressure — from a main break, heavy demand, or firefighting nearby. The drop creates a siphon that pulls water backwards through any connected pipes.<br><br><strong>Real Texas example:</strong> A worker pushed a garden hose into a pesticide tank. Nearby utility workers opened a flush valve, pressure dropped, and pesticide was sucked backwards into the home's water lines — and nearly into the city's main.</div>
+      </div>
+      <div class="explainer-card">
+        <span class="explainer-icon">🛡️</span>
+        <div class="explainer-title">What prevents both types?</div>
+        <div class="explainer-text">A <strong>backflow prevention assembly</strong> is a mechanical valve that allows water to flow in one direction only — stopping both backpressure and backsiphonage regardless of what happens to water pressure outside.<br><br>Different hazard levels require different devices — from a simple vacuum breaker on a garden hose to a full Reduced Pressure Zone (RPZ) assembly on a hospital or chemical plant.</div>
+      </div>tml lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cross Connection Inspector — Abilene TX Backflow Compliance</title>
+<meta name="description" content="Cross Connection Inspector — Check your backflow device status, schedule testing, and stay compliant with state requirements.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600;700;900&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+ --bg:#0f1114; --surface:#181c22; --elevated:#1f242d;
+ --accent:#f9a61e; --accent2:#e8870a;
+ --text:#eef0f3; --muted:#7a8494; --border:#252b36;
+ --red:#e05252; --green:#3db870; --yellow:#f0c040; --blue:#6495ed;
+ --mono:'Share Tech Mono',monospace; --sans:'Barlow',sans-serif; --cond:'Barlow Condensed',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-weight:500;-webkit-font-smoothing:antialiased}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:100;height:60px;background:rgba(15,17,20,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+.nav-logo{display:flex;align-items:center;gap:10px}
+.nav-icon{width:34px;height:34px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(249,166,30,.35)}
+.nav-title{font-family:var(--cond);font-size:18px;font-weight:900;letter-spacing:-.3px}
+.nav-links{display:flex;align-items:center;gap:6px}
+.nav-link{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted);background:var(--elevated);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;text-decoration:none;transition:all .2s;white-space:nowrap}
+.nav-link:hover{color:var(--text);border-color:var(--muted)}
+.nav-link.primary{background:var(--accent);color:#000;border-color:var(--accent);font-weight:700}
+.nav-link.primary:hover{background:var(--accent2)}
+@media(max-width:600px){.nav-links .nav-link:not(.primary){display:none}}
+
+/* ── HERO ── */
+.hero{min-height:94dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 24px 80px;background:radial-gradient(ellipse at 50% -20%,rgba(249,166,30,.12) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(100,149,237,.06) 0%,transparent 50%),var(--bg);position:relative;overflow:hidden}
+
+/* Scroll indicator */
+.scroll-hint{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;opacity:1;transition:opacity .6s;pointer-events:none}
+.scroll-hint.hidden{opacity:0}
+.scroll-hint-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.scroll-arrow{width:28px;height:28px;border:1.5px solid rgba(249,166,30,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;animation:bounce 2s infinite;color:var(--accent);font-size:12px}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+
+/* Peek — next section bleeds up */
+.hero-peek{position:absolute;bottom:0;left:0;right:0;height:40px;background:linear-gradient(to top,var(--surface) 0%,transparent 100%);pointer-events:none}
+.hero::before{content:'';position:absolute;inset:0;pointer-events:none;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.015'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+.hero-badge{font-family:var(--mono);font-size:10px;color:var(--accent);background:rgba(249,166,30,.1);border:1px solid rgba(249,166,30,.25);padding:6px 16px;border-radius:20px;letter-spacing:2px;margin-bottom:24px;display:inline-block;position:relative;z-index:2}
+.hero-title{font-family:var(--cond);font-size:clamp(42px,8vw,80px);font-weight:900;line-height:1;letter-spacing:-1px;margin-bottom:12px}
+.hero-title span{color:var(--accent)}
+.hero-sub{font-size:clamp(16px,3vw,20px);color:var(--muted);max-width:560px;line-height:1.6;margin-bottom:40px}
+.hero-btns{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:60px;position:relative;z-index:2}
+.btn-hero{display:inline-flex;align-items:center;gap:10px;padding:16px 28px;border-radius:14px;font-family:var(--sans);font-size:15px;font-weight:700;text-decoration:none;transition:all .2s;border:none;cursor:pointer}
+.btn-hero-primary{background:var(--accent);color:#000;box-shadow:0 8px 32px rgba(249,166,30,.35)}
+.btn-hero-primary:hover{background:var(--accent2);transform:translateY(-2px);box-shadow:0 12px 40px rgba(249,166,30,.45)}
+.btn-hero-ghost{background:var(--elevated);color:var(--text);border:1.5px solid var(--border)}
+.btn-hero-ghost:hover{border-color:var(--muted);transform:translateY(-2px)}
+.hero-stats{display:flex;gap:40px;flex-wrap:wrap;justify-content:center}
+.hero-stat{text-align:center}
+.hero-stat-num{font-family:var(--cond);font-size:36px;font-weight:900;color:var(--accent);line-height:1}
+.hero-stat-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-top:4px;text-transform:uppercase}
+
+/* ── PORTAL CARDS ── */
+.section{padding:80px 24px;max-width:1100px;margin:0 auto}
+.section-label{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;text-align:center}
+.section-title{font-family:var(--cond);font-size:clamp(32px,5vw,48px);font-weight:900;text-align:center;margin-bottom:8px;line-height:1.05}
+.section-sub{font-size:16px;color:var(--muted);text-align:center;max-width:560px;margin:0 auto 48px;line-height:1.6}
+.portal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.portal-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px;transition:all .25s;text-decoration:none;color:var(--text);display:flex;flex-direction:column;gap:16px;position:relative;overflow:hidden}
+.portal-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .25s;border-radius:20px;pointer-events:none}
+.portal-card:hover{transform:translateY(-4px);border-color:rgba(249,166,30,.4)}
+.portal-card:hover::before{opacity:1;background:radial-gradient(ellipse at 50% 0%,rgba(249,166,30,.06) 0%,transparent 70%)}
+.portal-card-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px}
+.portal-card-icon.orange{background:rgba(249,166,30,.15)}
+.portal-card-icon.blue{background:rgba(100,149,237,.15)}
+.portal-card-icon.green{background:rgba(61,184,112,.15)}
+.portal-card-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase}
+.portal-card-label.orange{color:var(--accent)}
+.portal-card-label.blue{color:var(--blue)}
+.portal-card-label.green{color:var(--green)}
+.portal-card-title{font-family:var(--cond);font-size:24px;font-weight:900;line-height:1}
+.portal-card-desc{font-size:14px;color:var(--muted);line-height:1.6;flex:1}
+.portal-card-link{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;letter-spacing:1px;font-weight:700;padding:10px 16px;border-radius:10px;transition:all .2s;width:fit-content}
+.portal-card-link.orange{color:#000;background:var(--accent)}
+.portal-card-link.orange:hover{background:var(--accent2)}
+.portal-card-link.blue{color:var(--blue);background:rgba(100,149,237,.12);border:1px solid rgba(100,149,237,.25)}
+.portal-card-link.blue:hover{background:rgba(100,149,237,.2)}
+.portal-card-link.green{color:var(--green);background:rgba(61,184,112,.12);border:1px solid rgba(61,184,112,.25)}
+.portal-card-link.green:hover{background:rgba(61,184,112,.2)}
+
+/* ── DIVIDER ── */
+.divider{height:1px;background:var(--border);margin:0 24px}
+
+/* ── EDUCATION ── */
+.edu-section{padding:80px 24px;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.edu-inner{max-width:800px;margin:0 auto}
+.edu-intro{font-size:18px;color:var(--muted);line-height:1.7;margin-bottom:48px;text-align:center}
+.edu-intro strong{color:var(--text)}
+
+/* What is backflow */
+.explainer{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin-bottom:48px}
+@media(max-width:600px){.explainer{grid-template-columns:1fr}}
+.explainer-card{background:var(--elevated);border:1px solid var(--border);border-radius:16px;padding:24px}
+.explainer-icon{font-size:36px;margin-bottom:12px;display:block}
+.explainer-title{font-family:var(--cond);font-size:20px;font-weight:900;margin-bottom:8px}
+.explainer-text{font-size:14px;color:var(--muted);line-height:1.7}
+.explainer-text strong{color:var(--text)}
+
+/* Steps */
+.steps{display:flex;flex-direction:column;gap:16px;margin-bottom:48px}
+.step{display:flex;align-items:flex-start;gap:16px;padding:20px;background:var(--elevated);border:1px solid var(--border);border-radius:14px}
+.step-num{width:36px;height:36px;background:var(--accent);color:#000;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:20px;font-weight:900;flex-shrink:0}
+.step-content{}
+.step-title{font-weight:700;font-size:15px;margin-bottom:4px}
+.step-text{font-size:13px;color:var(--muted);line-height:1.6}
+
+/* FAQ */
+.faq{display:flex;flex-direction:column;gap:2px}
+.faq-item{background:var(--elevated);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:8px}
+.faq-q{padding:18px 20px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;user-select:none}
+.faq-q:hover{background:rgba(249,166,30,.04)}
+.faq-arrow{font-size:18px;color:var(--muted);transition:transform .2s;flex-shrink:0}
+.faq-item.open .faq-arrow{transform:rotate(90deg)}
+.faq-a{padding:0 20px;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;font-size:14px;color:var(--muted);line-height:1.7}
+.faq-item.open .faq-a{max-height:300px;padding:0 20px 18px}
+.faq-a strong{color:var(--text)}
+
+/* Hazard levels */
+.hazard-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:32px 0}
+.hazard-card{border-radius:12px;padding:16px;text-align:center;border:1px solid}
+.hazard-card.red{background:rgba(224,82,82,.08);border-color:rgba(224,82,82,.25)}
+.hazard-card.orange{background:rgba(249,166,30,.08);border-color:rgba(249,166,30,.25)}
+.hazard-card.yellow{background:rgba(240,192,64,.08);border-color:rgba(240,192,64,.25)}
+.hazard-card.green{background:rgba(61,184,112,.08);border-color:rgba(61,184,112,.25)}
+.hazard-level{font-family:var(--cond);font-size:22px;font-weight:900;margin-bottom:4px}
+.hazard-level.red{color:var(--red)}
+.hazard-level.orange{color:var(--accent)}
+.hazard-level.yellow{color:var(--yellow)}
+.hazard-level.green{color:var(--green)}
+.hazard-device{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted);margin-bottom:6px}
+.hazard-examples{font-size:12px;color:var(--muted);line-height:1.5}
+
+/* ── CTA BAND ── */
+.cta-band{padding:80px 24px;text-align:center;background:radial-gradient(ellipse at 50% 50%,rgba(249,166,30,.08) 0%,transparent 60%),var(--bg)}
+.cta-title{font-family:var(--cond);font-size:clamp(28px,5vw,48px);font-weight:900;margin-bottom:12px}
+.cta-sub{font-size:16px;color:var(--muted);margin-bottom:32px;max-width:480px;margin-left:auto;margin-right:auto;line-height:1.6}
+
+/* ── FOOTER ── */
+footer{background:var(--surface);border-top:1px solid var(--border);padding:32px 24px;text-align:center}
+.footer-logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:12px}
+.footer-text{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;line-height:1.8}
+.footer-links{display:flex;gap:20px;justify-content:center;margin-top:16px;flex-wrap:wrap}
+.footer-link{font-family:var(--mono);font-size:10px;color:var(--muted);text-decoration:none;letter-spacing:.5px;transition:color .2s}
+.footer-link:hover{color:var(--accent)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){
+ nav{padding:0 16px}
+ .section{padding:60px 16px}
+ .hero{padding:40px 16px}
+ .hero-btns .btn-hero{font-size:14px;padding:14px 20px}
+ .hero-stats{gap:24px}
+ .edu-section{padding:60px 16px}
+ .cta-band{padding:60px 16px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<nav>
+ <div class="nav-logo">
+ <div class="nav-icon">🛡️</div>
+ <div class="nav-title">Cross Connection Inspector</div>
+ </div>
+ <div class="nav-links">
+ <a href="#education" class="nav-link">Learn</a>
+ <a href="#portals" class="nav-link">Portals</a>
+ <a href="owner.html" class="nav-link primary">Check My Device</a>
+ </div>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero" id="top">
+ <div class="hero-badge">BACKFLOW COMPLIANCE PROGRAM</div>
+ <h1 class="hero-title">Is Your Backflow<br><span>Device Up to Date?</span></h1>
+ <p class="hero-sub">Annual backflow prevention testing is required to protect your drinking water. Check your device status in seconds.</p>
+ <div class="hero-btns">
+ <a href="owner.html" class="btn-hero btn-hero-primary">🏠 Check My Device Status</a>
+ <a href="#education" class="btn-hero btn-hero-ghost">What is backflow? ↓</a>
+ </div>
+ <div class="hero-stats">
+ <div class="hero-stat">
+ <div class="hero-stat-num">Required</div>
+ <div class="hero-stat-label">BY STATE LAW</div>
+ </div>
+ <div class="hero-stat">
+ <div class="hero-stat-num">Annual</div>
+ <div class="hero-stat-label">Test Required</div>
+ </div>
+ <div class="hero-stat">
+ <div class="hero-stat-num">Free</div>
+ <div class="hero-stat-label">To Check Status</div>
+ </div>
+ </div>
+</section>
+
+<!-- ═══ PORTALS ═══ -->
+<section class="section" id="portals" style="scroll-margin-top:70px">
+ <div class="section-label">Access Portals</div>
+ <h2 class="section-title">Who are you?</h2>
+ <p class="section-sub">Choose your portal below. All portals are secure and free to use.</p>
+ <div class="portal-grid">
+
+ <div class="portal-card">
+ <div class="portal-card-icon orange">🏠</div>
+ <div class="portal-card-label orange">Property Owner</div>
+ <div class="portal-card-title">I own a property<br>with a backflow device</div>
+ <div class="portal-card-desc">Check your device status, see your last test date, find out if you're overdue, and get notified when your next test is due.</div>
+ <a href="owner.html" class="portal-card-link orange">Check My Status →</a>
+ </div>
+
+ <div class="portal-card">
+ <div class="portal-card-icon blue">🔧</div>
+ <div class="portal-card-label blue">Certified Tester</div>
+ <div class="portal-card-title">I test backflow<br>prevention assemblies</div>
+ <div class="portal-card-desc">Submit state-compliant test reports, generate official test report PDFs automatically, manage your gauge calibration and certifications.</div>
+ <a href="tester.html" class="portal-card-link blue">Tester Portal →</a>
+ </div>
+
+ <div class="portal-card">
+ <div class="portal-card-icon green">📊</div>
+ <div class="portal-card-label green">Administrator</div>
+ <div class="portal-card-title">I manage the<br>compliance program</div>
+ <div class="portal-card-desc">Full compliance dashboard, city risk map, device inventory, tester management, bulk import, automated notifications, and annual reporting.</div>
+ <a href="index_auth.html" class="portal-card-link green">Admin Dashboard →</a>
+ </div>
+
+ </div>
+  <!-- Scroll peek gradient -->
+  <div class="hero-peek"></div>
+  <!-- Scroll hint -->
+  <div class="scroll-hint" id="scroll-hint">
+    <div class="scroll-hint-label">Scroll to learn more</div>
+    <div class="scroll-arrow">↓</div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══ EDUCATION ═══ -->
+<section class="edu-section" id="education" style="scroll-margin-top:70px">
+ <div class="edu-inner">
+ <div class="section-label" style="text-align:center">Backflow 101</div>
+ <h2 class="section-title" style="margin-bottom:16px">What is backflow and<br>why does it matter?</h2>
+ <p class="edu-intro">Most people have never heard of backflow — until they get a notice saying their device needs testing. Here's everything you need to know, in plain English.</p>
+
+ <!-- What is it -->
+ <div class="explainer">
+ <div class="explainer-card">
+ <span class="explainer-icon">🚰</span>
+ <div class="explainer-title">What is backflow?</div>
+ <div class="explainer-text">Water in your pipes normally flows one direction — from the public water main into your home or business. <strong>Backflow is when water accidentally flows backwards</strong>, pushing contaminated water back into the public supply.<br><br>
+<strong>Backpressure</strong> — pressure on your side of the meter exceeds the main. Boilers, pumps, and elevated tanks can cause this.<br><br>
+<strong>Backsiphonage</strong> — a sudden pressure drop in the main creates a vacuum that sucks water backwards. A garden hose sitting in fertilizer gets sucked back into your drinking water when a nearby fire hydrant opens. This is the most common backflow cause in Texas.</div>
  </div>
  <div class="explainer-card">
  <span class="explainer-icon">🛡️</span>
@@ -338,10 +613,7 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:32px
  <div class="faq-q">I got a letter saying my device needs testing. What do I do? <span class="faq-arrow">›</span></div>
  <div class="faq-a">First, <strong>check your status above</strong> by clicking "Check My Device Status." Then contact a state-certified backflow tester in your area to schedule a test. You can also contact the Cross Connection Inspector Program for a list of certified testers near you.</div>
  </div>
- <div class="faq-item" onclick="toggleFAQ(this)">
- <div class="faq-q">How much does a backflow test cost? <span class="faq-arrow">›</span></div>
- <div class="faq-a">Testing costs vary by tester and device size, but typically range from <strong>$50–$150 for residential devices</strong>. Commercial devices with larger assemblies may cost more. Repairs, if needed, are usually additional. Contact a certified tester for a quote.</div>
- </div>
+ 
  <div class="faq-item" onclick="toggleFAQ(this)">
  <div class="faq-q">What happens if I don't get my device tested? <span class="faq-arrow">›</span></div>
  <div class="faq-a">Under <strong>state law</strong>, failure to test can result in a compliance notice from the city. Continued non-compliance may result in <strong>water service interruption</strong>. It's much easier — and cheaper — to schedule an annual test than to deal with enforcement action.</div>
