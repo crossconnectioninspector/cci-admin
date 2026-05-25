@@ -2175,6 +2175,143 @@ async function mobileAdminLogout() {
 // ── Check session on load — route to mobile if on phone ──────────────────────
 // This runs after the existing session check in the file
 
+
+// ════════════════════════════════════════════════════════════════
+//  DASHBOARD TOOLBAR — Theme / Widgets / Goals / Arrange
+// ════════════════════════════════════════════════════════════════
+
+// ── Theme picker ──────────────────────────────────────────────
+const DASH_THEMES = {
+  'Default Dark':  { '--bg':'#0f1114','--surface':'#181c22','--elevated':'#1f242d','--accent':'#f9a61e','--text':'#eef0f3','--border':'#252b36' },
+  'Deep Navy':     { '--bg':'#0a0e1a','--surface':'#111827','--elevated':'#1a2235','--accent':'#f9a61e','--text':'#eef0f3','--border':'#1e2d45' },
+  'Midnight':      { '--bg':'#08090c','--surface':'#111216','--elevated':'#18191f','--accent':'#f9a61e','--text':'#f0f0f0','--border':'#1e2026' },
+  'Slate':         { '--bg':'#0f1923','--surface':'#172030','--elevated':'#1e2a3d','--accent':'#f9a61e','--text':'#dde8f5','--border':'#243248' },
+};
+let currentTheme = localStorage.getItem('dash-theme') || 'Default Dark';
+
+function applyDashTheme() {
+  const t = DASH_THEMES[currentTheme] || DASH_THEMES['Default Dark'];
+  const root = document.documentElement;
+  Object.entries(t).forEach(([k,v]) => root.style.setProperty(k, v));
+}
+
+function openThemePicker() {
+  const modal = document.getElementById('theme-modal');
+  if (!modal) return;
+  const swatches = document.getElementById('theme-swatches');
+  if (swatches) {
+    swatches.innerHTML = Object.keys(DASH_THEMES).map(name => `
+      <div onclick="selectTheme('${name}')"
+        style="background:${DASH_THEMES[name]['--surface']};border:2px solid ${name===currentTheme?'var(--accent)':'var(--border)'};
+               border-radius:12px;padding:14px;cursor:pointer;transition:border-color .2s;text-align:center">
+        <div style="display:flex;gap:6px;justify-content:center;margin-bottom:8px">
+          <div style="width:20px;height:20px;border-radius:4px;background:${DASH_THEMES[name]['--bg']}"></div>
+          <div style="width:20px;height:20px;border-radius:4px;background:${DASH_THEMES[name]['--elevated']}"></div>
+          <div style="width:20px;height:20px;border-radius:4px;background:${DASH_THEMES[name]['--accent']}"></div>
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;color:${DASH_THEMES[name]['--text']};letter-spacing:.5px">${name}</div>
+      </div>`).join('');
+  }
+  modal.style.display = 'flex';
+}
+
+function selectTheme(name) {
+  currentTheme = name;
+  localStorage.setItem('dash-theme', name);
+  applyDashTheme();
+  closeThemeModal();
+  toast('Theme: ' + name, 'success');
+}
+
+function closeThemeModal(e) {
+  if (!e || e.target === document.getElementById('theme-modal')) {
+    document.getElementById('theme-modal').style.display = 'none';
+  }
+}
+
+// ── Widget manager ────────────────────────────────────────────
+const WIDGET_DEFS = [
+  { id:'w-stats',    label:'Top Stats Row',         default:true },
+  { id:'w-charts',   label:'Compliance & Type Charts', default:true },
+  { id:'w-trend',    label:'Monthly Trend Chart',   default:true },
+  { id:'w-noncmp',   label:'Non-Compliant & Overdue Lists', default:true },
+  { id:'w-incomplete', label:'Incomplete Assemblies', default:true },
+];
+let widgetVisibility = JSON.parse(localStorage.getItem('widget-visibility') || '{}');
+
+function openWidgetManager() {
+  const modal = document.getElementById('widget-modal');
+  if (!modal) return;
+  const list = document.getElementById('widget-toggle-list');
+  if (list) {
+    list.innerHTML = WIDGET_DEFS.map(w => {
+      const visible = widgetVisibility[w.id] !== false;
+      return `<div class="toggle-row" style="padding:12px 0;border-bottom:1px solid var(--border)">
+        <div style="font-size:14px;font-weight:600">${w.label}</div>
+        <button class="toggle ${visible?'on':''}" onclick="toggleWidget('${w.id}',this)"></button>
+      </div>`;
+    }).join('');
+  }
+  modal.style.display = 'flex';
+}
+
+function toggleWidget(id, btn) {
+  const current = widgetVisibility[id] !== false;
+  widgetVisibility[id] = !current;
+  btn.classList.toggle('on', !current);
+  localStorage.setItem('widget-visibility', JSON.stringify(widgetVisibility));
+}
+
+function closeWidgetModal(e) {
+  if (!e || e.target === document.getElementById('widget-modal')) {
+    document.getElementById('widget-modal').style.display = 'none';
+    renderDashboard();
+  }
+}
+
+// ── Goal editor ───────────────────────────────────────────────
+let dashGoals = JSON.parse(localStorage.getItem('dash-goals') || '{"letters":500,"tests":500,"compliance":90}');
+
+function openGoalEditor() {
+  const modal = document.getElementById('goal-modal');
+  if (!modal) return;
+  const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+  setVal('goal-letters', dashGoals.letters || 500);
+  setVal('goal-tests', dashGoals.tests || 500);
+  setVal('goal-compliance', dashGoals.compliance || 90);
+  modal.style.display = 'flex';
+}
+
+function saveGoals() {
+  const getVal = id => parseInt(document.getElementById(id)?.value) || 0;
+  dashGoals = {
+    letters: getVal('goal-letters'),
+    tests: getVal('goal-tests'),
+    compliance: getVal('goal-compliance'),
+  };
+  localStorage.setItem('dash-goals', JSON.stringify(dashGoals));
+  closeGoalModal();
+  renderDashboard();
+  toast('Goals saved', 'success');
+}
+
+function closeGoalModal(e) {
+  if (!e || e.target === document.getElementById('goal-modal')) {
+    document.getElementById('goal-modal').style.display = 'none';
+  }
+}
+
+// ── Arrange mode ──────────────────────────────────────────────
+let arrangeMode = false;
+function toggleDashboardEdit() {
+  arrangeMode = !arrangeMode;
+  const hint = document.getElementById('dash-edit-hint');
+  const btn = document.getElementById('dash-edit-btn');
+  if (hint) hint.style.display = arrangeMode ? 'block' : 'none';
+  if (btn) { btn.textContent = arrangeMode ? '✓ Done' : '✦ Arrange'; btn.style.color = arrangeMode ? 'var(--green)' : ''; }
+  toast(arrangeMode ? 'Drag widgets to rearrange' : 'Layout saved', arrangeMode ? 'info' : 'success');
+}
+
 </script>
 
 <!-- ══════════════════════════════════════════════════════
