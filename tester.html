@@ -738,10 +738,13 @@ select.field-input option{background:var(--elevated)}
     <div class="form-section">
       <div class="form-section-title">LOCATION</div>
       <div class="form-row full">
-        <div class="form-field" style="position:relative">
+        <div class="form-field">
           <span class="field-label">Street Address <span style="color:var(--red)">*</span></span>
-          <input type="text" class="field-input req-field" id="sub-addr" placeholder="123 Main St, Abilene TX 79601" autocomplete="off" autocapitalize="words">
-          <div id="sub-addr-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:500;background:var(--elevated);border:1.5px solid var(--accent);border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.6);margin-top:4px;max-height:220px;overflow-y:auto"></div>
+          <input type="text" class="field-input req-field" id="sub-addr"
+            placeholder="123 Main St, Abilene TX 79601"
+            autocomplete="street-address"
+            autocapitalize="words"
+            inputmode="text">
         </div>
       </div>
       <div class="form-row">
@@ -1417,7 +1420,7 @@ async function submitReport() {
     repair_details:document.getElementById('sub-repair-details').value,
     remarks:document.getElementById('sub-remarks').value,
     photo_urls:photoUrls,
-    pws_name:'City of Abilene', pws_id:'TX0100023',
+    pws_name: document.getElementById('wiz-pws-name')?.value || 'Abilene TX',
   };
 
   try {
@@ -1489,7 +1492,7 @@ function generateTCEQ20700(r) {
 
     const col2=W/2+10;
     label('PWS Name',ml,y); value(r.pws_name||'City of Abilene',ml,y+10);
-    label('PWS ID',col2,y); value(r.pws_id||'TX0100023',col2,y+10); y+=26;
+    label('PWS ID',col2,y); value(r.pws_id||'',col2,y+10); y+=26;
     label('Service Address',ml,y); value(r.address||'',ml,y+10,9);
     label('Test Date',col2,y); value(fmtDate(r.date),col2,y+10); y+=30;
 
@@ -1761,7 +1764,7 @@ function wizStartTest() {
   wizSelectAsm('RPZ');
   wizShowStep('addr');
   // Init address autocomplete
-  setTimeout(() => initAddrAutocomplete('wiz-addr', 'wiz-addr-dropdown', null), 200);
+  
 }
 
 function wizGoHistory() {
@@ -1957,8 +1960,8 @@ async function wizStep4Next() {
     repair_details: document.getElementById('wiz-repair-details')?.value || '',
     remarks: document.getElementById('wiz-remarks')?.value || '',
     photo_urls: photoUrls,
-    pws_name: document.getElementById('wiz-pws-name')?.value || 'City of Abilene',
-    pws_id: document.getElementById('wiz-pws-id')?.value || 'TX0100023',
+    pws_name: document.getElementById('wiz-pws-name')?.value || 'Abilene TX',
+    pws_id: document.getElementById('wiz-pws-id')?.value || '',
     gauge_serial: meta.gauge_serial || '',
     gauge_cal_date: meta.gauge_cal_date || '',
   };
@@ -2098,106 +2101,7 @@ supaClient.auth.getSession().then(({data:{session}})=>{
   // No session = login screen stays visible (default state — no CSS changes needed)
 });
 
-// ════════════════════════════════════════════════════════════════
-//  ADDRESS AUTOCOMPLETE — Nominatim (OpenStreetMap) fast geocoder
-//  No API key needed · Free · Abilene TX bounded
-// ════════════════════════════════════════════════════════════════
-
-let addrSearchTimer = null;
-
-async function searchAddresses(query) {
-  if (!query || query.length < 3) return [];
-  try {
-    // Search within Abilene TX bounding box for speed
-    const encoded = encodeURIComponent(query);
-    const url = `https://nominatim.openstreetmap.org/search` +
-      `?q=${encoded}` +
-      `&format=json` +
-      `&addressdetails=1` +
-      `&limit=6` +
-      `&countrycodes=us` +
-      `&viewbox=-99.90,32.30,-99.55,32.68` +
-      `&bounded=0`;
-    const res = await fetch(url, {
-      headers: { 'User-Agent': 'CrossConnectionInspector/1.0 (sniderbackflowsolutions@gmail.com)' }
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.map(item => {
-      const addr = item.address;
-      // Build clean address string
-      const parts = [
-        addr.house_number,
-        addr.road,
-        addr.city || addr.town || addr.village || 'Abilene',
-        addr.state ? addr.state.replace('Texas','TX') : 'TX'
-      ].filter(Boolean);
-      return {
-        display: parts.join(' '),
-        full: item.display_name,
-        lat: item.lat,
-        lon: item.lon,
-        type: item.type
-      };
-    }).filter(r => r.display.length > 4);
-  } catch(e) {
-    console.warn('Address search error:', e.message);
-    return [];
-  }
-}
-
-function initAddrAutocomplete(inputId, dropdownId, onSelect) {
-  const input = document.getElementById(inputId);
-  const dropdown = document.getElementById(dropdownId);
-  if (!input || !dropdown) return;
-
-  input.addEventListener('input', () => {
-    clearTimeout(addrSearchTimer);
-    const q = input.value.trim();
-    if (q.length < 3) { dropdown.style.display = 'none'; return; }
-    // Fast 250ms debounce — feels instant
-    addrSearchTimer = setTimeout(async () => {
-      dropdown.style.display = 'block';
-      dropdown.innerHTML = '<div class="ac-loading">🔍 SEARCHING…</div>';
-      const results = await searchAddresses(q);
-      if (!results.length) {
-        dropdown.style.display = 'none';
-        return;
-      }
-      dropdown.innerHTML = results.map((r, i) =>
-        `<div class="ac-item" ontouchend="pickAddr(event,'${inputId}','${dropdownId}',${i})" onclick="pickAddr(event,'${inputId}','${dropdownId}',${i})">
-          <div class="ac-item-main">${r.display}</div>
-          <div class="ac-item-sub">${r.type || 'address'}</div>
-        </div>`
-      ).join('');
-      window['_addrResults_' + inputId] = results;
-    }, 250);
-  });
-
-  // Close dropdown on outside tap/click
-  document.addEventListener('touchstart', (e) => {
-    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
-      dropdown.style.display = 'none';
-    }
-  }, { passive: true });
-  document.addEventListener('click', (e) => {
-    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
-      dropdown.style.display = 'none';
-    }
-  });
-}
-
-function pickAddr(e, inputId, dropdownId, idx) {
-  e.preventDefault();
-  e.stopPropagation();
-  const results = window['_addrResults_' + inputId] || [];
-  const r = results[idx];
-  if (!r) return;
-  const input = document.getElementById(inputId);
-  const dropdown = document.getElementById(dropdownId);
-  if (input) input.value = r.display;
-  if (dropdown) dropdown.style.display = 'none';
-}
+// Address autocomplete handled natively by browser
 
 // ════════════════════════════════════════════════════════════════
 //  DEVICE MANUFACTURER + MODEL AUTOCOMPLETE
@@ -2366,12 +2270,12 @@ function checkLeadFree(brand, model) {
 
 // ── Init all autocompletes when wizard address step shows ──────────────────────
 function initWizardAutocompletes() {
-  initAddrAutocomplete('wiz-addr', 'wiz-addr-dropdown', null);
+  
   initMfrAutocomplete('wiz-mfr', 'wiz-mfr-dropdown', 'wiz-model', 'wiz-model-dropdown');
 }
 
 function initPortalAutocompletes() {
-  initAddrAutocomplete('sub-addr', 'sub-addr-dropdown', null);
+  
   initMfrAutocomplete('sub-mfr', 'sub-mfr-dropdown', 'sub-model', 'sub-model-dropdown');
 }
 
@@ -2494,10 +2398,14 @@ function initPortalAutocompletes() {
         <div class="wiz-step-sub">Enter the service address</div>
       </div>
       <div class="wiz-content">
-        <div class="wiz-field-group" style="position:relative">
+        <div class="wiz-field-group">
           <label class="wiz-field-label">SERVICE ADDRESS <span style="color:var(--red)">*</span></label>
-          <input type="text" class="wiz-field-input" id="wiz-addr" placeholder="123 Main St, Abilene TX" autocomplete="off" autocorrect="off" autocapitalize="words">
-          <div id="wiz-addr-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:500;background:var(--elevated);border:1.5px solid var(--accent);border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.6);margin-top:4px;max-height:220px;overflow-y:auto"></div>
+          <input type="text" class="wiz-field-input" id="wiz-addr"
+            placeholder="123 Main St, Abilene TX"
+            autocomplete="street-address"
+            autocorrect="off"
+            autocapitalize="words"
+            inputmode="text">
         </div>
         <div class="wiz-field-row">
           <div>
@@ -2506,7 +2414,7 @@ function initPortalAutocompletes() {
           </div>
           <div>
             <label class="wiz-field-label">PWS ID</label>
-            <input type="text" class="wiz-field-input" id="wiz-pws-id" value="TX0100023">
+            <input type="text" class="wiz-field-input" id="wiz-pws-id" value="">
           </div>
         </div>
         <div class="wiz-field-group">
@@ -2588,22 +2496,22 @@ function initPortalAutocompletes() {
           <label class="wiz-field-label">SERIAL # <span style="color:var(--red)">*</span></label>
           <input type="text" class="wiz-field-input" id="wiz-serial" placeholder="SN-12345" autocorrect="off" autocapitalize="characters">
         </div>
-        <div style="margin-bottom:14px">
+        <div style="margin-bottom:14px;position:relative;z-index:40">
           <label class="wiz-field-label">MANUFACTURER <span style="color:var(--red)">*</span></label>
-          <div class="ac-wrap">
+          <div style="position:relative">
             <input type="text" class="wiz-field-input" id="wiz-mfr" placeholder="Watts, Febco, Wilkins…" autocomplete="off">
-            <div class="ac-dropdown" id="wiz-mfr-dropdown" style="display:none"></div>
+            <div id="wiz-mfr-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:500;background:var(--elevated);border:1.5px solid var(--accent);border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.8);max-height:200px;overflow-y:auto"></div>
           </div>
         </div>
-        <div style="margin-bottom:6px">
+        <div style="margin-bottom:6px;position:relative;z-index:50">
           <label class="wiz-field-label">MODEL <span style="color:var(--red)">*</span></label>
-          <div class="ac-wrap">
+          <div style="position:relative">
             <input type="text" class="wiz-field-input" id="wiz-model" placeholder="LF009, LF825Y…" autocomplete="off">
-            <div class="ac-dropdown" id="wiz-model-dropdown" style="display:none"></div>
+            <div id="wiz-model-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:500;background:var(--elevated);border:1.5px solid var(--accent);border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.8);max-height:240px;overflow-y:auto"></div>
           </div>
         </div>
-        <div class="model-lf-check" id="wiz-lf-check" style="display:none;border-radius:9px;padding:10px 12px;margin-bottom:14px;font-family:var(--mono);font-size:10px;line-height:1.6"></div>
-        <div class="wiz-field-row">
+        <div id="wiz-lf-check" style="display:none;border-radius:9px;padding:10px 12px;margin-bottom:14px;font-family:var(--mono);font-size:10px;line-height:1.6;border:1px solid"></div>
+        <div class="wiz-field-row" style="position:relative;z-index:1">
           <div>
             <label class="wiz-field-label">SIZE</label>
             <select class="wiz-field-input" id="wiz-size">

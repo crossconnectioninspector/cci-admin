@@ -331,18 +331,11 @@ async function loadDevices() {
       if (r2.ok) devices = await r2.json();
     }
 
-    // Search 3: show all reports if admin/tester email matches (for testing)
-    if (devices.length === 0 && ownerEmail) {
-      const r3 = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?select=*&order=date.desc&limit=50`, { headers });
-      if (r3.ok) {
-        const all = await r3.json();
-        // Only show if email appears anywhere in record
-        devices = all.filter(r =>
-          r.owner_email === ownerEmail ||
-          r.tester_email === ownerEmail ||
-          (ownerAddress && r.address && r.address.toLowerCase().includes(ownerAddress.toLowerCase()))
-        );
-      }
+    // Search 3: address match only — no fallback to all records
+    if (devices.length === 0 && ownerAddress && ownerAddress.length > 5) {
+      const encoded = encodeURIComponent('%' + ownerAddress.split(',')[0].trim() + '%');
+      const r3 = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?select=*&address=ilike.${encoded}&owner_email=eq.${encodeURIComponent(ownerEmail)}&order=date.desc`, { headers });
+      if (r3.ok) devices = await r3.json();
     }
 
     // Deduplicate by serial/address — show latest per device

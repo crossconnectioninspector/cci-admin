@@ -10,7 +10,20 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
 <!-- CHANGE 1: Supabase Auth SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+// ── XSS Sanitization ─────────────────────────────────────────────────────────
+function sanitize(str) {
+  if (str === null || str === undefined) return '—';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;');
+}
+
+</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root {
@@ -864,12 +877,21 @@ async function doLogin() {
   const btn = document.getElementById('login-btn');
   errEl.style.display = 'none';
   if (btn) { btn.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite"></span>'; btn.disabled = true; }
-  const { error } = await supaClient.auth.signInWithPassword({ email, password });
+  const { data, error } = await supaClient.auth.signInWithPassword({ email, password });
   if (error) {
     errEl.textContent = error.message;
     errEl.style.display = 'block';
     if (btn) { btn.innerHTML = 'Sign In'; btn.disabled = false; }
   } else {
+    // ── Admin whitelist check ─────────────────────────────────────────────
+    const ADMIN_EMAILS = ['crossconnectioninspector@outlook.com','sniderbackflowsolutions@gmail.com'];
+    if (!ADMIN_EMAILS.includes(data.user.email.toLowerCase())) {
+      await supaClient.auth.signOut();
+      errEl.textContent = 'Access denied. Admin accounts only.';
+      errEl.style.display = 'block';
+      if (btn) { btn.innerHTML = 'Sign In'; btn.disabled = false; }
+      return;
+    }
     // Route to mobile or desktop
     if (window.innerWidth <= 768) {
       document.getElementById('login-screen').style.display = 'none';
@@ -1212,8 +1234,8 @@ function buildDashboard() {
         ${nonCompList.length ? nonCompList.map(r=>`
           <div style="padding:8px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
             <div style="min-width:0">
-              <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)">${r.address||'—'}</div>
-              <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">${r.assembly||'—'} · SN: ${r.serial||'—'}</div>
+              <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)">${sanitize(r.address)}</div>
+              <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">${r.assembly||'—'} · SN: ${sanitize(r.serial)}</div>
             </div>
             <span style="background:rgba(224,82,82,.12);color:var(--red);border:1px solid rgba(224,82,82,.25);padding:2px 8px;border-radius:20px;font-family:var(--mono);font-size:8px;font-weight:700;white-space:nowrap;flex-shrink:0">✗ FAIL</span>
           </div>`).join('') : '<div style="text-align:center;padding:20px;color:var(--green);font-family:var(--mono);font-size:10px">✓ None</div>'}
@@ -1223,7 +1245,7 @@ function buildDashboard() {
         ${overdueList.length ? overdueList.map(r=>`
           <div style="padding:8px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
             <div style="min-width:0">
-              <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)">${r.address||'—'}</div>
+              <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)">${sanitize(r.address)}</div>
               <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">Last: ${r.date||'Never'}</div>
             </div>
             <span style="background:rgba(240,192,64,.12);color:var(--yellow);border:1px solid rgba(240,192,64,.3);padding:2px 8px;border-radius:20px;font-family:var(--mono);font-size:8px;font-weight:700;white-space:nowrap;flex-shrink:0">⚠ DUE</span>
@@ -1240,8 +1262,8 @@ function buildDashboard() {
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">
         ${devices.filter(r=>!r.date||r.result==='PENDING').slice(0,6).map(r=>`
           <div style="background:var(--elevated);border:1px solid var(--border);border-radius:10px;padding:10px 12px">
-            <div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.address||'—'}</div>
-            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px">${r.assembly||'—'} · ${r.manufacturer||'—'}</div>
+            <div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sanitize(r.address)}</div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px">${r.assembly||'—'} · ${sanitize(r.manufacturer)}</div>
           </div>`).join('') || '<div style="font-family:var(--mono);font-size:10px;color:var(--green);padding:12px">✓ All assemblies have test records</div>'}
       </div>
     </div>
@@ -1711,8 +1733,8 @@ function renderBF() {
     <td class="td-addr">${r.address}</td>
     <td><span class="badge b-bf">${r.assembly}</span></td>
     <td class="td-mono">${r.mfr||'—'} ${r.model||''}</td>
-    <td class="td-mono">${r.serial||'—'}</td>
-    <td>${r.tester||'—'}</td>
+    <td class="td-mono">${sanitize(r.serial)}</td>
+    <td>${sanitize(r.tester)}</td>
     <td><span class="badge ${r.result==='PASS'?'b-pass':'b-fail'}">${r.result==='PASS'?'✓':'✗'} ${r.result}</span></td>
     <td>${r.repairs?'<span style="color:var(--accent)">🔧 Yes</span>':'<span style="color:var(--muted)">—</span>'}</td>
   </tr>`).join('')}</tbody></table>`:es('🔧','No backflow reports','Add a backflow test report');
@@ -1783,8 +1805,8 @@ function openModal(id) {
     <div class="rs"><div class="rs-title">Assembly</div><div class="rg">
       <div class="rf"><div class="rfl">Type</div><div class="rfv">${r.assembly}</div></div>
       <div class="rf"><div class="rfl">Manufacturer</div><div class="rfv">${r.mfr||'—'}</div></div>
-      <div class="rf"><div class="rfl">Model</div><div class="rfv">${r.model||'—'}</div></div>
-      <div class="rf"><div class="rfl">Serial #</div><div class="rfv">${r.serial||'—'}</div></div>
+      <div class="rf"><div class="rfl">Model</div><div class="rfv">${sanitize(r.model)}</div></div>
+      <div class="rf"><div class="rfl">Serial #</div><div class="rfv">${sanitize(r.serial)}</div></div>
       <div class="rf"><div class="rfl">Size</div><div class="rfv">${r.size||'—'}</div></div>
     </div></div>
     <div class="rs"><div class="rs-title">Test Results — TCEQ Pressure Readings</div>
@@ -1825,7 +1847,7 @@ function openModal(id) {
       })()}
     </div>
     <div class="rs"><div class="rs-title">Certification</div><div class="rg">
-      <div class="rf"><div class="rfl">Tester</div><div class="rfv">${r.tester||'—'}</div></div>
+      <div class="rf"><div class="rfl">Tester</div><div class="rfv">${sanitize(r.tester)}</div></div>
       <div class="rf"><div class="rfl">Cert #</div><div class="rfv">${r.certNum||'—'}</div></div>
       <div class="rf"><div class="rfl">PWS</div><div class="rfv">${r.pwsName||'—'}</div></div>
       <div class="rf"><div class="rfl">Firm</div><div class="rfv">${r.firm||'—'}</div></div>
@@ -1862,7 +1884,7 @@ function openModal(id) {
         <div class="rf"><div class="rfl">Business Type</div><div class="rfv">${r.bizType||'—'}</div></div>
         <div class="rf"><div class="rfl">Hazard Rating</div><div class="rfv" style="color:${hc};font-size:22px;font-family:var(--cond)">${r.hazardRating||0}/10</div></div>
         <div class="rf"><div class="rfl">Compliance</div><div class="rfv"><span class="badge ${compBadge(r.complianceStatus)}">${compLabel(r.complianceStatus)}</span></div></div>
-        <div class="rf"><div class="rfl">Tester</div><div class="rfv">${r.tester||'—'}</div></div>
+        <div class="rf"><div class="rfl">Tester</div><div class="rfv">${sanitize(r.tester)}</div></div>
       </div>
     </div>
     ${r.remarks?`<div class="rs"><div class="rs-title">Remarks</div><div style="font-size:12px;color:var(--muted);line-height:1.6">${r.remarks}</div></div>`:''}`;
@@ -1886,7 +1908,7 @@ function emailCurrentReport() {
   } else if(r.type==='csi') {
     body=`TCEQ FORM 20699 — CSI REPORT\n${'='.repeat(40)}\nAddress: ${r.address}\nDate: ${fd(r.date)}\nStatus: ${r.status?.toUpperCase()}\nReason: ${r.reason}\n\n(1) No contamination connection: ${r.c1?'✓':'✗'}\n(2) No cross-connection: ${r.c2?'✓':'✗'}\n(3) No process return: ${r.c3?'✓':'✗'}\n(4) No >8% lead pipe: ${r.c4?'✓':'✗'}\n(5) Post-2014 labeled: ${r.c5?'✓':'✗'}\n(6) No lead solder: ${r.c6?'✓':'✗'}\n\nService Lines: ${r.serviceLines}\nSolder: ${r.solder}\nInspector: ${r.inspector} · #${r.licNum}\nRemarks: ${r.remarks||'None'}`;
   } else {
-    body=`PROPERTY INSPECTION\n${'='.repeat(40)}\nAddress: ${r.address}\nDate: ${fd(r.date)}\nOwner: ${r.owner||'—'}\nBusiness: ${r.bizType||'—'}\nHazard Rating: ${r.hazardRating}/10\nCompliance: ${r.complianceStatus}\nTester: ${r.tester||'—'}\nRemarks: ${r.remarks||'None'}`;
+    body=`PROPERTY INSPECTION\n${'='.repeat(40)}\nAddress: ${r.address}\nDate: ${fd(r.date)}\nOwner: ${r.owner||'—'}\nBusiness: ${r.bizType||'—'}\nHazard Rating: ${r.hazardRating}/10\nCompliance: ${r.complianceStatus}\nTester: ${sanitize(r.tester)}\nRemarks: ${r.remarks||'None'}`;
   }
   window.location.href=`mailto:crossconnectioninspector@outlook.com?subject=${sub}&body=${encodeURIComponent(body)}`;
   toast('Email client opened','success');
@@ -2072,6 +2094,11 @@ setupPsidFields('RPZ');
 // CHANGE 5: check session on load instead of calling renderDashboard() directly
 supaClient.auth.getSession().then(({ data: { session } }) => {
   if (session) {
+    const adminEmails = ['crossconnectioninspector@outlook.com','sniderbackflowsolutions@gmail.com'];
+    if (!adminEmails.includes(session.user.email.toLowerCase())) {
+      await supaClient.auth.signOut();
+      return;
+    }
     document.getElementById('login-screen').style.display = 'none';
     if (window.innerWidth <= 768) {
       showMobileAdmin();
