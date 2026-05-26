@@ -745,7 +745,9 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
         </div>
         <div class="if-group">
           <label class="sl">Service Address</label>
-          <input type="text" class="si" id="imp-addr" placeholder="123 Main St, Abilene TX">
+          <input type="text" class="si" id="imp-addr" placeholder="123 Main St, Abilene TX"
+            autocomplete="off" oninput="adminAddrSearch(this.value)" style="width:100%">
+          <div id="sub-addr-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:500;background:var(--elevated);border:1.5px solid var(--accent);border-radius:10px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.8);max-height:220px;overflow-y:auto"></div>
         </div>
         <div class="if-group">
           <label class="sl">Date</label>
@@ -762,11 +764,18 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
         </div>
         <div class="if-group" id="f-mfr">
           <label class="sl">Manufacturer</label>
-          <input type="text" class="si" id="imp-mfr" placeholder="Watts, Febco…">
+          <div style="position:relative">
+            <input type="text" class="si" id="imp-mfr" placeholder="Watts, Febco…" autocomplete="off" oninput="adminMfrSearch(this.value)" style="width:100%">
+            <div id="sub-mfr-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:500;background:var(--elevated);border:1.5px solid var(--accent);border-radius:10px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.8);max-height:200px;overflow-y:auto"></div>
+          </div>
         </div>
         <div class="if-group" id="f-model">
           <label class="sl">Model / Serial #</label>
-          <input type="text" class="si" id="imp-model" placeholder="LF009 / SN-12345">
+          <div style="position:relative">
+            <input type="text" class="si" id="imp-model" placeholder="LF009" autocomplete="off" oninput="adminModelSearch(this.value)" style="width:100%">
+            <div id="sub-model-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:500;background:var(--elevated);border:1.5px solid var(--accent);border-radius:10px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.8);max-height:240px;overflow-y:auto"></div>
+          </div>
+          <div id="lf-check-result" style="display:none;border-radius:8px;padding:8px 12px;margin-top:6px;font-family:var(--mono);font-size:10px;line-height:1.5"></div>
         </div>
         <!-- PSID Readings — shown/hidden per assembly type -->
         <div class="if-group" id="f-check1" style="display:none">
@@ -1221,7 +1230,15 @@ function nav(id, btn) {
 
 async function renderDashboard() {
   const w = el('dash-widgets');
-  if (w) w.innerHTML = '<div style="padding:60px;text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;letter-spacing:1px">⏳ LOADING DASHBOARD DATA…</div>';
+  if (w) w.innerHTML = `<div style="padding:60px;text-align:center;color:var(--muted)">
+  <svg width="48" height="48" viewBox="0 0 48 48" style="margin-bottom:16px;display:block;margin-left:auto;margin-right:auto">
+    <circle cx="24" cy="24" r="20" fill="none" stroke="var(--border)" stroke-width="3"/>
+    <circle cx="24" cy="24" r="20" fill="none" stroke="var(--accent)" stroke-width="3"
+      stroke-dasharray="31.4 94.2" stroke-linecap="round"
+      style="transform-origin:center;animation:spin .8s linear infinite"/>
+  </svg>
+  <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--muted)">LOADING DASHBOARD DATA…</div>
+</div>`;
   const ok = await loadAllData();
   if (typeof applyDashTheme === 'function') applyDashTheme();
   buildDashboard();
@@ -1233,6 +1250,26 @@ function buildDashboard() {
   const oneYearAgo = new Date(); oneYearAgo.setFullYear(oneYearAgo.getFullYear()-1);
 
   const bf = DB.filter(r => r.type === 'backflow');
+
+  // ── Empty state — no data yet ───────────────────────────────────────────
+  if (bf.length === 0) {
+    const container = el('dash-widgets');
+    if (container) container.innerHTML = `
+      <div style="text-align:center;padding:60px 24px">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="1.5" style="margin:0 auto 16px;display:block">
+          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+        <div style="font-family:var(--cond);font-size:24px;font-weight:900;color:var(--text);margin-bottom:8px">No Data Yet</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;line-height:1.8;margin-bottom:24px">
+          Submit your first backflow test report to see<br>the compliance dashboard populate with live data.
+        </div>
+        <a href="tester.html" style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#000;padding:12px 24px;border-radius:12px;font-family:var(--cond);font-size:16px;font-weight:900;text-decoration:none">
+          📋 Go to Tester Portal
+        </a>
+      </div>`;
+    return;
+  }
 
   // ── Latest test per device ───────────────────────────────────────────────
   const deviceMap = new Map();
@@ -3224,6 +3261,146 @@ function clearRiskCache() {
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+
+// ════════════════════════════════════════════════════════════════
+//  ADMIN PORTAL AUTOCOMPLETE — Address + Device
+// ════════════════════════════════════════════════════════════════
+
+let adminAddrTimer = null;
+let adminCurrentMfr = '';
+
+async function adminAddrSearch(q) {
+  const dropdown = document.getElementById('sub-addr-dropdown');
+  if (!dropdown) return;
+  clearTimeout(adminAddrTimer);
+  if (q.length < 3) { dropdown.style.display = 'none'; return; }
+  dropdown.style.display = 'block';
+  dropdown.innerHTML = '<div style="padding:12px 14px;font-family:var(--mono);font-size:10px;color:var(--muted)">🔍 SEARCHING…</div>';
+  adminAddrTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q+' Abilene TX')}&format=json&addressdetails=1&limit=5&countrycodes=us&viewbox=-99.90,32.30,-99.55,32.68&bounded=0`,
+        { headers:{'User-Agent':'CrossConnectionInspector/1.0'} });
+      if (!res.ok) { dropdown.style.display='none'; return; }
+      const data = await res.json();
+      if (!data.length) { dropdown.style.display='none'; return; }
+      dropdown.innerHTML = data.map((item,i) => {
+        const addr = item.address;
+        const parts = [addr.house_number, addr.road, addr.city||addr.town||'Abilene', addr.state?'TX':''].filter(Boolean);
+        const display = parts.join(' ');
+        return `<div onclick="pickAdminAddr('${display.replace(/'/g,"\'")}','sub-addr','sub-addr-dropdown')"
+          style="padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text)"
+          onmouseover="this.style.background='rgba(249,166,30,.08)'" onmouseout="this.style.background=''">${display}</div>`;
+      }).join('');
+    } catch(e) { dropdown.style.display='none'; }
+  }, 300);
+}
+
+function pickAdminAddr(addr, inputId, dropId) { inputId = inputId || 'imp-addr'; dropId = dropId || 'sub-addr-dropdown';
+  const input = document.getElementById(inputId);
+  const drop = document.getElementById(dropId);
+  if (input) input.value = addr;
+  if (drop) drop.style.display = 'none';
+}
+
+// Device brand/model data
+const ADMIN_DEVICES = {
+  'Watts':    { models: ['LF009','LF009M2','LF007','LF007M2','LF800M4','LF800MKII','009','007'], lf:{'LF009':true,'LF009M2':true,'LF007':true,'LF007M2':true,'LF800M4':true,'LF800MKII':true,'009':false,'007':false} },
+  'Febco':    { models: ['LF825Y','LF825YA','LF860','LF765','825Y','860'], lf:{'LF825Y':true,'LF825YA':true,'LF860':true,'LF765':true,'825Y':false,'860':false} },
+  'Wilkins':  { models: ['LF375XL','LF375A','LF350XL','LF720A','375XL','350XL'], lf:{'LF375XL':true,'LF375A':true,'LF350XL':true,'LF720A':true,'375XL':false,'350XL':false} },
+  'Ames':     { models: ['LF4000SS','LF2000SS','4000SS','2000SS'], lf:{'LF4000SS':true,'LF2000SS':true,'4000SS':false,'2000SS':false} },
+  'Apollo':   { models: ['LF4ALF','LF4A','LF4CIV','4ALF'], lf:{'LF4ALF':true,'LF4A':true,'LF4CIV':true,'4ALF':false} },
+  'Conbraco': { models: ['LF4ALF','LF4CIV'], lf:{'LF4ALF':true,'LF4CIV':true} },
+  'Cash Acme':{ models: ['LF3'], lf:{'LF3':true} },
+};
+
+function adminMfrSearch(q) {
+  const dropdown = document.getElementById('sub-mfr-dropdown');
+  if (!dropdown) return;
+  if (!q) { dropdown.style.display='none'; return; }
+  const matches = Object.keys(ADMIN_DEVICES).filter(b => b.toLowerCase().includes(q.toLowerCase()));
+  if (!matches.length) { dropdown.style.display='none'; return; }
+  dropdown.style.display = 'block';
+  dropdown.innerHTML = matches.map(b => `
+    <div onclick="pickAdminMfr('${b}')"
+      style="padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text)"
+      onmouseover="this.style.background='rgba(249,166,30,.08)'" onmouseout="this.style.background=''">
+      ${b} <span style="font-family:var(--mono);font-size:9px;color:var(--muted)">${ADMIN_DEVICES[b].models.length} models</span>
+    </div>`).join('');
+}
+
+function pickAdminMfr(brand) {
+  adminCurrentMfr = brand;
+  const inp = document.getElementById('imp-mfr') || document.getElementById('sub-mfr');
+  const drop = document.getElementById('sub-mfr-dropdown');
+  if (inp) inp.value = brand;
+  if (drop) drop.style.display = 'none';
+  const modelInp = document.getElementById('imp-model') || document.getElementById('sub-model');
+  if (modelInp) { modelInp.value = ''; modelInp.focus(); }
+}
+
+function adminModelSearch(q) {
+  const dropdown = document.getElementById('sub-model-dropdown');
+  const lfCheck = document.getElementById('lf-check-result');
+  if (!dropdown) return;
+  if (!adminCurrentMfr) {
+    // Try to use whatever is in the mfr field
+    const mfrInp = document.getElementById('imp-mfr') || document.getElementById('sub-mfr');
+    if (mfrInp?.value) adminCurrentMfr = mfrInp.value;
+  }
+  const deviceData = ADMIN_DEVICES[adminCurrentMfr];
+  const models = deviceData ? deviceData.models : Object.values(ADMIN_DEVICES).flatMap(d=>d.models);
+  const matches = q ? models.filter(m => m.toLowerCase().includes(q.toLowerCase())) : models.slice(0,8);
+  if (!matches.length) { dropdown.style.display='none'; return; }
+  dropdown.style.display = 'block';
+  dropdown.innerHTML = matches.map(m => {
+    const isLF = deviceData?.lf[m];
+    const lfColor = isLF === true ? 'var(--green)' : isLF === false ? 'var(--red)' : 'var(--muted)';
+    const lfLabel = isLF === true ? '✓ LF' : isLF === false ? '✗ NOT LF' : '';
+    return `<div onclick="pickAdminModel('${m}')"
+      style="padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px"
+      onmouseover="this.style.background='rgba(249,166,30,.08)'" onmouseout="this.style.background=''">
+      <span style="font-size:13px;font-weight:600;color:var(--text)">${m}</span>
+      ${lfLabel ? `<span style="font-family:var(--mono);font-size:9px;color:${lfColor};background:${isLF?'rgba(61,184,112,.1)':'rgba(224,82,82,.1)'};padding:2px 8px;border-radius:6px;border:1px solid ${lfColor}">${lfLabel}</span>` : ''}
+    </div>`;
+  }).join('');
+  // Show lead free result for current value
+  adminCheckLeadFree(q);
+}
+
+function pickAdminModel(model) {
+  const inp = document.getElementById('imp-model') || document.getElementById('sub-model');
+  const drop = document.getElementById('sub-model-dropdown');
+  if (inp) inp.value = model;
+  if (drop) drop.style.display = 'none';
+  adminCheckLeadFree(model);
+}
+
+function adminCheckLeadFree(model) {
+  const el = document.getElementById('lf-check-result');
+  if (!el) return;
+  const deviceData = ADMIN_DEVICES[adminCurrentMfr];
+  if (!deviceData || !(model in deviceData.lf)) { el.style.display='none'; return; }
+  const isLF = deviceData.lf[model];
+  el.style.display = 'block';
+  el.style.background = isLF ? 'rgba(61,184,112,.08)' : 'rgba(224,82,82,.08)';
+  el.style.border = isLF ? '1px solid rgba(61,184,112,.25)' : '1px solid rgba(224,82,82,.25)';
+  el.style.color = isLF ? 'var(--green)' : 'var(--red)';
+  el.textContent = isLF
+    ? '✓ LEAD-FREE COMPLIANT — Meets ≤0.25% lead requirement (NSF/ANSI 372)'
+    : '⚠ NOT LEAD-FREE — Exceeds 0.25% lead limit. Replacement required for new installations.';
+}
+
+// Close dropdowns on outside click
+document.addEventListener('click', (e) => {
+  ['sub-addr-dropdown','sub-mfr-dropdown','sub-model-dropdown'].forEach(id => {
+    const drop = document.getElementById(id);
+    const inp = document.getElementById(id.replace('-dropdown',''));
+    if (drop && inp && !inp.contains(e.target) && !drop.contains(e.target)) {
+      drop.style.display = 'none';
+    }
+  });
+});
 
 </script>
 
