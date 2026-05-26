@@ -1197,48 +1197,7 @@ function nav(id, btn) {
   if(id==='csi-page') renderCSI();
 }
 
-// ── DASHBOARD ─────────────────────────────────────────────────────────────────
-// ── DASHBOARD ENGINE ──────────────────────────────────────────────────────────
-
-const DASH_THEMES = [
-  {id:'default',  name:'Operator Dark',  bg:'#13161a', surface:'#1e2228', accent:'#f9a61e', text:'#f2f4f6'},
-  {id:'midnight', name:'Midnight Blue',  bg:'#0d1117', surface:'#161b22', accent:'#58a6ff', text:'#e6edf3'},
-  {id:'forest',   name:'Forest Green',   bg:'#0d1a0f', surface:'#122016', accent:'#3fb950', text:'#e6f0e8'},
-  {id:'crimson',  name:'Crimson',        bg:'#1a0d0d', surface:'#241515', accent:'#f85149', text:'#f0e6e6'},
-  {id:'slate',    name:'Cool Slate',     bg:'#0f1117', surface:'#1c1f26', accent:'#a78bfa', text:'#f0f0f6'},
-  {id:'amber',    name:'Amber Pro',      bg:'#141008', surface:'#1e1a0e', accent:'#fbbf24', text:'#f5f0e0'},
-];
-
-const WIDGET_DEFS = [
-  {id:'w-month',    title:'This Month',         icon:'📅', defaultOn:true},
-  {id:'w-year',     title:'2026 Annual Tally',  icon:'📊', defaultOn:true},
-  {id:'w-chart',    title:'Monthly Bar Chart',  icon:'📈', defaultOn:true},
-  {id:'w-overdue',  title:'Overdue Alerts',     icon:'⚠️', defaultOn:true},
-  {id:'w-compliance',title:'Compliance Breakdown',icon:'✅', defaultOn:true},
-  {id:'w-recent',   title:'Recent Activity',    icon:'🕐', defaultOn:true},
-  {id:'w-devices',  title:'Device Type Summary',icon:'🔧', defaultOn:true},
-  {id:'w-pws',      title:'PWS Summary',        icon:'🏛️', defaultOn:false},
-];
-
-let dashGoals = JSON.parse(localStorage.getItem('cci_goals')||'{"letters":500,"tests":500,"compliance":90}');
-let dashWidgetState = JSON.parse(localStorage.getItem('cci_widgets')||'{}');
-let dashWidgetOrder = JSON.parse(localStorage.getItem('cci_widget_order')||'null') || WIDGET_DEFS.map(w=>w.id);
-let dashEditMode = false;
-let dashDragSrc = null;
-
-function getWidgetVisible(id) {
-  const def = WIDGET_DEFS.find(w=>w.id===id);
-  if (id in dashWidgetState) return dashWidgetState[id];
-  return def ? def.defaultOn : true;
-}
-
-async function renderDashboard() {
-  const w = el('dash-widgets');
-  if (w) w.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px">⏳ Loading data...</div>';
-  await loadAllData();
-  if (typeof applyDashTheme === 'function') applyDashTheme();
-  buildDashboard();
-}
+// Dashboard theme handled below
 
 function buildDashboard() {
   const year = new Date().getFullYear();
