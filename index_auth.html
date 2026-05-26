@@ -540,7 +540,27 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
 <div class="page" id="page-city-risk-page" style="padding:0;display:none;flex-direction:column;height:calc(100vh - 56px)">
 
   <!-- Header row -->
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px 8px;flex-shrink:0">
+  <div style="padding:10px 16px 0;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px">CITY RISK MAP — TCEQ 290.47(f) APPENDIX F</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px" id="risk-status">Click City Risk to begin scan…</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--accent)" id="risk-count">0 locations found</div>
+        <button onclick="clearRiskCache()" class="btn btn-gh btn-sm" style="width:auto;font-size:10px">↻ Rescan</button>
+        <button onclick="riskReset()" class="btn btn-gh btn-sm" style="width:auto;font-size:10px">⌖ Reset</button>
+      </div>
+    </div>
+    <!-- Stat chips -->
+    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+      <div onclick="filterRisk('severe')" id="risk-filter-severe" style="cursor:pointer;background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.25);border-radius:8px;padding:4px 10px;font-family:var(--mono);font-size:9px;color:var(--red)">🔴 SEVERE <span id="risk-stat-severe">0</span></div>
+      <div onclick="filterRisk('high')" id="risk-filter-high" style="cursor:pointer;background:rgba(249,166,30,.12);border:1px solid rgba(249,166,30,.25);border-radius:8px;padding:4px 10px;font-family:var(--mono);font-size:9px;color:var(--accent)">🟠 HIGH <span id="risk-stat-high">0</span></div>
+      <div onclick="filterRisk('moderate')" id="risk-filter-moderate" style="cursor:pointer;background:rgba(240,192,64,.12);border:1px solid rgba(240,192,64,.25);border-radius:8px;padding:4px 10px;font-family:var(--mono);font-size:9px;color:var(--yellow)">🟡 MODERATE <span id="risk-stat-moderate">0</span></div>
+      <div onclick="filterRisk('low')" id="risk-filter-low" style="cursor:pointer;background:rgba(61,184,112,.12);border:1px solid rgba(61,184,112,.25);border-radius:8px;padding:4px 10px;font-family:var(--mono);font-size:9px;color:var(--green)">🟢 LOW <span id="risk-stat-low">0</span></div>
+    </div>
+  </div>
+  <div style="display:none">
     <div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;margin-bottom:2px">CITY RISK MAP</div>
       <div style="font-family:var(--cond);font-size:20px;font-weight:700">TCEQ 290.47(f) Appendix F</div>
@@ -2749,6 +2769,461 @@ async function sendManualNotification() {
     } else { toast('Edge function error — check Supabase logs', 'error'); }
   } catch(e) { toast('Error: ' + e.message, 'error'); }
 }
+
+
+// ════════════════════════════════════════════════════════════════
+//  DEVICE MAP — shows all submitted test reports as map pins
+// ════════════════════════════════════════════════════════════════
+
+async function initDeviceMap() {
+  const mapEl = document.getElementById('device-map');
+  if (!mapEl) return;
+  if (!deviceMap) {
+    deviceMap = L.map('device-map', { center:[32.4487,-99.7331], zoom:12 });
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+      { attribution:'© OSM © CARTO', maxZoom:19 }).addTo(deviceMap);
+    deviceMarkers = L.markerClusterGroup ? L.markerClusterGroup() : L.layerGroup();
+    deviceMap.addLayer(deviceMarkers);
+  }
+  deviceMap.invalidateSize();
+  rebuildDeviceMarkers();
+}
+
+function rebuildDeviceMarkers(filter) {
+  if (!deviceMap || !deviceMarkers) return;
+  deviceMarkers.clearLayers();
+  const data = filter ? DB.filter(r => r.type === filter) : DB;
+  data.forEach(r => {
+    const lat = r.lat || r.latitude;
+    const lng = r.lng || r.longitude;
+    if (!lat || !lng) return;
+    const color = r.result==='PASS' ? '#3db870' : r.result==='FAIL' ? '#e05252' : '#f9a61e';
+    const pin = L.divIcon({
+      html:`<div style="width:22px;height:22px;background:${color};border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4)"></div>`,
+      iconSize:[22,22], iconAnchor:[11,22], className:''
+    });
+    const marker = L.marker([lat,lng], {icon:pin});
+    marker.bindPopup(`<div style="font-family:sans-serif;min-width:160px">
+      <div style="font-weight:700;font-size:12px;margin-bottom:4px">${r.address||'—'}</div>
+      <div style="font-size:11px;color:#666">${r.assembly||'—'} · ${r.mfr||''} ${r.model||''}</div>
+      <div style="font-size:11px;color:#666">Serial: ${r.serial||'—'}</div>
+      <div style="font-size:12px;font-weight:700;color:${color};margin-top:4px">${r.result||'PENDING'}</div>
+      <div style="font-size:10px;color:#999">${r.date||'—'}</div>
+      <a href="#" onclick="openModal('${r.id}');return false;" style="font-size:11px;color:#f9a61e">View Details →</a>
+    </div>`);
+    deviceMarkers.addLayer(marker);
+  });
+}
+
+function mapShowAll()         { rebuildDeviceMarkers(); }
+function mapFilter(t)         { rebuildDeviceMarkers(t); }
+function mapReset()           { if(deviceMap) deviceMap.setView([32.4487,-99.7331],12); }
+
+// ════════════════════════════════════════════════════════════════
+//  CITY RISK MAP — Full 3-pass TCEQ 290.47(f) hazard scanner
+//  Mirrors the Swift CityRiskDataService logic
+// ════════════════════════════════════════════════════════════════
+
+const BBOX = '32.33,-99.86,32.65,-99.60';
+const VIEWBOX = '-99.86,32.33,-99.60,32.65';
+
+// Full TCEQ 290.47(f) Appendix F category table from Swift file
+const TCEQ_CATEGORIES = [
+  {tag:'amenity=hospital',       label:'Hospital',                device:'RPBA or AG', rating:10, reason:'Hospitals use sterilization equipment and chemical disinfectants. Backflow could introduce toxic chemicals or biological agents into the public supply.'},
+  {tag:'healthcare=dialysis',    label:'Dialysis Center',         device:'RPBA or AG', rating:10, reason:'Dialysis centers require ultra-pure water contacting patient blood. Any contamination is immediately life-threatening.'},
+  {tag:'amenity=funeral_hall',   label:'Funeral Home',            device:'RPBA or AG', rating:10, reason:'Mortuaries use embalming chemicals including formaldehyde connected to water lines.'},
+  {tag:'amenity=doctors',        label:'Medical Office',          device:'RPBA or AG', rating:9,  reason:'Medical offices use autoclave sterilizers and chemical solutions that can backflow.'},
+  {tag:'amenity=dentist',        label:'Dental Clinic',           device:'RPBA or AG', rating:9,  reason:'Dental units contain water lines with oral bacteria and chemical disinfectants.'},
+  {tag:'amenity=nursing_home',   label:'Nursing Home',            device:'RPBA or AG', rating:9,  reason:'Nursing homes have medical equipment, sterilizers, and chemical cleaning systems.'},
+  {tag:'amenity=clinic',         label:'Urgent Care / Clinic',    device:'RPBA or AG', rating:9,  reason:'Clinics use autoclave sterilizers and chemical disinfectants.'},
+  {tag:'leisure=swimming_pool',  label:'Swimming Pool',           device:'RPBA',       rating:9,  reason:'Pools require RPZ protection. Chlorine and pool chemicals are health hazard contaminants.'},
+  {tag:'aeroway=aerodrome',      label:'Airport',                 device:'RPBA or AG', rating:9,  reason:'Airports have de-icing chemicals, HVAC cooling towers, and vehicle wash systems.'},
+  {tag:'amenity=laboratory',     label:'Medical Laboratory',      device:'RPBA or AG', rating:9,  reason:'Labs use chemical reagents and autoclave sterilizers connected to water supply.'},
+  {tag:'amenity=car_wash',       label:'Car Wash',                device:'RPBA',       rating:8,  reason:'Car washes inject detergents and degreasers directly into water supply lines.'},
+  {tag:'shop=car_repair',        label:'Auto Repair',             device:'RPBA',       rating:8,  reason:'Auto shops use radiator flush chemicals, antifreeze, and oil near water connections.'},
+  {tag:'tourism=hotel',          label:'Hotel / Motel',           device:'RPBA',       rating:8,  reason:'Hotels have boilers, cooling towers, pools, and commercial kitchen equipment.'},
+  {tag:'amenity=fuel',           label:'Gas Station',             device:'RPBA or AG', rating:8,  reason:'Gas stations have underground fuel storage near water connections.'},
+  {tag:'amenity=pharmacy',       label:'Pharmacy',                device:'RPBA',       rating:8,  reason:'Pharmacies use chemical compounding equipment and laboratory water systems.'},
+  {tag:'amenity=veterinary',     label:'Veterinary Clinic',       device:'RPBA',       rating:8,  reason:'Vet clinics use chemical disinfectants and animal waste water systems.'},
+  {tag:'leisure=golf_course',    label:'Golf Course',             device:'RPBA',       rating:8,  reason:'Golf courses inject chemical fertilizers and pesticides into irrigation systems.'},
+  {tag:'craft=brewery',          label:'Brewery / Winery',        device:'RPBA',       rating:8,  reason:'Breweries use chemical sanitizers and CO2 carbonation systems.'},
+  {tag:'craft=pest_control',     label:'Pest Control',            device:'RPBA',       rating:8,  reason:'Pest control mixes chemical pesticides using water supply connections.'},
+  {tag:'amenity=restaurant',     label:'Restaurant',              device:'RPBA',       rating:7,  reason:'Restaurants use CO2 carbonation, dishwashers with chemical sanitizers.'},
+  {tag:'amenity=fast_food',      label:'Fast Food',               device:'RPBA',       rating:7,  reason:'Fast food uses carbonation equipment and chemical sanitizers.'},
+  {tag:'amenity=cafe',           label:'Cafe / Coffee Shop',      device:'RPBA',       rating:7,  reason:'Cafes use commercial espresso machines and carbonated beverage systems.'},
+  {tag:'amenity=bar',            label:'Bar / Nightclub',         device:'RPBA',       rating:7,  reason:'Bars use CO2 carbonation for draft beer directly connected to water lines.'},
+  {tag:'shop=laundry',           label:'Laundry / Dry Cleaning',  device:'RPBA',       rating:7,  reason:'Commercial laundries use chemical detergents and dry cleaning solvents.'},
+  {tag:'leisure=spa',            label:'Spa / Nail Salon',        device:'RPBA',       rating:7,  reason:'Spas use chemical pedicure disinfectants and whirlpool jets.'},
+  {tag:'shop=hairdresser',       label:'Beauty Salon',            device:'RPBA',       rating:6,  reason:'Salons use chemical hair treatments, dyes, and peroxide connected to water lines.'},
+  {tag:'leisure=fitness_centre', label:'Gym / Fitness Center',    device:'RPBA',       rating:6,  reason:'Gyms often have pools, spas, steam rooms, and chemical treatment systems.'},
+  {tag:'amenity=school',         label:'School',                  device:'DCVA or RPBA', rating:6, reason:'Schools have irrigation systems, lab connections, and commercial kitchens.'},
+  {tag:'amenity=university',     label:'University',              device:'DCVA or RPBA', rating:6, reason:'Universities have research labs, irrigation systems, and large boiler/chiller plants.'},
+  {tag:'leisure=bowling_alley',  label:'Bowling Alley',           device:'RPBA',       rating:6,  reason:'Bowling alleys have CO2 carbonation and chemical lane oil systems.'},
+  {tag:'amenity=cinema',         label:'Movie Theater',           device:'RPBA',       rating:6,  reason:'Movie theaters have concession CO2 carbonation systems.'},
+  {tag:'amenity=place_of_worship', label:'Church / Religious',   device:'DCVA',       rating:5,  reason:'Churches typically have irrigation and commercial kitchen connections.'},
+  {tag:'shop=supermarket',       label:'Grocery / Supermarket',   device:'DCVA',       rating:5,  reason:'Grocery stores have commercial refrigeration, produce misters, and food prep.'},
+  {tag:'amenity=fire_station',   label:'Fire Station',            device:'DCVA',       rating:5,  reason:'Fire stations have vehicle wash systems and fire suppression test connections.'},
+  {tag:'landuse=cemetery',       label:'Cemetery',                device:'DCVA or PVB', rating:5, reason:'Cemeteries have large irrigation systems for grounds maintenance.'},
+  {tag:'shop=storage_rental',    label:'Storage Facility',        device:'DCVA',       rating:4,  reason:'Storage facilities have irrigation and fire suppression connections.'},
+  {tag:'amenity=bank',           label:'Bank / Financial',        device:'DCVA',       rating:4,  reason:'Banks are commercial buildings with HVAC and irrigation connections.'},
+  {tag:'healthcare=physiotherapist', label:'Physical Therapy',   device:'RPBA or AG', rating:8,  reason:'PT facilities use hydrotherapy pools and whirlpool tubs connected to water.'},
+  {tag:'amenity=animal_shelter', label:'Animal Shelter',          device:'RPBA',       rating:8,  reason:'Animal shelters use chemical disinfectants and kennel wash systems.'},
+  {tag:'tourism=aquarium',       label:'Aquarium',                device:'RPBA',       rating:8,  reason:'Aquariums use chemical salt and water treatment systems.'},
+  {tag:'leisure=stadium',        label:'Stadium',                 device:'RPBA',       rating:8,  reason:'Stadiums have food service CO2 carbonation, irrigation, and HVAC cooling towers.'},
+  {tag:'shop=car',               label:'Auto Dealership',         device:'RPBA',       rating:7,  reason:'Dealerships with service bays use radiator flush chemicals and parts washers.'},
+  {tag:'shop=florist',           label:'Nursery / Garden Center', device:'RPBA',       rating:7,  reason:'Nurseries use chemical fertilizer and pesticide injection into irrigation.'},
+  {tag:'shop=pet',               label:'Pet Store',               device:'RPBA',       rating:7,  reason:'Pet stores with grooming use chemical disinfectants and animal waste water.'},
+  {tag:'leisure=sports_centre',  label:'Sports Complex',          device:'RPBA',       rating:7,  reason:'Sports complexes have irrigation, food service, and HVAC systems.'},
+  {tag:'shop=beauty',            label:'Nail Salon / Spa',        device:'RPBA',       rating:7,  reason:'Nail salons use chemical acrylic systems and pedicure basin disinfectants.'},
+  {tag:'shop=tattoo',            label:'Tattoo Studio',           device:'RPBA',       rating:7,  reason:'Tattoo studios use chemical disinfectants and autoclave sterilizers.'},
+  {tag:'craft=plumber',          label:'Plumbing Contractor',     device:'RPBA',       rating:7,  reason:'Plumbing contractors use chemical pipe cleaning solutions and testing equipment.'},
+  {tag:'tourism=camp_site',      label:'Campground / RV Park',    device:'DCVA',       rating:5,  reason:'Campgrounds have utility water hookup connections and irrigation systems.'},
+  {tag:'tourism=theme_park',     label:'Amusement Park',          device:'RPBA or AG', rating:9,  reason:'Amusement parks have pool chemical treatment, CO2 systems, and large irrigation.'},
+  {tag:'amenity=car_rental',     label:'Car Rental / Wash',       device:'RPBA',       rating:7,  reason:'Car rental facilities use chemical detergents and high-pressure wash systems.'},
+  {tag:'amenity=nightclub',      label:'Nightclub',               device:'RPBA',       rating:7,  reason:'Nightclubs use CO2 carbonation for draft beer connected to water lines.'},
+];
+
+// OSM tag lookup
+const OSM_LOOKUP = {};
+TCEQ_CATEGORIES.forEach(c => {
+  const [key,val] = c.tag.split('=');
+  if (!OSM_LOOKUP[key]) OSM_LOOKUP[key] = {};
+  OSM_LOOKUP[key][val] = c;
+});
+
+// Name keyword rules (from Swift nameKeywordRules)
+const NAME_RULES = [
+  {keywords:['dialysis','davita','fresenius'],                   tag:'healthcare=dialysis'},
+  {keywords:['funeral','mortuary','cremation','memorial chapel'],tag:'amenity=funeral_hall'},
+  {keywords:['car wash','carwash','auto wash','express wash'],   tag:'amenity=car_wash'},
+  {keywords:['auto repair','auto service','muffler','transmission','brake','jiffy lube','oil change','tire'], tag:'shop=car_repair'},
+  {keywords:['hotel','motel','hilton','marriott','hampton','holiday inn','best western','comfort inn','fairfield','courtyard','la quinta','days inn','super 8'], tag:'tourism=hotel'},
+  {keywords:['allsup','stripes','valero','exxon','chevron','shell','murphy','7-eleven','circle k','loves','flying j','quiktrip','conoco','texaco','gas station'], tag:'amenity=fuel'},
+  {keywords:['pharmacy','walgreens','cvs','drug mart'],         tag:'amenity=pharmacy'},
+  {keywords:['physical therapy','rehab','rehabilitation'],      tag:'healthcare=physiotherapist'},
+  {keywords:['veterinar','animal hospital','animal clinic','pet clinic'], tag:'amenity=veterinary'},
+  {keywords:['golf course','country club','golf club'],         tag:'leisure=golf_course'},
+  {keywords:['brewery','winery','distillery','brew'],           tag:'craft=brewery'},
+  {keywords:['pest control','exterminator','orkin','terminix'], tag:'craft=pest_control'},
+  {keywords:['tattoo','piercing studio'],                       tag:'shop=tattoo'},
+  {keywords:['nail salon','nail spa','nails'],                  tag:'shop=beauty'},
+  {keywords:['bowling','bowlero'],                              tag:'leisure=bowling_alley'},
+  {keywords:['fitness','gym','crossfit','planet fitness','anytime fitness','ymca','snap fitness'], tag:'leisure=fitness_centre'},
+  {keywords:['swimming pool','aquatic center'],                 tag:'leisure=swimming_pool'},
+  {keywords:['laundry','laundromat','dry clean','coin laundry'],tag:'shop=laundry'},
+  {keywords:['nursing home','assisted living','memory care','skilled nursing','senior living','retirement'], tag:'amenity=nursing_home'},
+  {keywords:['urgent care','walk-in clinic','concentra'],       tag:'amenity=clinic'},
+  {keywords:['dental','dentist','orthodont'],                   tag:'amenity=dentist'},
+  {keywords:['school','elementary','middle school','high school','academy','isd'], tag:'amenity=school'},
+  {keywords:['church','baptist','methodist','presbyterian','lutheran','catholic','assembly of god','mosque','synagogue','temple','worship','fellowship','ministries','tabernacle','chapel'], tag:'amenity=place_of_worship'},
+  {keywords:['storage','self storage','public storage','extra space'], tag:'shop=storage_rental'},
+  {keywords:['cinema','movie','theater','theatre','amc','regal'], tag:'amenity=cinema'},
+  {keywords:['animal shelter','humane society','spca'],         tag:'amenity=animal_shelter'},
+  {keywords:['spa','day spa','massage','wellness center'],      tag:'leisure=spa'},
+  {keywords:['beauty salon','salon','barber','hair salon'],     tag:'shop=hairdresser'},
+  {keywords:['restaurant','grill','kitchen','bistro','diner','eatery','steakhouse','pizza','burger','taco','bbq','barbeque','chinese','mexican','italian','sushi','seafood','wings','waffle','ihop','applebee','chilis','outback','olive garden','red lobster','cracker barrel'], tag:'amenity=restaurant'},
+  {keywords:['mcdonald','burger king','wendy','sonic','whataburger','dairy queen','jack in the box','taco bell','chick-fil-a','popeyes','kfc','subway','domino','papa john','little caesar'], tag:'amenity=fast_food'},
+  {keywords:['coffee','starbucks','dunkin','dutch bros','coffee shop'], tag:'amenity=cafe'},
+  {keywords:['bar ','saloon','tavern','cantina','lounge','nightclub','night club'], tag:'amenity=bar'},
+  {keywords:['walmart','kroger','heb','h-e-b','aldi','united supermarket','brookshire','food lion'], tag:'shop=supermarket'},
+  {keywords:['wells fargo','chase bank','bank of america','first financial','credit union','bbva','prosperity bank'], tag:'amenity=bank'},
+  {keywords:['car dealer','dealership','chevrolet','ford dealer','toyota dealer','honda dealer'], tag:'shop=car'},
+  {keywords:['florist','flower shop','nursery','garden center','feed store'], tag:'shop=florist'},
+  {keywords:['petco','petsmart','pet supplies'],                tag:'shop=pet'},
+  {keywords:['stadium','arena','amphitheater'],                 tag:'leisure=stadium'},
+  {keywords:['sports complex','recreation center','rec center'],tag:'leisure=sports_centre'},
+];
+
+function classifyByName(name) {
+  const lower = name.toLowerCase();
+  for (const rule of NAME_RULES) {
+    if (rule.keywords.some(k => lower.includes(k))) {
+      const cat = TCEQ_CATEGORIES.find(c => c.tag === rule.tag);
+      if (cat) return cat;
+    }
+  }
+  return null;
+}
+
+function classifyByOSMTags(tags) {
+  for (const [key, val] of Object.entries(tags)) {
+    if (OSM_LOOKUP[key]) {
+      if (OSM_LOOKUP[key][val]) return OSM_LOOKUP[key][val];
+      if (OSM_LOOKUP[key]['']) return OSM_LOOKUP[key][''];
+    }
+  }
+  return null;
+}
+
+let riskLocations = [];
+let riskScanRunning = false;
+
+async function initRiskMap() {
+  const mapEl = document.getElementById('risk-map');
+  if (!mapEl) return;
+
+  if (!riskMap) {
+    riskMap = L.map('risk-map', { center:[32.4487,-99.7331], zoom:12 });
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+      { attribution:'© OSM © CARTO', maxZoom:19 }).addTo(riskMap);
+    riskMarkers = L.layerGroup().addTo(riskMap);
+
+    // Add Abilene boundary
+    if (typeof boundaryCoords0 !== 'undefined') {
+      const polyStyle = { color:'#f9a61e', weight:2, opacity:.6, fill:false, dashArray:'6,4' };
+      [boundaryCoords0,boundaryCoords1,boundaryCoords2,boundaryCoords3,boundaryCoords4,boundaryCoords5].forEach(c => {
+        if(c) L.polygon(c, polyStyle).addTo(riskMap);
+      });
+    }
+  }
+
+  riskMap.invalidateSize();
+
+  // Check cache
+  try {
+    const cached = localStorage.getItem('riskLocations_v7');
+    const ts = localStorage.getItem('riskLocations_v7_ts');
+    if (cached && ts && (Date.now() - parseInt(ts)) < 86400000) {
+      riskLocations = JSON.parse(cached);
+      plotRiskMarkers();
+      updateRiskStats();
+      return;
+    }
+  } catch(e) {}
+
+  // Start scan
+  if (!riskScanRunning) startRiskScan();
+}
+
+async function startRiskScan() {
+  if (riskScanRunning) return;
+  riskScanRunning = true;
+  riskLocations = [];
+  const seen = new Set();
+  const statusEl = document.getElementById('risk-status');
+  const countEl = document.getElementById('risk-count');
+
+  function updateStatus(msg) {
+    if (statusEl) statusEl.textContent = msg;
+    if (countEl) countEl.textContent = riskLocations.length + ' locations found';
+  }
+
+  // ── PASS 1: Broad Overpass queries ────────────────────────────────────────
+  const broadQueries = [
+    {label:'Amenities',  filter:'["amenity"]'},
+    {label:'Shops',      filter:'["shop"]'},
+    {label:'Leisure',    filter:'["leisure"]'},
+    {label:'Tourism',    filter:'["tourism"]'},
+    {label:'Healthcare', filter:'["healthcare"]'},
+    {label:'Craft',      filter:'["craft"]'},
+  ];
+
+  for (const q of broadQueries) {
+    updateStatus(`Scanning ${q.label}…`);
+    const elements = await fetchOverpass(`[out:json][timeout:25];(node${q.filter}(${BBOX});way${q.filter}(${BBOX}););out center tags;`);
+    classifyAndAdd(elements, seen);
+    plotRiskMarkers();
+    updateRiskStats();
+    await sleep(800);
+  }
+
+  // ── PASS 2: Specific high-value tags ──────────────────────────────────────
+  updateStatus('Deep scan: medical & specialty…');
+  const specificTags = [
+    'amenity=hospital','amenity=dentist','amenity=doctors','amenity=pharmacy',
+    'amenity=veterinary','amenity=funeral_hall','amenity=nursing_home','amenity=clinic',
+    'amenity=school','amenity=place_of_worship','amenity=fire_station','amenity=car_wash',
+    'amenity=fuel','amenity=car_rental','amenity=laboratory','amenity=animal_shelter',
+    'healthcare=dialysis','healthcare=physiotherapist',
+    'leisure=golf_course','leisure=swimming_pool','leisure=fitness_centre',
+    'leisure=bowling_alley','leisure=sports_centre','leisure=stadium','leisure=spa',
+    'shop=car_repair','shop=car','shop=hairdresser','shop=beauty',
+    'shop=tattoo','shop=laundry','shop=supermarket','shop=pet','shop=florist','shop=storage_rental',
+    'tourism=hotel','tourism=camp_site','tourism=theme_park','tourism=aquarium',
+    'craft=brewery','craft=pest_control','craft=plumber','landuse=cemetery',
+  ];
+  const lines = specificTags.flatMap(t => {
+    const [k,v] = t.split('=');
+    return [`node["${k}"="${v}"](${BBOX});`, `way["${k}"="${v}"](${BBOX});`];
+  });
+  const specificEls = await fetchOverpass(`[out:json][timeout:60];(${lines.join('')});out center tags;`);
+  classifyAndAdd(specificEls, seen);
+  plotRiskMarkers();
+  updateRiskStats();
+  await sleep(800);
+
+  // ── PASS 3: Nominatim keyword searches ────────────────────────────────────
+  const kwBatches = [
+    {label:'Medical chains', terms:['dialysis abilene','urgent care abilene','concentra abilene']},
+    {label:'Hotels', terms:['hotel abilene tx','motel abilene tx']},
+    {label:'Gas stations', terms:['allsups abilene','stripes abilene','valero abilene','exxon abilene']},
+    {label:'Restaurants', terms:['whataburger abilene','sonic abilene','restaurant abilene']},
+    {label:'Grocery', terms:['united supermarket abilene','walmart abilene','heb abilene']},
+    {label:'Schools', terms:['abilene isd school','abilene christian university','mcmurry university']},
+    {label:'Churches', terms:['church abilene tx','first baptist abilene','first methodist abilene']},
+    {label:'Auto', terms:['car wash abilene','auto repair abilene','jiffy lube abilene']},
+    {label:'Fitness', terms:['gym abilene tx','planet fitness abilene','ymca abilene']},
+    {label:'Funeral', terms:['funeral home abilene','mortuary abilene']},
+    {label:'Storage', terms:['self storage abilene','extra space abilene']},
+    {label:'Pharmacy', terms:['walgreens abilene','cvs abilene','pharmacy abilene']},
+  ];
+
+  for (const batch of kwBatches) {
+    updateStatus(`Keyword search: ${batch.label}…`);
+    for (const term of batch.terms) {
+      const found = await nominatimSearch(term, seen);
+      riskLocations.push(...found);
+      plotRiskMarkers();
+      updateRiskStats();
+      await sleep(1200); // Nominatim: 1 req/sec
+    }
+  }
+
+  // Cache results
+  try {
+    localStorage.setItem('riskLocations_v7', JSON.stringify(riskLocations));
+    localStorage.setItem('riskLocations_v7_ts', Date.now().toString());
+  } catch(e) {}
+
+  riskScanRunning = false;
+  updateStatus('✅ Scan complete — ' + riskLocations.length + ' hazard locations found');
+  if (countEl) countEl.textContent = riskLocations.length + ' locations found';
+}
+
+function classifyAndAdd(elements, seen) {
+  const GAS_KEYWORDS = ['allsup','stripes','valero','exxon','chevron','shell','murphy','7-eleven','circle k','loves','flying j','quiktrip','conoco','texaco'];
+  const FOOD_TAGS = new Set(['amenity=restaurant','amenity=fast_food','amenity=cafe','amenity=bar']);
+
+  for (const el of elements) {
+    const name = el.tags?.name;
+    if (!name) continue;
+    const lat = el.lat ?? el.center?.lat;
+    const lng = el.lon ?? el.center?.lon;
+    if (!lat || !lng) continue;
+    const key = `${name.toLowerCase().slice(0,25)}_${Math.round(lat*1000)}_${Math.round(lng*1000)}`;
+    if (seen.has(key)) continue;
+
+    // Classify by OSM tags
+    let cat = el.tags ? classifyByOSMTags(el.tags) : null;
+    // Override with name keywords (more specific)
+    const nameCat = classifyByName(name);
+    if (nameCat) cat = nameCat;
+    if (!cat) continue;
+
+    // Filter gas stations from food categories
+    if (FOOD_TAGS.has(cat.tag)) {
+      if (GAS_KEYWORDS.some(k => name.toLowerCase().includes(k))) continue;
+    }
+
+    seen.add(key);
+    const addr = [el.tags?.['addr:housenumber'], el.tags?.['addr:street']].filter(Boolean).join(' ');
+    riskLocations.push({ name, lat, lng, category:cat.label, device:cat.device, rating:cat.rating, reason:cat.reason, address:addr });
+  }
+}
+
+async function nominatimSearch(term, seen) {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(term)}&format=json&addressdetails=1&extratags=1&limit=10&viewbox=${VIEWBOX}&bounded=1&countrycodes=us`,
+      { headers:{'User-Agent':'CrossConnectionInspector/1.0'} });
+    if (!res.ok) return [];
+    const data = await res.json();
+    const results = [];
+    for (const item of data) {
+      const name = (item.display_name||'').split(',')[0].trim();
+      if (!name) continue;
+      const lat = parseFloat(item.lat), lng = parseFloat(item.lon);
+      const key = `${name.toLowerCase().slice(0,25)}_${Math.round(lat*1000)}_${Math.round(lng*1000)}`;
+      if (seen.has(key)) continue;
+      const cat = classifyByName(name);
+      if (!cat) continue;
+      seen.add(key);
+      const addr = item.address ? [item.address.house_number, item.address.road].filter(Boolean).join(' ') : '';
+      results.push({ name, lat, lng, category:cat.label, device:cat.device, rating:cat.rating, reason:cat.reason, address:addr });
+    }
+    return results;
+  } catch(e) { return []; }
+}
+
+async function fetchOverpass(query) {
+  try {
+    const res = await fetch('https://overpass-api.de/api/interpreter', {
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded','User-Agent':'CrossConnectionInspector/1.0'},
+      body:'data=' + encodeURIComponent(query)
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.elements || [];
+  } catch(e) { return []; }
+}
+
+function plotRiskMarkers() {
+  if (!riskMap || !riskMarkers) return;
+  riskMarkers.clearLayers();
+  const filtered = currentRiskFilter ? riskLocations.filter(r => matchRiskFilter(r)) : riskLocations;
+  filtered.forEach(loc => {
+    const color = loc.rating >= 9 ? '#e05252' : loc.rating >= 7 ? '#f9a61e' : loc.rating >= 5 ? '#f0c040' : '#3db870';
+    const pin = L.circleMarker([loc.lat, loc.lng], {
+      radius: loc.rating >= 9 ? 9 : loc.rating >= 7 ? 7 : 5,
+      fillColor: color, color:'#000', weight:1, opacity:.8, fillOpacity:.85
+    });
+    pin.bindPopup(`<div style="font-family:sans-serif;min-width:200px">
+      <div style="font-weight:700;font-size:13px;margin-bottom:4px">${loc.name}</div>
+      <div style="font-size:11px;color:#666;margin-bottom:6px">${loc.address||'Abilene TX'}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+        <span style="background:${color};color:#000;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700">${loc.rating}/10</span>
+        <span style="font-size:11px;color:#666">${loc.category}</span>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:#f9a61e">Required: ${loc.device}</div>
+      <div style="font-size:10px;color:#888;margin-top:6px;line-height:1.5">${loc.reason}</div>
+    </div>`);
+    riskMarkers.addLayer(pin);
+  });
+}
+
+let currentRiskFilter = null;
+function matchRiskFilter(r) {
+  if (!currentRiskFilter) return true;
+  if (currentRiskFilter === 'severe') return r.rating >= 9;
+  if (currentRiskFilter === 'high') return r.rating >= 7 && r.rating < 9;
+  if (currentRiskFilter === 'moderate') return r.rating >= 5 && r.rating < 7;
+  if (currentRiskFilter === 'low') return r.rating < 5;
+  return true;
+}
+
+function filterRisk(f) {
+  currentRiskFilter = f === currentRiskFilter ? null : f;
+  plotRiskMarkers();
+  updateRiskStats();
+  // Highlight active button
+  ['severe','high','moderate','low','all'].forEach(id => {
+    const btn = document.getElementById('risk-filter-' + id);
+    if (btn) btn.style.opacity = (!currentRiskFilter || currentRiskFilter === id) ? '1' : '0.4';
+  });
+}
+
+function updateRiskStats() {
+  const s = document.getElementById('risk-stat-severe');
+  const h = document.getElementById('risk-stat-high');
+  const m = document.getElementById('risk-stat-moderate');
+  const l = document.getElementById('risk-stat-low');
+  if (s) s.textContent = riskLocations.filter(r=>r.rating>=9).length;
+  if (h) h.textContent = riskLocations.filter(r=>r.rating>=7&&r.rating<9).length;
+  if (m) m.textContent = riskLocations.filter(r=>r.rating>=5&&r.rating<7).length;
+  if (l) l.textContent = riskLocations.filter(r=>r.rating<5).length;
+}
+
+function riskReset() { if(riskMap) { riskMap.setView([32.4487,-99.7331],12); riskMap.invalidateSize(); } }
+function clearRiskCache() {
+  localStorage.removeItem('riskLocations_v7');
+  localStorage.removeItem('riskLocations_v7_ts');
+  riskLocations = [];
+  riskScanRunning = false;
+  if(riskMarkers) riskMarkers.clearLayers();
+  startRiskScan();
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 </script>
 
