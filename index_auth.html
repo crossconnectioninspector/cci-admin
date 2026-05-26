@@ -1199,6 +1199,14 @@ function nav(id, btn) {
 
 // Dashboard theme handled below
 
+async function renderDashboard() {
+  const w = el('dash-widgets');
+  if (w) w.innerHTML = '<div style="padding:60px;text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;letter-spacing:1px">⏳ LOADING DASHBOARD DATA…</div>';
+  const ok = await loadAllData();
+  if (typeof applyDashTheme === 'function') applyDashTheme();
+  buildDashboard();
+}
+
 function buildDashboard() {
   const year = new Date().getFullYear();
   const now  = new Date();
