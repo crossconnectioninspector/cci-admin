@@ -9,6 +9,8 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <!-- CHANGE 1: Supabase Auth SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
 // ── XSS Sanitization ─────────────────────────────────────────────────────────
@@ -530,7 +532,7 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
     <div class="leg-item"><div class="leg-dot" style="background:#b464ff"></div>Inspection</div>
     <div class="leg-item"><div class="leg-dot" style="background:var(--muted)"></div>Pending</div>
   </div>
-  <div id="device-map"></div>
+  <div id="device-map" style="width:100%;height:560px;border-radius:11px;overflow:hidden;border:1px solid var(--border)"></div>
   <div style="margin-top:12px;font-family:var(--mono);font-size:10px;color:var(--muted)">
     Click any marker to see report details. Clusters expand on click.
   </div>
@@ -616,7 +618,7 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
   </div>
 
   <!-- Map -->
-  <div id="risk-map" style="flex:1;border-radius:0;border:none;border-top:1px solid var(--border);min-height:300px"></div>
+  <div id="risk-map" style="flex:1;width:100%;min-height:400px;height:calc(100vh - 200px);border-top:1px solid var(--border)"></div>
 
   <!-- Detail card (hidden until pin clicked) -->
   <div id="risk-detail-card" style="display:none;flex-shrink:0;max-height:260px;overflow-y:auto;border-top:1px solid var(--border);background:var(--surface);padding:14px 16px">
@@ -1008,8 +1010,7 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
 
 <div class="toast" id="toast"></div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
 <script>
 // ── SUPABASE CONFIG ───────────────────────────────────────────────────────────
 // CHANGE 4: auth-aware headers + doLogin/doLogout
@@ -1219,8 +1220,8 @@ function nav(id, btn) {
   };
   document.getElementById('pageTitle').textContent = titles[id]||id;
   if(id==='dashboard') renderDashboard();
-  if(id==='device-map-page') { initDeviceMap(); setTimeout(()=>{ if(deviceMap) deviceMap.invalidateSize(); },300); }
-  if(id==='city-risk-page') { initRiskMap(); setTimeout(()=>{ if(riskMap) riskMap.invalidateSize(); },300); }
+  if(id==='device-map-page') { setTimeout(()=>{ initDeviceMap(); }, 100); setTimeout(()=>{ if(deviceMap) deviceMap.invalidateSize(); },600); }
+  if(id==='city-risk-page') { setTimeout(()=>{ initRiskMap(); }, 100); setTimeout(()=>{ if(riskMap) riskMap.invalidateSize(); },600); }
   if(id==='inspections-page') renderInspections();
   if(id==='backflow-page') renderBF();
   if(id==='csi-page') renderCSI();
@@ -2815,8 +2816,9 @@ async function sendManualNotification() {
 async function initDeviceMap() {
   const mapEl = document.getElementById('device-map');
   if (!mapEl) return;
+  if (typeof L === 'undefined') { setTimeout(initDeviceMap, 500); return; }
   if (!deviceMap) {
-    deviceMap = L.map('device-map', { center:[32.4487,-99.7331], zoom:12 });
+    deviceMap = L.map('device-map', { center:[32.4487,-99.7331], zoom:12, zoomControl:true });
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
       { attribution:'© OSM © CARTO', maxZoom:19 }).addTo(deviceMap);
     deviceMarkers = L.markerClusterGroup ? L.markerClusterGroup() : L.layerGroup();
@@ -3046,23 +3048,25 @@ async function startRiskScan() {
   }
 
   // ── PASS 1: Broad Overpass queries ────────────────────────────────────────
-  const broadQueries = [
-    {label:'Amenities',  filter:'["amenity"]'},
-    {label:'Shops',      filter:'["shop"]'},
-    {label:'Leisure',    filter:'["leisure"]'},
-    {label:'Tourism',    filter:'["tourism"]'},
-    {label:'Healthcare', filter:'["healthcare"]'},
-    {label:'Craft',      filter:'["craft"]'},
-  ];
-
-  for (const q of broadQueries) {
-    updateStatus(`Scanning ${q.label}…`);
-    const elements = await fetchOverpass(`[out:json][timeout:25];(node${q.filter}(${BBOX});way${q.filter}(${BBOX}););out center tags;`);
-    classifyAndAdd(elements, seen);
-    plotRiskMarkers();
-    updateRiskStats();
-    await sleep(800);
-  }
+  // Fast first pass — specific high-value targets get results immediately
+  updateStatus('Scanning restaurants, medical, hotels…');
+  const fastQuery = `[out:json][timeout:30];(
+    node["amenity"~"restaurant|fast_food|cafe|bar|hospital|clinic|doctors|dentist|pharmacy|veterinary|school|place_of_worship|fuel|car_wash|fire_station|bank|cinema|nursing_home|funeral_hall"](${BBOX});
+    way["amenity"~"restaurant|fast_food|cafe|bar|hospital|clinic|doctors|dentist|pharmacy|veterinary|school|place_of_worship|fuel|car_wash|fire_station|bank|cinema|nursing_home|funeral_hall"](${BBOX});
+    node["shop"~"car_repair|hairdresser|beauty|laundry|supermarket|pet|florist|car|tattoo|storage_rental"](${BBOX});
+    way["shop"~"car_repair|hairdresser|beauty|laundry|supermarket|pet|florist|car|tattoo|storage_rental"](${BBOX});
+    node["leisure"~"golf_course|swimming_pool|fitness_centre|bowling_alley|sports_centre|stadium|spa"](${BBOX});
+    node["tourism"~"hotel|motel|aquarium|theme_park|camp_site"](${BBOX});
+    node["healthcare"~"dialysis|physiotherapist"](${BBOX});
+    node["craft"~"brewery|pest_control|plumber"](${BBOX});
+  );out center tags;`;
+  
+  const fastElements = await fetchOverpass(fastQuery);
+  classifyAndAdd(fastElements, seen);
+  plotRiskMarkers();
+  updateRiskStats();
+  updateStatus(`Found ${riskLocations.length} locations — continuing deep scan…`);
+  await sleep(1000);
 
   // ── PASS 2: Specific high-value tags ──────────────────────────────────────
   updateStatus('Deep scan: medical & specialty…');
@@ -3182,16 +3186,28 @@ async function nominatimSearch(term, seen) {
 }
 
 async function fetchOverpass(query) {
-  try {
-    const res = await fetch('https://overpass-api.de/api/interpreter', {
-      method:'POST',
-      headers:{'Content-Type':'application/x-www-form-urlencoded','User-Agent':'CrossConnectionInspector/1.0'},
-      body:'data=' + encodeURIComponent(query)
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.elements || [];
-  } catch(e) { return []; }
+  // Try primary, then fallback mirror
+  const urls = [
+    'https://overpass-api.de/api/interpreter',
+    'https://overpass.kumi.systems/api/interpreter',
+  ];
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, {
+        method:'POST',
+        headers:{'Content-Type':'application/x-www-form-urlencoded'},
+        body:'data=' + encodeURIComponent(query),
+        signal: AbortSignal.timeout(20000)
+      });
+      if (!res.ok) continue;
+      const data = await res.json();
+      return data.elements || [];
+    } catch(e) {
+      console.warn('Overpass error on', url, e.message);
+      continue;
+    }
+  }
+  return [];
 }
 
 function plotRiskMarkers() {
