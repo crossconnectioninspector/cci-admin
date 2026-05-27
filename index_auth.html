@@ -13,7 +13,10 @@
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <!-- CHANGE 1: Supabase Auth SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-// ── XSS Sanitization ─────────────────────────────────────────────────────────
+
+</script>
+<script>
+// ── XSS Sanitization — must be defined before any other script uses it ────────
 function sanitize(str) {
   if (str === null || str === undefined) return '—';
   return String(str)
@@ -24,7 +27,6 @@ function sanitize(str) {
     .replace(/'/g, '&#x27;')
     .replace(/\//g, '&#x2F;');
 }
-
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
