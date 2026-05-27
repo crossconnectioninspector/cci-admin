@@ -599,15 +599,29 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
     </div>
   </div>
 
-  <!-- Category dropdown bar -->
-  <div style="display:flex;align-items:center;gap:8px;padding:0 16px 6px;flex-shrink:0">
-    <button onclick="toggleCatMenu()" id="cat-btn" style="display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:9px;background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer">
-      <span style="font-size:13px">≡</span>
-      <span id="cat-label">All Categories</span>
-      <span style="font-size:10px">▾</span>
-    </button>
-    <button id="cat-clear-btn" onclick="clearRiskCat()" style="display:none;padding:7px 10px;border-radius:9px;background:var(--surface);border:1px solid var(--border);color:var(--muted);font-size:11px;cursor:pointer">✕ Clear</button>
-    <span style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-left:auto" id="risk-count-label">0 locations</span>
+  <!-- Search + Category row -->
+  <div style="padding:0 12px 8px;flex-shrink:0;display:flex;flex-direction:column;gap:6px">
+    <!-- Search bar -->
+    <div style="position:relative">
+      <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="risk-global-search" placeholder="Search by name, address, category…"
+        autocomplete="off" oninput="onRiskSearch(this.value)"
+        style="width:100%;padding:9px 36px 9px 32px;background:var(--elevated);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--sans);font-size:13px;font-weight:500;outline:none;box-sizing:border-box;transition:border-color .2s"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+      <button id="risk-search-clear" onclick="clearRiskSearch()" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1">✕</button>
+    </div>
+    <!-- Category + count row -->
+    <div style="display:flex;align-items:center;gap:8px">
+      <button onclick="toggleCatMenu()" id="cat-btn"
+        style="display:flex;align-items:center;gap:7px;padding:6px 12px;border-radius:9px;background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <span id="cat-label">All Categories</span>
+        <span style="font-size:9px">▾</span>
+      </button>
+      <button id="cat-clear-btn" onclick="clearRiskCat()" style="display:none;padding:6px 10px;border-radius:9px;background:rgba(249,166,30,.1);border:1px solid rgba(249,166,30,.3);color:var(--accent);font-size:11px;cursor:pointer;font-weight:600">✕ Clear</button>
+      <span style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-left:auto" id="risk-count-label">0 locations</span>
+    </div>
   </div>
 
   <!-- Hazard filter pills -->
@@ -1355,24 +1369,20 @@ function buildDashboard() {
   const container = el('dash-widgets');
   container.innerHTML = `
 
-    <!-- TOP STATS ROW -->
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:4px" id="dash-top-stats">
-      <div class="scard" style="text-align:center;padding:20px 12px">
-        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;margin-bottom:8px;text-transform:uppercase">Total Assemblies</div>
-        <div style="font-family:var(--cond);font-size:48px;font-weight:900;line-height:1;color:var(--text)">${total}</div>
-      </div>
-      <div class="scard" style="text-align:center;padding:20px 12px">
-        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;margin-bottom:8px;text-transform:uppercase">Compliance Rate</div>
-        <div style="font-family:var(--cond);font-size:48px;font-weight:900;line-height:1;color:${compRate>=90?'var(--green)':compRate>=70?'var(--yellow)':'var(--red)'}">${compRate}%</div>
-      </div>
-      <div class="scard" style="text-align:center;padding:20px 12px">
-        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;margin-bottom:8px;text-transform:uppercase">Non-Compliant</div>
-        <div style="font-family:var(--cond);font-size:48px;font-weight:900;line-height:1;color:var(--red)">${nonComp}</div>
-      </div>
-      <div class="scard" style="text-align:center;padding:20px 12px">
-        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;margin-bottom:8px;text-transform:uppercase">Overdue (>1yr)</div>
-        <div style="font-family:var(--cond);font-size:48px;font-weight:900;line-height:1;color:var(--yellow)">${overdue}</div>
-      </div>
+    <!-- KPI STRIP — key metrics at a glance -->
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:4px" id="dash-top-stats">
+      ${[
+        {label:'Total Assemblies', val:total, color:'var(--text)', sub:'devices on record'},
+        {label:'Compliance Rate', val:compRate+'%', color:compRate>=90?'var(--green)':compRate>=70?'var(--yellow)':'var(--red)', sub:compRate>=90?'Program in good standing':compRate>=70?'Needs attention':'Critical'},
+        {label:'Non-Compliant', val:nonComp, color:'var(--red)', sub:'failed last test'},
+        {label:'Overdue >1yr', val:overdue, color:'var(--yellow)', sub:'require immediate outreach'},
+        {label:'First-Time Pass', val:(total>0?Math.round((devices.filter(r=>r.result==='PASS').length/total)*100):0)+'%', color:'var(--green)', sub:'pass on first test'},
+        {label:'Avg Days to Test', val:(() => { const tested = devices.filter(r=>r.date); if(!tested.length) return '—'; return Math.round(tested.reduce((a,r) => { const d = new Date(); const last = new Date(r.date+'T12:00:00'); return a + (d-last)/(1000*60*60*24); }, 0) / tested.length) + 'd'; })(), color:'var(--blue)', sub:'since last test'},
+      ].map(k => \`<div class="scard" style="padding:16px 14px;display:flex;flex-direction:column;gap:4px">
+        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase">\${k.label}</div>
+        <div style="font-family:var(--cond);font-size:38px;font-weight:900;line-height:1;color:\${k.color}">\${k.val}</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">\${k.sub}</div>
+      </div>\`).join('')}
     </div>
 
     <!-- COMPLIANCE RATE DONUT + ASSEMBLY TYPES PIE -->
@@ -1455,6 +1465,34 @@ function buildDashboard() {
             <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px">${r.assembly||'—'} · ${sanitize(r.manufacturer)}</div>
           </div>`).join('') || '<div style="font-family:var(--mono);font-size:10px;color:var(--green);padding:12px">✓ All assemblies have test records</div>'}
       </div>
+    </div>
+
+    <!-- TESTER CREDENTIALS EXPIRY -->
+    <div class="scard">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:10px;background:var(--yellow);display:inline-block;border-radius:2px"></span>TESTER CREDENTIAL TRACKER</div>
+      </div>
+      ${(() => {
+        const testers = {};
+        DB.filter(r=>r.type==='backflow'&&r.tester).forEach(r => {
+          if (!testers[r.tester]) testers[r.tester] = { name:r.tester, certNum:r.certNum||r.cert_num||'—', firm:r.firm||'—', gaugeDate:r.gauge_cal_date||null, lastTest:r.date||null, count:0 };
+          testers[r.tester].count++;
+          if (!testers[r.tester].lastTest || r.date > testers[r.tester].lastTest) testers[r.tester].lastTest = r.date;
+          if (r.gauge_cal_date) testers[r.tester].gaugeDate = r.gauge_cal_date;
+        });
+        const list = Object.values(testers);
+        if (!list.length) return '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-align:center;padding:12px">No tester records yet</div>';
+        return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' + list.map(t => {
+          const gaugeOk = t.gaugeDate ? (() => { const d = new Date(t.gaugeDate+'T12:00:00'); const exp = new Date(d); exp.setFullYear(exp.getFullYear()+1); return exp > new Date(); })() : null;
+          const gaugeBadge = gaugeOk === null ? '<span style="font-family:var(--mono);font-size:8px;color:var(--muted)">NO GAUGE DATE</span>' : gaugeOk ? '<span style="font-family:var(--mono);font-size:8px;color:var(--green)">✓ GAUGE CURRENT</span>' : '<span style="font-family:var(--mono);font-size:8px;color:var(--red)">⚠ GAUGE EXPIRED</span>';
+          return \`<div style="background:var(--elevated);border:1px solid var(--border);border-radius:10px;padding:12px">
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px">\${sanitize(t.name)}</div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:6px">CERT: \${sanitize(t.certNum)} · \${t.count} tests</div>
+            <div>\${gaugeBadge}</div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:4px">Last test: \${t.lastTest||'—'}</div>
+          </div>\`;
+        }).join('') + '</div>';
+      })()}
     </div>
 
     <!-- REFRESH BUTTON -->
@@ -1801,25 +1839,51 @@ function buildRiskListView() {
 }
 
 function buildCatMenu() {
-  const cats = [...new Set(riskLocations.map(l => l.label))].sort();
-  el('cat-menu-list').innerHTML = [null, ...cats].map(cat => {
-    const isSelected = riskSelectedCat === cat;
-    const count = cat ? riskLocations.filter(l => l.label === cat).length : riskLocations.length;
-    const catData = cat ? TCEQ_CATEGORIES.find(c => c.label === cat) : null;
-    const isHealth = catData?.cat === 'Health';
-    const safeCat = cat ? `'${cat.replace(/'/g, "\'")}'` : 'null';
-    return `<div onclick="selectRiskCat(${safeCat})" style="display:flex;align-items:center;gap:12px;padding:12px 20px;cursor:pointer;background:${isSelected?'rgba(249,166,30,.08)':'transparent'};border-bottom:1px solid var(--border)">
-      <div style="width:28px;height:28px;border-radius:7px;background:${isSelected?(isHealth?'#e05252':'#f0c040'):(isHealth?'rgba(224,82,82,.12)':'rgba(240,192,64,.12)')};display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">${cat===null?'🗺️':isHealth?'⚠️':'✅'}</div>
-      <div style="flex:1;font-size:13px;font-weight:${isSelected?'600':'400'}">${cat||'All Categories'}</div>
-      <div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${count}</div>
-      ${isSelected?'<div style="color:var(--accent);font-weight:700">✓</div>':''}
-    </div>`;
-  }).join('');
+  // Group categories by hazard rating
+  const groups = [
+    { label:'🔴 SEVERE (9-10) — RPBA/AG Required', min:9, max:10, color:'#e05252' },
+    { label:'🟠 HIGH (7-8) — RPBA Required',        min:7, max:8,  color:'#ff8c42' },
+    { label:'🟡 MODERATE (5-6) — DCVA/RPBA',        min:5, max:6,  color:'#f0c040' },
+    { label:'🟢 LOW (1-4) — DCVA/PVB',              min:1, max:4,  color:'#4caf79' },
+  ];
+
+  let html = `<div onclick="selectRiskCat(null)" style="display:flex;align-items:center;gap:12px;padding:12px 20px;cursor:pointer;background:${riskSelectedCat===null?'rgba(249,166,30,.08)':'transparent'};border-bottom:1px solid var(--border)">
+    <div style="width:28px;height:28px;border-radius:7px;background:rgba(249,166,30,.12);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🗺️</div>
+    <div style="flex:1;font-size:13px;font-weight:${riskSelectedCat===null?'700':'400'}">All Categories</div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${riskLocations.length}</div>
+    ${riskSelectedCat===null?'<div style="color:var(--accent);font-weight:700">✓</div>':''}
+  </div>`;
+
+  for (const group of groups) {
+    const catsInGroup = [...new Set(
+      riskLocations.filter(l => {
+        const cat = TCEQ_CATEGORIES.find(c => c.label === (l.category||l.label));
+        return cat && cat.rating >= group.min && cat.rating <= group.max;
+      }).map(l => l.category || l.label)
+    )].sort();
+    if (!catsInGroup.length) continue;
+
+    html += `<div style="padding:8px 20px 4px;background:var(--elevated);font-family:var(--mono);font-size:9px;color:${group.color};letter-spacing:1.5px;font-weight:700">${group.label}</div>`;
+
+    for (const cat of catsInGroup) {
+      const isSelected = riskSelectedCat === cat;
+      const count = riskLocations.filter(l => (l.category||l.label) === cat).length;
+      const safeCat = `'${cat.replace(/'/g, "\'")}'`;
+      html += `<div onclick="selectRiskCat(${safeCat})" style="display:flex;align-items:center;gap:12px;padding:10px 20px 10px 36px;cursor:pointer;background:${isSelected?'rgba(249,166,30,.08)':'transparent'};border-bottom:1px solid var(--border);transition:background .15s" onmouseover="this.style.background='rgba(249,166,30,.04)'" onmouseout="this.style.background='${isSelected?'rgba(249,166,30,.08)':'transparent'}'">
+        <div style="flex:1;font-size:13px;font-weight:${isSelected?'600':'400'};color:var(--text)">${cat}</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--elevated);padding:2px 7px;border-radius:6px">${count}</div>
+        ${isSelected?'<div style="color:var(--accent);font-weight:700;flex-shrink:0">✓</div>':''}
+      </div>`;
+    }
+  }
+
+  el('cat-menu-list').innerHTML = html;
 }
 
 function selectRiskCat(cat) {
   riskSelectedCat = cat;
   el('cat-label').textContent = cat || 'All Categories';
+  if(cat) buildCatMenu(); // refresh checkmarks
   el('cat-btn').style.color = cat ? 'var(--text)' : 'var(--muted)';
   el('cat-clear-btn').style.display = cat ? 'block' : 'none';
   toggleCatMenu();
@@ -2541,13 +2605,70 @@ function closeGoalModal(e) {
 
 // ── Arrange mode ──────────────────────────────────────────────
 let arrangeMode = false;
+let dragSrc = null;
+
 function toggleDashboardEdit() {
   arrangeMode = !arrangeMode;
-  const hint = document.getElementById('dash-edit-hint');
   const btn = document.getElementById('dash-edit-btn');
-  if (hint) hint.style.display = arrangeMode ? 'block' : 'none';
   if (btn) { btn.textContent = arrangeMode ? '✓ Done' : '✦ Arrange'; btn.style.color = arrangeMode ? 'var(--green)' : ''; }
-  toast(arrangeMode ? 'Drag widgets to rearrange' : 'Layout saved', arrangeMode ? 'info' : 'success');
+  
+  const widgets = document.querySelectorAll('#dash-widgets .scard, #dash-widgets > div');
+  widgets.forEach(w => {
+    if (arrangeMode) {
+      w.setAttribute('draggable', 'true');
+      w.style.cursor = 'grab';
+      w.style.outline = '2px dashed rgba(249,166,30,.3)';
+      w.style.outlineOffset = '4px';
+      w.addEventListener('dragstart', onDragStart);
+      w.addEventListener('dragover', onDragOver);
+      w.addEventListener('drop', onDrop);
+      w.addEventListener('dragend', onDragEnd);
+    } else {
+      w.removeAttribute('draggable');
+      w.style.cursor = '';
+      w.style.outline = '';
+      w.style.outlineOffset = '';
+      w.removeEventListener('dragstart', onDragStart);
+      w.removeEventListener('dragover', onDragOver);
+      w.removeEventListener('drop', onDrop);
+      w.removeEventListener('dragend', onDragEnd);
+    }
+  });
+  toast(arrangeMode ? 'Drag widgets to rearrange' : '✓ Layout saved', arrangeMode ? 'info' : 'success');
+}
+
+function onDragStart(e) {
+  dragSrc = this;
+  e.dataTransfer.effectAllowed = 'move';
+  this.style.opacity = '0.4';
+}
+
+function onDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  this.style.outline = '2px dashed var(--accent)';
+  return false;
+}
+
+function onDrop(e) {
+  e.stopPropagation();
+  if (dragSrc !== this) {
+    const container = this.parentNode;
+    const allWidgets = [...container.children];
+    const srcIdx = allWidgets.indexOf(dragSrc);
+    const tgtIdx = allWidgets.indexOf(this);
+    if (srcIdx < tgtIdx) container.insertBefore(dragSrc, this.nextSibling);
+    else container.insertBefore(dragSrc, this);
+  }
+  return false;
+}
+
+function onDragEnd(e) {
+  dragSrc.style.opacity = '1';
+  document.querySelectorAll('#dash-widgets .scard, #dash-widgets > div').forEach(w => {
+    w.style.outline = '2px dashed rgba(249,166,30,.3)';
+    w.style.outlineOffset = '4px';
+  });
 }
 
 
@@ -3456,6 +3577,25 @@ document.addEventListener('click', (e) => {
     }
   });
 });
+
+
+// ── Risk map global search ────────────────────────────────────────────────────
+let riskSearchQuery = '';
+function onRiskSearch(q) {
+  riskSearchQuery = q.toLowerCase().trim();
+  const clearBtn = document.getElementById('risk-search-clear');
+  if (clearBtn) clearBtn.style.display = q ? 'block' : 'none';
+  rebuildRiskMarkersNew();
+  if (document.getElementById('risk-list-view').style.display !== 'none') buildRiskListView();
+}
+
+function clearRiskSearch() {
+  const inp = document.getElementById('risk-global-search');
+  if (inp) inp.value = '';
+  riskSearchQuery = '';
+  document.getElementById('risk-search-clear').style.display = 'none';
+  rebuildRiskMarkersNew();
+}
 
 </script>
 
