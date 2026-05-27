@@ -1476,9 +1476,9 @@ function buildDashboard() {
         {label:'First-Time Pass', val:(total>0?Math.round((devices.filter(r=>r.result==='PASS').length/total)*100):0)+'%', color:'var(--green)', sub:'pass on first test'},
         {label:'Avg Days to Test', val:(() => { const tested = devices.filter(r=>r.date); if(!tested.length) return '—'; return Math.round(tested.reduce((a,r) => { const d = new Date(); const last = new Date(r.date+'T12:00:00'); return a + (d-last)/(1000*60*60*24); }, 0) / tested.length) + 'd'; })(), color:'var(--blue)', sub:'since last test'},
       ].map(k => `<div class="scard" style="padding:16px 14px;display:flex;flex-direction:column;gap:4px">
-        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase">\${k.label}</div>
-        <div style="font-family:var(--cond);font-size:38px;font-weight:900;line-height:1;color:\${k.color}">\${k.val}</div>
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">\${k.sub}</div>
+        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase">${k.label}</div>
+        <div style="font-family:var(--cond);font-size:38px;font-weight:900;line-height:1;color:${k.color}">${k.val}</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">${k.sub}</div>
       </div>`).join('')}
     </div>
 
@@ -1583,10 +1583,10 @@ function buildDashboard() {
           const gaugeOk = t.gaugeDate ? (() => { const d = new Date(t.gaugeDate+'T12:00:00'); const exp = new Date(d); exp.setFullYear(exp.getFullYear()+1); return exp > new Date(); })() : null;
           const gaugeBadge = gaugeOk === null ? '<span style="font-family:var(--mono);font-size:8px;color:var(--muted)">NO GAUGE DATE</span>' : gaugeOk ? '<span style="font-family:var(--mono);font-size:8px;color:var(--green)">✓ GAUGE CURRENT</span>' : '<span style="font-family:var(--mono);font-size:8px;color:var(--red)">⚠ GAUGE EXPIRED</span>';
           return `<div style="background:var(--elevated);border:1px solid var(--border);border-radius:10px;padding:12px">
-            <div style="font-size:13px;font-weight:700;margin-bottom:4px">\${sanitize(t.name)}</div>
-            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:6px">CERT: \${sanitize(t.certNum)} · \${t.count} tests</div>
-            <div>\${gaugeBadge}</div>
-            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:4px">Last test: \${t.lastTest||'—'}</div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px">${sanitize(t.name)}</div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:6px">CERT: ${sanitize(t.certNum)} · ${t.count} tests</div>
+            <div>${gaugeBadge}</div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:4px">Last test: ${t.lastTest||'—'}</div>
           </div>`;
         }).join('') + '</div>';
       })()}
