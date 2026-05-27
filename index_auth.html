@@ -73,7 +73,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 /* PAGES */
 .page{padding:24px;display:none}
 .page.active{display:block}
-.page.active.flex-page{display:flex !important;padding:0}
 
 /* STATS ROW */
 .stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
@@ -428,25 +427,22 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
     <button class="nb" onclick="nav('contacts-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>Contacts</button>
     <button class="nb" onclick="nav('providers-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>Service Providers</button>
     <button class="nb" onclick="nav('assemblies-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M17.66 17.66l1.41 1.41M4.93 4.93l1.41 1.41"/></svg></span>Assemblies</button>
-
     <div class="sb-sec">Reports</div>
     <button class="nb" onclick="nav('backflow-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="9" y1="13" x2="15" y2="13"/></svg></span>Test Reports</button>
     <button class="nb" onclick="nav('csi-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg></span>Surveys</button>
     <button class="nb" onclick="nav('inspections-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>Reporting</button>
     <button class="nb" onclick="nav('state-reports-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>State Reports</button>
-
     <div class="sb-sec">Maps</div>
     <button class="nb" onclick="nav('device-map-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg></span>Device Map</button>
     <button class="nb" onclick="nav('city-risk-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>City Risk</button>
-
     <div class="sb-sec">Admin</div>
     <button class="nb" onclick="nav('users-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Users</button>
     <button class="nb" onclick="nav('comms-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.86 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.77 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>Communications</button>
     <button class="nb" onclick="nav('notif-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>Notifications</button>
     <button class="nb" onclick="nav('settings-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M6.34 17.66l-1.41 1.41M2 12h2M20 12h2M17.66 17.66l1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2"/></svg></span>Settings</button>
     <button class="nb" onclick="nav('knowledge-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>Knowledge Base</button>
-    <button class="nb" onclick="nav('import-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></span>Add Report</button>
     <button class="nb" onclick="nav('search-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>Search All</button>
+    <button class="nb" onclick="nav('import-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></span>Add Report</button>
   </nav>
   <div class="sb-foot">Cross Connection Inspector<br>Abilene · Taylor County · TX<br><span id="clock-foot"></span></div>
 </aside>
@@ -874,83 +870,119 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
 </div>
 
 
-<!-- ── LOCATIONS ── -->
-<div class="page" id="page-locations-page" style="padding:0;display:none;height:calc(100vh - 56px);flex-direction:row">
-  <!-- Left panel -->
-  <div style="width:360px;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden">
-    <!-- Search area -->
-    <div style="padding:12px 12px 0;flex-shrink:0">
-      <div style="display:flex;gap:6px;align-items:center">
-        <div style="flex:1;background:var(--elevated);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;gap:8px;padding:0 11px;height:38px;transition:border-color .15s" id="loc-search-box">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input id="locMainSearch" type="text" placeholder="Search by address or business…" oninput="locApplyFilters()"
-            style="background:none;border:none;outline:none;color:var(--text);font-family:var(--sans);font-size:13px;width:100%">
-        </div>
-        <div id="locAdvToggle" onclick="locToggleAdv()" title="Advanced Filters"
-          style="width:38px;height:38px;border-radius:8px;background:var(--elevated);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:all .15s;flex-shrink:0">
-          <svg id="locAdvArrow" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transition:transform .2s"><polyline points="6 9 12 15 18 9"/></svg>
-        </div>
-      </div>
-      <!-- Advanced filter panel -->
-      <div id="locAdvPanel" style="background:var(--elevated);border:1px solid var(--border);border-radius:9px;margin-top:8px;overflow:hidden;max-height:0;transition:max-height .3s ease,opacity .2s;opacity:0">
-        <div style="padding:12px">
-          <div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">⚙ Advanced Search</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
-            <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Address</label><input type="text" id="lf-address" placeholder="Street address…" class="si" style="font-size:12px;padding:5px 8px"></div>
-            <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Account #</label><input type="text" id="lf-account" placeholder="ACC-…" class="si" style="font-size:12px;padding:5px 8px"></div>
-            <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">City</label><input type="text" id="lf-city" placeholder="Abilene…" class="si" style="font-size:12px;padding:5px 8px"></div>
-            <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Contact Email</label><input type="text" id="lf-email" placeholder="owner@…" class="si" style="font-size:12px;padding:5px 8px"></div>
-            <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Contact Phone</label><input type="text" id="lf-phone" placeholder="(325)…" class="si" style="font-size:12px;padding:5px 8px"></div>
-            <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Last Survey</label><select id="lf-survey" class="ss" style="font-size:12px;padding:5px 8px"><option value="">Any</option><option>Pass</option><option>Fail</option><option>Pending</option></select></div>
-            <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Name / Business</label><input type="text" id="lf-name" placeholder="Business…" class="si" style="font-size:12px;padding:5px 8px"></div>
-            <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Compliance</label><select id="lf-compliance" class="ss" style="font-size:12px;padding:5px 8px"><option value="">Any</option><option>Compliant</option><option>Non-Compliant</option><option>Overdue</option></select></div>
-            <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Postal Code</label><input type="text" id="lf-zip" placeholder="79601…" class="si" style="font-size:12px;padding:5px 8px"></div>
-            <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Primary Contact</label><input type="text" id="lf-contact" placeholder="Contact name…" class="si" style="font-size:12px;padding:5px 8px"></div>
-            <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Connections</label><select id="lf-connections" class="ss" style="font-size:12px;padding:5px 8px"><option value="">Any</option><option>1</option><option>2</option><option>3+</option></select></div>
-            <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Hazard Type</label><select id="lf-hazard" class="ss" style="font-size:12px;padding:5px 8px"><option value="">Any</option><option>High</option><option>Medium</option><option>Low</option></select></div>
-          </div>
-          <div style="display:flex;gap:7px;margin-top:10px;justify-content:flex-end">
-            <button class="btn btn-gh btn-sm" onclick="locClearFilters()">Clear</button>
-            <button class="btn btn-gh btn-sm" onclick="locSaveFilter()">💾 Save</button>
-            <button class="btn btn-ac btn-sm" onclick="locApplyFilters()">Apply</button>
-          </div>
-          <div id="locSavedWrap" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
-            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px">Saved Searches</div>
-            <div id="locSavedChips"></div>
-          </div>
-        </div>
+<!-- LOCATIONS PAGE -->
+<div class="page" id="page-locations-page" style="padding:0;display:none;height:calc(100vh - 56px);flex-direction:column;overflow:hidden">
+  <div style="display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0">
+    <div style="flex:1;display:flex;align-items:center;gap:6px;background:var(--elevated);border:1.5px solid var(--border);border-radius:9px;padding:0 12px;height:38px;max-width:700px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="locMainSearch" type="text" placeholder="Search by address, name, account number…" oninput="locApplyFilters()" style="background:none;border:none;outline:none;color:var(--text);font-family:var(--sans);font-size:13px;width:100%">
+      <div onclick="locToggleAdv()" style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;cursor:pointer;color:var(--muted);flex-shrink:0">
+        <svg id="locAdvArrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transition:transform .2s"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
     </div>
-    <!-- Stats bar -->
-    <div style="display:flex;padding:10px 12px;border-bottom:1px solid var(--border);flex-shrink:0">
-      <div style="flex:1;text-align:center"><div style="font-family:var(--cond);font-size:20px;font-weight:900;line-height:1;color:var(--accent)" id="locStatTotal">0</div><div style="font-family:var(--mono);font-size:9px;color:var(--muted)">Total</div></div>
-      <div style="flex:1;text-align:center;border-left:1px solid var(--border)"><div style="font-family:var(--cond);font-size:20px;font-weight:900;line-height:1;color:var(--green)" id="locStatComp">0</div><div style="font-family:var(--mono);font-size:9px;color:var(--muted)">Compliant</div></div>
-      <div style="flex:1;text-align:center;border-left:1px solid var(--border)"><div style="font-family:var(--cond);font-size:20px;font-weight:900;line-height:1;color:var(--yellow)" id="locStatOver">0</div><div style="font-family:var(--mono);font-size:9px;color:var(--muted)">Overdue</div></div>
-      <div style="flex:1;text-align:center;border-left:1px solid var(--border)"><div style="font-family:var(--cond);font-size:20px;font-weight:900;line-height:1;color:var(--red)" id="locStatFail">0</div><div style="font-family:var(--mono);font-size:9px;color:var(--muted)">Non-Comp.</div></div>
-    </div>
-    <!-- Location list -->
-    <div id="locList" style="flex:1;overflow-y:auto;padding:8px"></div>
+    <button onclick="locToggleAdv()" class="btn btn-gh btn-sm" style="height:38px;width:38px;padding:0;justify-content:center" title="Filter">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    </button>
+    <button onclick="locExportCSV()" class="btn btn-gh btn-sm" style="height:38px;width:38px;padding:0;justify-content:center" title="Export CSV">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    </button>
+    <button onclick="alert('Add Location')" class="btn btn-ac" style="height:38px;margin-left:auto;white-space:nowrap">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Location
+    </button>
   </div>
-  <!-- Right detail panel -->
-  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
-    <div id="locEmptyState" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);gap:12px">
-      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.25"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
-      <p style="font-size:13.5px">Select a location to view details</p>
+  <!-- Advanced filter -->
+  <div id="locAdvPanel" style="background:var(--surface);border-bottom:1px solid var(--border);overflow:hidden;max-height:0;transition:max-height .3s ease,opacity .2s;opacity:0;flex-shrink:0">
+    <div style="padding:14px 20px">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Advanced Search Filters</div>
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:10px">
+        <div style="display:flex;flex-direction:column;gap:3px;grid-column:1/3"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Address</label><input type="text" id="lf-address" class="si" placeholder="Street address..." style="font-size:12px;padding:5px 8px"></div>
+        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Account #</label><input type="text" id="lf-account" class="si" placeholder="ACC-..." style="font-size:12px;padding:5px 8px"></div>
+        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">City</label><input type="text" id="lf-city" class="si" placeholder="Abilene..." style="font-size:12px;padding:5px 8px"></div>
+        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Compliance</label><select id="lf-compliance" class="ss" style="font-size:12px;padding:5px 8px"><option value="">Any</option><option>Compliant</option><option>Non-Compliant</option><option>Overdue</option></select></div>
+        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Hazard</label><select id="lf-hazard" class="ss" style="font-size:12px;padding:5px 8px"><option value="">Any</option><option>High</option><option>Medium</option><option>Low</option></select></div>
+        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Contact Email</label><input type="text" id="lf-email" class="si" placeholder="owner@..." style="font-size:12px;padding:5px 8px"></div>
+        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Phone</label><input type="text" id="lf-phone" class="si" placeholder="(325)..." style="font-size:12px;padding:5px 8px"></div>
+        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Primary Contact</label><input type="text" id="lf-contact" class="si" placeholder="Name..." style="font-size:12px;padding:5px 8px"></div>
+        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">ZIP</label><input type="text" id="lf-zip" class="si" placeholder="79601..." style="font-size:12px;padding:5px 8px"></div>
+        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Last Survey</label><select id="lf-survey" class="ss" style="font-size:12px;padding:5px 8px"><option value="">Any</option><option>Pass</option><option>Fail</option><option>Pending</option></select></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-gh btn-sm" onclick="locClearFilters()">Clear All</button>
+        <button class="btn btn-gh btn-sm" onclick="locSaveFilter()">Save Search</button>
+        <div id="locSavedChips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      </div>
     </div>
-    <div id="locDetailPanel" style="display:none;flex-direction:column;height:100%;overflow:hidden"></div>
+  </div>
+  <!-- Table + Detail split -->
+  <div style="flex:1;display:flex;overflow:hidden">
+    <!-- LEFT: table -->
+    <div id="locTableWrap" style="display:flex;flex-direction:column;overflow:hidden;min-width:0;flex:1;transition:flex .25s ease">
+      <!-- Headers -->
+      <div style="display:grid;grid-template-columns:120px 1fr 1fr 110px 70px 150px;padding:8px 16px;border-bottom:1px solid var(--border);background:var(--elevated);flex-shrink:0;gap:8px">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase">Account #</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase">Name</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase">Address</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase">Phone</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;text-align:center">Devices</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase">Primary Contact</div>
+      </div>
+      <div id="locTableBody" style="flex:1;overflow-y:auto"></div>
+      <!-- Pagination -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">Rows per page:</span>
+          <select id="locRowsPerPage" onchange="locChangePage(1)" class="ss" style="font-size:11px;padding:3px 6px;width:auto"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select>
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted)" id="locPageInfo"></div>
+        <div style="display:flex;gap:4px">
+          <button onclick="locChangePage(1)" class="btn btn-gh btn-sm" style="padding:4px 8px">&#x27E8;&#x27E8;</button>
+          <button onclick="locPrevPage()" class="btn btn-gh btn-sm" style="padding:4px 8px">&#x27E8;</button>
+          <button onclick="locNextPage()" class="btn btn-gh btn-sm" style="padding:4px 8px">&#x27E9;</button>
+          <button onclick="locLastPage()" class="btn btn-gh btn-sm" style="padding:4px 8px">&#x27E9;&#x27E9;</button>
+        </div>
+      </div>
+    </div>
+    <!-- RIGHT: detail panel -->
+    <div id="locDetailPanel" style="width:0;overflow:hidden;border-left:1px solid var(--border);transition:width .25s ease;flex-shrink:0;display:flex;flex-direction:column;background:var(--bg)">
+      <div style="width:500px;display:flex;flex-direction:column;height:100%;overflow:hidden">
+        <div id="locDetailHeader" style="padding:16px 20px 0;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
+            <div style="min-width:0;flex:1">
+              <div id="locDetailAddr" style="font-family:var(--cond);font-weight:900;font-size:20px;color:var(--text);line-height:1.1"></div>
+              <div id="locDetailSub" style="font-size:12px;color:var(--muted);margin-top:3px"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:10px">
+              <div id="locDetailBadge"></div>
+              <button onclick="locCloseDetail()" style="width:26px;height:26px;border-radius:6px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1">&#x2715;</button>
+            </div>
+          </div>
+          <div id="locDetailStats" style="display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap"></div>
+          <div style="display:flex;overflow-x:auto" id="locDetailTabs">
+            <button class="m-tab active" onclick="locSwitchTab('details',this)">Details</button>
+            <button class="m-tab" onclick="locSwitchTab('assemblies',this)">Assemblies</button>
+            <button class="m-tab" onclick="locSwitchTab('contacts',this)">Contacts</button>
+            <button class="m-tab" onclick="locSwitchTab('communications',this)">Comms</button>
+            <button class="m-tab" onclick="locSwitchTab('surveys',this)">Surveys</button>
+            <button class="m-tab" onclick="locSwitchTab('compliance',this)">Compliance</button>
+          </div>
+        </div>
+        <div id="locTabBody" style="flex:1;overflow-y:auto;padding:14px 16px"></div>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- ── PLACEHOLDER PAGES ── -->
-<div class="page" id="page-contacts-page"><div class="es"><div class="es-icon">👤</div><div class="es-title">Contacts</div><div class="es-sub">Contact management coming soon. Will show all property owners, testers, and administrators.</div></div></div>
-<div class="page" id="page-providers-page"><div class="es"><div class="es-icon">🔧</div><div class="es-title">Service Providers</div><div class="es-sub">Certified tester and service provider directory coming soon.</div></div></div>
-<div class="page" id="page-assemblies-page"><div class="es"><div class="es-icon">⚙️</div><div class="es-title">Assemblies</div><div class="es-sub">Assembly inventory and lifecycle tracking coming soon.</div></div></div>
-<div class="page" id="page-state-reports-page"><div class="es"><div class="es-icon">📋</div><div class="es-title">State Reports</div><div class="es-sub">One-click TCEQ annual report export coming soon. Formatted to state requirements.</div></div></div>
-<div class="page" id="page-users-page"><div class="es"><div class="es-icon">👥</div><div class="es-title">Users</div><div class="es-sub">User management and role assignment coming soon.</div></div></div>
-<div class="page" id="page-comms-page"><div class="es"><div class="es-icon">📨</div><div class="es-title">Communications</div><div class="es-sub">Full communication log and outreach management coming soon.</div></div></div>
-<div class="page" id="page-notif-page"><div class="es"><div class="es-icon">🔔</div><div class="es-title">Notifications</div><div class="es-sub">Notification schedule management coming soon. 60/30/7-day automated notices configured in Supabase edge functions.</div></div></div>
-<div class="page" id="page-settings-page"><div class="es"><div class="es-icon">⚙️</div><div class="es-title">Settings</div><div class="es-sub">System settings, domain configuration, and Resend email setup coming soon.</div></div></div>
-<div class="page" id="page-knowledge-page"><div class="es"><div class="es-icon">📚</div><div class="es-title">Knowledge Base</div><div class="es-sub">Backflow prevention guides, TCEQ regulations, and training resources coming soon.</div></div></div>
+<!-- PLACEHOLDER PAGES -->
+<div class="page" id="page-contacts-page"><div class="es"><div class="es-icon">&#x1F464;</div><div class="es-title">Contacts</div><div class="es-sub">Contact management coming soon.</div></div></div>
+<div class="page" id="page-providers-page"><div class="es"><div class="es-icon">&#x1F527;</div><div class="es-title">Service Providers</div><div class="es-sub">Certified tester directory coming soon.</div></div></div>
+<div class="page" id="page-assemblies-page"><div class="es"><div class="es-icon">&#x2699;&#xFE0F;</div><div class="es-title">Assemblies</div><div class="es-sub">Assembly inventory coming soon.</div></div></div>
+<div class="page" id="page-state-reports-page"><div class="es"><div class="es-icon">&#x1F4CB;</div><div class="es-title">State Reports</div><div class="es-sub">One-click TCEQ annual report export coming soon.</div></div></div>
+<div class="page" id="page-users-page"><div class="es"><div class="es-icon">&#x1F465;</div><div class="es-title">Users</div><div class="es-sub">User management coming soon.</div></div></div>
+<div class="page" id="page-comms-page"><div class="es"><div class="es-icon">&#x1F4E8;</div><div class="es-title">Communications</div><div class="es-sub">Communication log coming soon.</div></div></div>
+<div class="page" id="page-notif-page"><div class="es"><div class="es-icon">&#x1F514;</div><div class="es-title">Notifications</div><div class="es-sub">Notification management coming soon.</div></div></div>
+<div class="page" id="page-settings-page"><div class="es"><div class="es-icon">&#x2699;&#xFE0F;</div><div class="es-title">Settings</div><div class="es-sub">System settings coming soon.</div></div></div>
+<div class="page" id="page-knowledge-page"><div class="es"><div class="es-icon">&#x1F4DA;</div><div class="es-title">Knowledge Base</div><div class="es-sub">Training resources and TCEQ regulations coming soon.</div></div></div>
 
 </main><!-- /main -->
 
@@ -1354,9 +1386,11 @@ tick(); setInterval(tick,1000);
 function nav(id, btn) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nb').forEach(n=>n.classList.remove('active'));
-  const activePage = document.getElementById('page-'+id);
-  activePage.classList.add('active');
-  if(['locations-page','city-risk-page'].includes(id)) activePage.classList.add('flex-page');
+  const _activePg = document.getElementById('page-'+id);
+  if (_activePg) {
+    _activePg.classList.add('active');
+    if (['locations-page','city-risk-page'].includes(id)) _activePg.style.display='flex';
+  }
   if(btn) btn.classList.add('active');
   const titles = {
     dashboard:'Dashboard','device-map-page':'Device Map','city-risk-page':'City Risk',
@@ -3695,202 +3729,197 @@ function clearRiskSearch() {
 }
 
 
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  LOCATIONS MODULE
-// ═══════════════════════════════════════════════════
-const LOC_DEMO = [
-  {id:1,address:"1423 N 1st St",city:"Abilene",state:"TX",zip:"79601",name:"Circle K #4421",account:"ACC-00142",contact:"Randy Torres",phone:"(325) 555-0182",email:"randy.torres@circlek.com",hazard:"High",compliance:"Compliant",lastSurvey:"Pass",connections:2,riskScore:12,
-    assemblies:[{serial:"RP-2291",type:"RPZ",model:"Watts 009",status:"Pass",tested:"2025-11-14",due:"2026-11-14"},{serial:"DC-0044",type:"DCVA",model:"Wilkins 975XL",status:"Pass",tested:"2025-11-14",due:"2026-11-14"}],
+// ═══════════════════════════════════════════════════════
+const LOC_DATA = [
+  {id:1,address:"1423 N 1st St",city:"Abilene",state:"TX",zip:"79601",name:"Circle K #4421",account:"ACC-00142",contact:"Randy Torres",phone:"(325) 555-0182",email:"randy.torres@circlek.com",hazard:"High",compliance:"Compliant",lastSurvey:"Pass",connections:2,riskScore:12,deviceCount:2,
+    assemblies:[{serial:"RP-2291",type:"RPZ",make:"Watts",model:"009",status:"Pass",tested:"2025-11-14",due:"2026-11-14"},{serial:"DC-0044",type:"DCVA",make:"Wilkins",model:"975XL",status:"Pass",tested:"2025-11-14",due:"2026-11-14"}],
     communications:[{date:"2025-09-14",type:"60-Day Notice",method:"Email",status:"Sent"},{date:"2025-10-14",type:"30-Day Notice",method:"Email",status:"Sent"},{date:"2025-11-07",type:"7-Day Notice",method:"Email + SMS",status:"Sent"}],
-    complianceHistory:[{year:"2026",pct:100},{year:"2025",pct:100},{year:"2024",pct:85},{year:"2023",pct:100}],
-    surveyNotes:"Two RPZ assemblies on east side of building. Mechanical room accessible via rear entrance. Property manager on-site M-F 8–5."},
-  {id:2,address:"3801 S Clack St",city:"Abilene",state:"TX",zip:"79606",name:"Hendrick Medical Center",account:"ACC-00389",contact:"Susan Park",phone:"(325) 555-0244",email:"s.park@hendrickhealth.org",hazard:"High",compliance:"Overdue",lastSurvey:"Pass",connections:3,riskScore:71,
-    assemblies:[{serial:"RP-0881",type:"RPZ",model:"Febco 860",status:"Overdue",tested:"2024-10-02",due:"2025-10-02"},{serial:"RP-0882",type:"RPZ",model:"Febco 860",status:"Pass",tested:"2025-03-15",due:"2026-03-15"},{serial:"DC-0199",type:"DCVA",model:"Watts 007",status:"Overdue",tested:"2024-10-02",due:"2025-10-02"}],
-    communications:[{date:"2025-07-02",type:"60-Day Notice",method:"Email",status:"Sent"},{date:"2025-09-30",type:"Overdue Notice",method:"Email",status:"Sent"},{date:"2025-10-14",type:"Overdue Notice",method:"Email",status:"Sent"}],
-    complianceHistory:[{year:"2026",pct:33},{year:"2025",pct:100},{year:"2024",pct:100},{year:"2023",pct:67}],
-    surveyNotes:"3 assemblies total. RP-0881 and DC-0199 OVERDUE — follow up with facilities director."},
-  {id:3,address:"4150 Buffalo Gap Rd",city:"Abilene",state:"TX",zip:"79605",name:"Walmart Supercenter",account:"ACC-00217",contact:"Luis Garza",phone:"(325) 555-0311",email:"l.garza@walmart.com",hazard:"Medium",compliance:"Compliant",lastSurvey:"Pass",connections:1,riskScore:8,
-    assemblies:[{serial:"PV-0034",type:"PVB",model:"Ames 4000SS",status:"Pass",tested:"2026-01-22",due:"2027-01-22"}],
-    communications:[{date:"2025-11-22",type:"60-Day Notice",method:"Email",status:"Sent"},{date:"2025-12-22",type:"30-Day Notice",method:"Email",status:"Sent"}],
-    complianceHistory:[{year:"2026",pct:100},{year:"2025",pct:100},{year:"2024",pct:100},{year:"2023",pct:100}],
-    surveyNotes:"Single PVB on irrigation system at garden center."},
-  {id:4,address:"2018 Grape St",city:"Abilene",state:"TX",zip:"79601",name:"Abilene High School",account:"ACC-00504",contact:"Dr. Maria Okonkwo",phone:"(325) 555-0099",email:"m.okonkwo@aisd.org",hazard:"Medium",compliance:"Non-Compliant",lastSurvey:"Fail",connections:2,riskScore:58,
-    assemblies:[{serial:"RP-1145",type:"RPZ",model:"Watts 009M3",status:"Fail",tested:"2025-08-10",due:"2026-08-10"},{serial:"DC-0288",type:"DCVA",model:"Watts 007M1",status:"Pass",tested:"2025-08-10",due:"2026-08-10"}],
-    communications:[{date:"2025-06-10",type:"60-Day Notice",method:"Email",status:"Sent"},{date:"2025-08-10",type:"Fail Notice",method:"Email + SMS",status:"Sent"},{date:"2025-08-17",type:"Repair Follow-up",method:"Email",status:"Sent"}],
-    complianceHistory:[{year:"2026",pct:50},{year:"2025",pct:100},{year:"2024",pct:50},{year:"2023",pct:100}],
-    surveyNotes:"RP-1145 failed — relief valve discharged continuously. Repair order issued. Awaiting retest."}
+    surveys:[{date:"2025-11-14",surveyor:"Matt Snider",result:"Pass",notes:"Two RPZ assemblies on east side. Mechanical room accessible via rear entrance."}],
+    complianceHistory:[{year:"2026",pct:100,pass:2,fail:0},{year:"2025",pct:100,pass:2,fail:0},{year:"2024",pct:85,pass:1,fail:1},{year:"2023",pct:100,pass:2,fail:0}]},
+  {id:2,address:"3801 S Clack St",city:"Abilene",state:"TX",zip:"79606",name:"Hendrick Medical Center",account:"ACC-00389",contact:"Susan Park",phone:"(325) 555-0244",email:"s.park@hendrickhealth.org",hazard:"High",compliance:"Overdue",lastSurvey:"Pass",connections:3,riskScore:71,deviceCount:3,
+    assemblies:[{serial:"RP-0881",type:"RPZ",make:"Febco",model:"860",status:"Overdue",tested:"2024-10-02",due:"2025-10-02"},{serial:"RP-0882",type:"RPZ",make:"Febco",model:"860",status:"Pass",tested:"2025-03-15",due:"2026-03-15"},{serial:"DC-0199",type:"DCVA",make:"Watts",model:"007",status:"Overdue",tested:"2024-10-02",due:"2025-10-02"}],
+    communications:[{date:"2025-07-02",type:"60-Day Notice",method:"Email",status:"Sent"},{date:"2025-09-30",type:"Overdue Notice",method:"Email",status:"Sent"}],
+    surveys:[{date:"2024-10-02",surveyor:"Matt Snider",result:"Pass",notes:"3 assemblies total. RP-0881 and DC-0199 now OVERDUE."}],
+    complianceHistory:[{year:"2026",pct:33,pass:1,fail:2},{year:"2025",pct:100,pass:3,fail:0},{year:"2024",pct:100,pass:3,fail:0},{year:"2023",pct:67,pass:2,fail:1}]},
+  {id:3,address:"4150 Buffalo Gap Rd",city:"Abilene",state:"TX",zip:"79605",name:"Walmart Supercenter",account:"ACC-00217",contact:"Luis Garza",phone:"(325) 555-0311",email:"l.garza@walmart.com",hazard:"Medium",compliance:"Compliant",lastSurvey:"Pass",connections:1,riskScore:8,deviceCount:1,
+    assemblies:[{serial:"PV-0034",type:"PVB",make:"Ames",model:"4000SS",status:"Pass",tested:"2026-01-22",due:"2027-01-22"}],
+    communications:[{date:"2025-11-22",type:"60-Day Notice",method:"Email",status:"Sent"}],
+    surveys:[{date:"2026-01-22",surveyor:"Matt Snider",result:"Pass",notes:"Single PVB on irrigation system at garden center."}],
+    complianceHistory:[{year:"2026",pct:100,pass:1,fail:0},{year:"2025",pct:100,pass:1,fail:0},{year:"2024",pct:100,pass:1,fail:0},{year:"2023",pct:100,pass:1,fail:0}]},
+  {id:4,address:"2018 Grape St",city:"Abilene",state:"TX",zip:"79601",name:"Abilene High School",account:"ACC-00504",contact:"Dr. Maria Okonkwo",phone:"(325) 555-0099",email:"m.okonkwo@aisd.org",hazard:"Medium",compliance:"Non-Compliant",lastSurvey:"Fail",connections:2,riskScore:58,deviceCount:2,
+    assemblies:[{serial:"RP-1145",type:"RPZ",make:"Watts",model:"009M3",status:"Fail",tested:"2025-08-10",due:"2026-08-10"},{serial:"DC-0288",type:"DCVA",make:"Watts",model:"007M1",status:"Pass",tested:"2025-08-10",due:"2026-08-10"}],
+    communications:[{date:"2025-06-10",type:"60-Day Notice",method:"Email",status:"Sent"},{date:"2025-08-10",type:"Fail Notice",method:"Email + SMS",status:"Sent"}],
+    surveys:[{date:"2025-08-10",surveyor:"Matt Snider",result:"Fail",notes:"RP-1145 failed: relief valve discharged continuously. Awaiting retest."}],
+    complianceHistory:[{year:"2026",pct:50,pass:1,fail:1},{year:"2025",pct:100,pass:2,fail:0},{year:"2024",pct:50,pass:1,fail:1},{year:"2023",pct:100,pass:2,fail:0}]}
 ];
 
-let locData = [...LOC_DEMO];
-let locFiltered = [...LOC_DEMO];
-let locActiveId = null;
-let locSavedFilters = JSON.parse(localStorage.getItem('cci_loc_filters')||'[]');
-let locAdvOpen = false;
+let locFiltered=[...LOC_DATA],locActiveId=null,locCurrentPage=1,locAdvOpen=false,locDetailOpen=false;
+let locSavedFilters=JSON.parse(localStorage.getItem('cci_loc_filters')||'[]');
 
-function locInit() {
-  locRenderList(locData);
-  locUpdateStats(locData);
-  locRenderSavedChips();
+function locInit(){locFiltered=[...LOC_DATA];locCurrentPage=1;locRenderTable();locRenderSavedChips();}
+
+function locToggleAdv(){
+  locAdvOpen=!locAdvOpen;
+  const p=document.getElementById('locAdvPanel'),a=document.getElementById('locAdvArrow');
+  if(locAdvOpen){p.style.maxHeight='200px';p.style.opacity='1';if(a)a.style.transform='rotate(180deg)';}
+  else{p.style.maxHeight='0';p.style.opacity='0';if(a)a.style.transform='';}
 }
 
-function locToggleAdv() {
-  locAdvOpen = !locAdvOpen;
-  const panel = document.getElementById('locAdvPanel');
-  const arrow = document.getElementById('locAdvArrow');
-  const toggle = document.getElementById('locAdvToggle');
-  if (locAdvOpen) {
-    panel.style.maxHeight = '560px'; panel.style.opacity = '1';
-    arrow.style.transform = 'rotate(180deg)';
-    toggle.style.borderColor = 'var(--accent)'; toggle.style.color = 'var(--accent)';
-    toggle.style.background = 'rgba(249,166,30,0.08)';
-  } else {
-    panel.style.maxHeight = '0'; panel.style.opacity = '0';
-    arrow.style.transform = ''; toggle.style.borderColor = ''; toggle.style.color = ''; toggle.style.background = '';
-  }
-}
-
-function locClearFilters() {
-  ['lf-address','lf-account','lf-city','lf-email','lf-phone','lf-name','lf-zip','lf-contact'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
-  ['lf-survey','lf-compliance','lf-connections','lf-hazard'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+function locClearFilters(){
+  ['lf-address','lf-account','lf-city','lf-email','lf-phone','lf-contact','lf-zip'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['lf-survey','lf-compliance','lf-hazard'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   const ms=document.getElementById('locMainSearch');if(ms)ms.value='';
-  locFiltered=[...locData]; locRenderList(locFiltered); locUpdateStats(locFiltered);
+  locFiltered=[...LOC_DATA];locCurrentPage=1;locRenderTable();
 }
 
-function locApplyFilters() {
+function locApplyFilters(){
   const qv=id=>{const e=document.getElementById(id);return e?e.value.trim().toLowerCase():'';};
   const ms=qv('locMainSearch');
-  locFiltered=locData.filter(loc=>{
-    return (!ms||loc.address.toLowerCase().includes(ms)||loc.name.toLowerCase().includes(ms))&&
-      (!qv('lf-address')||loc.address.toLowerCase().includes(qv('lf-address')))&&
-      (!qv('lf-account')||loc.account.toLowerCase().includes(qv('lf-account')))&&
-      (!qv('lf-city')||loc.city.toLowerCase().includes(qv('lf-city')))&&
-      (!qv('lf-email')||loc.email.toLowerCase().includes(qv('lf-email')))&&
-      (!qv('lf-phone')||loc.phone.includes(qv('lf-phone')))&&
-      (!qv('lf-survey')||loc.lastSurvey.toLowerCase()===qv('lf-survey'))&&
-      (!qv('lf-compliance')||loc.compliance.toLowerCase()===qv('lf-compliance'))&&
-      (!qv('lf-zip')||loc.zip.includes(qv('lf-zip')))&&
-      (!qv('lf-contact')||loc.contact.toLowerCase().includes(qv('lf-contact')))&&
-      (!qv('lf-name')||loc.name.toLowerCase().includes(qv('lf-name')))&&
-      (!qv('lf-hazard')||loc.hazard.toLowerCase()===qv('lf-hazard'))&&
-      (!qv('lf-connections')||(qv('lf-connections')==='3+'?loc.connections>=3:loc.connections===parseInt(qv('lf-connections'))));
-  });
-  locRenderList(locFiltered); locUpdateStats(locFiltered);
+  locFiltered=LOC_DATA.filter(loc=>
+    (!ms||loc.address.toLowerCase().includes(ms)||loc.name.toLowerCase().includes(ms)||loc.account.toLowerCase().includes(ms))&&
+    (!qv('lf-address')||loc.address.toLowerCase().includes(qv('lf-address')))&&
+    (!qv('lf-account')||loc.account.toLowerCase().includes(qv('lf-account')))&&
+    (!qv('lf-city')||loc.city.toLowerCase().includes(qv('lf-city')))&&
+    (!qv('lf-email')||loc.email.toLowerCase().includes(qv('lf-email')))&&
+    (!qv('lf-phone')||loc.phone.includes(qv('lf-phone')))&&
+    (!qv('lf-compliance')||loc.compliance.toLowerCase()===qv('lf-compliance'))&&
+    (!qv('lf-hazard')||loc.hazard.toLowerCase()===qv('lf-hazard'))&&
+    (!qv('lf-zip')||loc.zip.includes(qv('lf-zip')))&&
+    (!qv('lf-contact')||loc.contact.toLowerCase().includes(qv('lf-contact')))&&
+    (!qv('lf-survey')||loc.lastSurvey.toLowerCase()===qv('lf-survey'))
+  );
+  locCurrentPage=1;locRenderTable();
 }
 
-function locSaveFilter() {
+function locSaveFilter(){
   const label=prompt('Name this saved search:');if(!label)return;
   const state={};
-  ['lf-address','lf-account','lf-city','lf-email','lf-phone','lf-name','lf-zip','lf-contact','lf-survey','lf-compliance','lf-connections','lf-hazard'].forEach(id=>{const e=document.getElementById(id);state[id]=e?e.value:'';});
+  ['lf-address','lf-account','lf-city','lf-email','lf-phone','lf-contact','lf-zip','lf-survey','lf-compliance','lf-hazard'].forEach(id=>{const e=document.getElementById(id);state[id]=e?e.value:'';});
   locSavedFilters.push({label,state});localStorage.setItem('cci_loc_filters',JSON.stringify(locSavedFilters));locRenderSavedChips();
 }
-
-function locRenderSavedChips() {
-  const wrap=document.getElementById('locSavedWrap');const cont=document.getElementById('locSavedChips');
-  if(!wrap||!cont)return;
-  if(!locSavedFilters.length){wrap.style.display='none';return;}
-  wrap.style.display='block';
-  cont.innerHTML=locSavedFilters.map((f,i)=>`<span onclick="locLoadFilter(${i})" style="display:inline-flex;align-items:center;gap:4px;background:rgba(249,166,30,0.1);border:1px solid rgba(249,166,30,0.25);border-radius:20px;padding:2px 9px 2px 7px;font-size:11px;color:var(--accent);cursor:pointer;margin:2px 3px 2px 0">${f.label}<span onclick="event.stopPropagation();locDelFilter(${i})" style="font-size:13px;color:var(--muted);margin-left:2px;cursor:pointer">×</span></span>`).join('');
+function locRenderSavedChips(){
+  const c=document.getElementById('locSavedChips');if(!c)return;
+  c.innerHTML=locSavedFilters.map((f,i)=>`<span onclick="locLoadFilter(${i})" style="display:inline-flex;align-items:center;gap:4px;background:rgba(249,166,30,.1);border:1px solid rgba(249,166,30,.25);border-radius:20px;padding:2px 10px 2px 8px;font-size:11px;color:var(--accent);cursor:pointer">${sanitize(f.label)}<span onclick="event.stopPropagation();locDelFilter(${i})" style="font-size:13px;color:var(--muted);cursor:pointer;margin-left:2px">x</span></span>`).join('');
 }
-
 function locLoadFilter(i){const s=locSavedFilters[i].state;Object.entries(s).forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.value=v;});locApplyFilters();}
 function locDelFilter(i){locSavedFilters.splice(i,1);localStorage.setItem('cci_loc_filters',JSON.stringify(locSavedFilters));locRenderSavedChips();}
 
-function locUpdateStats(list) {
-  const el_=id=>document.getElementById(id);
-  if(el_('locStatTotal'))el_('locStatTotal').textContent=list.length;
-  if(el_('locStatComp'))el_('locStatComp').textContent=list.filter(l=>l.compliance==='Compliant').length;
-  if(el_('locStatOver'))el_('locStatOver').textContent=list.filter(l=>l.compliance==='Overdue').length;
-  if(el_('locStatFail'))el_('locStatFail').textContent=list.filter(l=>l.compliance==='Non-Compliant').length;
-}
-
-function locRenderList(list) {
-  const cont=document.getElementById('locList');if(!cont)return;
-  if(!list.length){cont.innerHTML='<div style="text-align:center;padding:28px 12px;color:var(--muted);font-size:13px">No locations match your search.</div>';return;}
-  cont.innerHTML=list.map(loc=>{
-    const dc=loc.compliance==='Compliant'?'var(--green)':loc.compliance==='Overdue'?'var(--yellow)':'var(--red)';
-    const sc=loc.lastSurvey==='Pass'?'rgba(76,175,121,.12),color:var(--green);border:1px solid rgba(76,175,121,.25)':loc.lastSurvey==='Fail'?'rgba(224,82,82,.12),color:var(--red);border:1px solid rgba(224,82,82,.25)':'rgba(240,192,64,.12),color:var(--yellow);border:1px solid rgba(240,192,64,.3)';
-    const hc=loc.hazard==='High'?'rgba(224,82,82,.12),color:var(--red);border:1px solid rgba(224,82,82,.25)':loc.hazard==='Medium'?'rgba(240,192,64,.12),color:var(--yellow);border:1px solid rgba(240,192,64,.3)':'rgba(100,149,237,.12),color:var(--blue);border:1px solid rgba(100,149,237,.25)';
+function locRenderTable(){
+  const body=document.getElementById('locTableBody');
+  const rpp=parseInt(document.getElementById('locRowsPerPage')?.value||'10');
+  const total=locFiltered.length;
+  const totalPages=Math.max(1,Math.ceil(total/rpp));
+  if(locCurrentPage>totalPages)locCurrentPage=totalPages;
+  const start=(locCurrentPage-1)*rpp;
+  const page=locFiltered.slice(start,start+rpp);
+  const info=document.getElementById('locPageInfo');
+  if(info)info.textContent=total===0?'No results':`${start+1}-${Math.min(start+rpp,total)} of ${total} items`;
+  const tw=document.getElementById('locTableWrap');
+  if(tw)tw.style.minWidth=locDetailOpen?'0':'100%';
+  if(!body)return;
+  if(!page.length){body.innerHTML=`<div style="text-align:center;padding:48px;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px;opacity:.3">&#x1F4CD;</div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">No locations found</div><div style="font-size:12px">Adjust your search or filters</div></div>`;return;}
+  body.innerHTML=page.map(loc=>{
     const isActive=locActiveId===loc.id;
-    return `<div onclick="locSelectLoc(${loc.id})" style="background:var(--elevated);border:1px solid ${isActive?'var(--accent)':' var(--border)'};border-left:3px solid ${isActive?'var(--accent)':'transparent'};border-radius:8px;padding:10px 12px;margin-bottom:5px;cursor:pointer;transition:all .15s;${isActive?'background:rgba(249,166,30,0.06);':''}">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
-        <div>
-          <div style="font-weight:600;font-size:13px;color:var(--text)">${sanitize(loc.address)}</div>
-          <div style="font-size:11.5px;color:var(--muted);margin-top:2px">${sanitize(loc.name)}</div>
-        </div>
-        <div style="width:8px;height:8px;border-radius:50%;background:${dc};box-shadow:0 0 5px ${dc};flex-shrink:0;margin-top:4px"></div>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
-        <span style="font-family:var(--mono);font-size:9.5px;color:var(--muted)">${sanitize(loc.contact)}</span>
-        <span style="font-family:var(--mono);font-size:9.5px;color:var(--muted)">${loc.assemblies.length} assembl${loc.assemblies.length===1?'y':'ies'}</span>
-      </div>
-      <div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap">
-        <span style="font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px;background:${sc.split(',')[0]};${sc.split(',')[1]}">${loc.lastSurvey}</span>
-        <span style="font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px;background:${hc.split(',')[0]};${hc.split(',')[1]}">${loc.hazard} Hazard</span>
-        <span style="font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(249,166,30,.12);color:var(--accent);border:1px solid rgba(249,166,30,.25)">${sanitize(loc.account)}</span>
-      </div>
+    const cc=loc.compliance==='Compliant'?'var(--green)':loc.compliance==='Overdue'?'var(--yellow)':'var(--red)';
+    return `<div onclick="locSelectRow(${loc.id})" style="display:grid;grid-template-columns:120px 1fr 1fr 110px 70px 150px;padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;align-items:center;background:${isActive?'rgba(249,166,30,.06)':'transparent'};border-left:3px solid ${isActive?'var(--accent)':'transparent'};gap:8px" onmouseover="if(!${isActive})this.style.background='var(--elevated)'" onmouseout="if(!${isActive})this.style.background='${isActive?'rgba(249,166,30,.06)':'transparent'}'">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${sanitize(loc.account)||'&mdash;'}</div>
+      <div><div style="font-size:13px;font-weight:600;color:var(--text)">${sanitize(loc.name)}</div><div style="display:flex;align-items:center;gap:4px;margin-top:2px"><div style="width:6px;height:6px;border-radius:50%;background:${cc};box-shadow:0 0 4px ${cc}"></div><span style="font-family:var(--mono);font-size:9px;color:${cc}">${loc.compliance}</span></div></div>
+      <div style="font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(loc.address)}, ${loc.city} ${loc.zip}</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${sanitize(loc.phone)||'&mdash;'}</div>
+      <div style="text-align:center;font-family:var(--cond);font-weight:700;font-size:16px;color:var(--text)">${loc.deviceCount}</div>
+      <div style="font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(loc.contact)||'&mdash;'}</div>
     </div>`;
   }).join('');
 }
 
-function locSelectLoc(id) {
-  locActiveId=id; locRenderList(locFiltered);
-  const loc=locData.find(l=>l.id===id);
-  document.getElementById('locEmptyState').style.display='none';
-  const panel=document.getElementById('locDetailPanel');panel.style.display='flex';
-  const bc=loc.compliance==='Compliant'?'background:rgba(76,175,121,.14);color:var(--green);border:1px solid rgba(76,175,121,.28)':loc.compliance==='Overdue'?'background:rgba(240,192,64,.14);color:var(--yellow);border:1px solid rgba(240,192,64,.28)':'background:rgba(224,82,82,.14);color:var(--red);border:1px solid rgba(224,82,82,.28)';
-  panel.innerHTML=`
-    <div style="padding:16px 20px 0;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface)">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px">
-        <div>
-          <div style="font-family:var(--cond);font-weight:900;font-size:24px;color:var(--text);line-height:1.1">${sanitize(loc.address)}</div>
-          <div style="font-size:12.5px;color:var(--muted);margin-top:3px">${sanitize(loc.name)} &bull; ${loc.city}, ${loc.state} ${loc.zip}</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:6px;font-family:var(--cond);font-weight:700;font-size:13px;flex-shrink:0;${bc}">${loc.compliance.toUpperCase()}</div>
-      </div>
-      <div style="display:flex;gap:18px;margin-bottom:10px;flex-wrap:wrap">
-        ${[['Account',loc.account],['Hazard',loc.hazard],['Assemblies',loc.assemblies.length],['Connections',loc.connections],['Risk Score','<span style="color:'+( loc.riskScore<30?'var(--green)':loc.riskScore<60?'var(--yellow)':'var(--red)')+'">'+loc.riskScore+'/100</span>']].map(([l,v])=>`<div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase">${l}</div><div style="font-family:var(--cond);font-weight:700;font-size:15px;color:var(--text)">${v}</div></div>`).join('')}
-      </div>
-      <div style="display:flex">
-        ${['Details','Assemblies','Communications','Survey','Compliance'].map((t,i)=>`<button class="m-tab ${i===0?'active':''}" onclick="locSwitchTab('${t.toLowerCase()}',this)">${t}</button>`).join('')}
-      </div>
-    </div>
-    <div id="locTabBody" style="flex:1;overflow-y:auto;padding:16px 18px">${locRenderDetails(loc)}</div>`;
+function locChangePage(p){locCurrentPage=p;locRenderTable();}
+function locPrevPage(){if(locCurrentPage>1){locCurrentPage--;locRenderTable();}}
+function locNextPage(){const rpp=parseInt(document.getElementById('locRowsPerPage')?.value||'10');if(locCurrentPage<Math.ceil(locFiltered.length/rpp)){locCurrentPage++;locRenderTable();}}
+function locLastPage(){const rpp=parseInt(document.getElementById('locRowsPerPage')?.value||'10');locCurrentPage=Math.ceil(locFiltered.length/rpp)||1;locRenderTable();}
+
+function locSelectRow(id){
+  locActiveId=id;locDetailOpen=true;
+  const loc=LOC_DATA.find(l=>l.id===id);if(!loc)return;
+  const panel=document.getElementById('locDetailPanel');if(panel)panel.style.width='500px';
+  const addr=document.getElementById('locDetailAddr');if(addr)addr.textContent=loc.address;
+  const sub=document.getElementById('locDetailSub');if(sub)sub.textContent=loc.name+' \u2022 '+loc.city+', '+loc.state+' '+loc.zip;
+  const cc=loc.compliance==='Compliant'?'var(--green)':loc.compliance==='Overdue'?'var(--yellow)':'var(--red)';
+  const cbg=loc.compliance==='Compliant'?'rgba(76,175,121,.14)':loc.compliance==='Overdue'?'rgba(240,192,64,.14)':'rgba(224,82,82,.14)';
+  const cbr=loc.compliance==='Compliant'?'rgba(76,175,121,.3)':loc.compliance==='Overdue'?'rgba(240,192,64,.3)':'rgba(224,82,82,.3)';
+  const badge=document.getElementById('locDetailBadge');
+  if(badge){badge.textContent=loc.compliance.toUpperCase();badge.style.cssText=`font-family:var(--cond);font-weight:700;font-size:12px;padding:4px 10px;border-radius:5px;background:${cbg};color:${cc};border:1px solid ${cbr}`;}
+  const stats=document.getElementById('locDetailStats');
+  if(stats)stats.innerHTML=[['Account',sanitize(loc.account)],['Hazard',loc.hazard],['Devices',loc.deviceCount],['Connections',loc.connections],['Risk','<span style="color:'+(loc.riskScore<30?'var(--green)':loc.riskScore<60?'var(--yellow)':'var(--red)')+'">'+loc.riskScore+'/100</span>']].map(([l,v])=>`<div><div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase">${l}</div><div style="font-family:var(--cond);font-weight:700;font-size:14px;color:var(--text)">${v}</div></div>`).join('');
+  document.querySelectorAll('#locDetailTabs .m-tab').forEach((b,i)=>b.classList.toggle('active',i===0));
+  const body=document.getElementById('locTabBody');if(body)body.innerHTML=locRenderDetails(loc);
+  locRenderTable();
 }
 
-function locSwitchTab(tab,btn) {
-  document.querySelectorAll('#locDetailPanel .m-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
-  const loc=locData.find(l=>l.id===locActiveId);const body=document.getElementById('locTabBody');
+function locCloseDetail(){
+  locDetailOpen=false;locActiveId=null;
+  const p=document.getElementById('locDetailPanel');if(p)p.style.width='0';
+  locRenderTable();
+}
+
+function locSwitchTab(tab,btn){
+  document.querySelectorAll('#locDetailTabs .m-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  const loc=LOC_DATA.find(l=>l.id===locActiveId);
+  const body=document.getElementById('locTabBody');if(!body||!loc)return;
   if(tab==='details')body.innerHTML=locRenderDetails(loc);
   else if(tab==='assemblies')body.innerHTML=locRenderAssemblies(loc);
+  else if(tab==='contacts')body.innerHTML=locRenderContacts(loc);
   else if(tab==='communications')body.innerHTML=locRenderComms(loc);
-  else if(tab==='survey')body.innerHTML=locRenderSurvey(loc);
+  else if(tab==='surveys')body.innerHTML=locRenderSurveys(loc);
   else if(tab==='compliance')body.innerHTML=locRenderCompliance(loc);
 }
 
-function locRenderDetails(loc){return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px"><div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Property Information</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${[['Business Name',loc.name],['Account Number',loc.account],['Street Address',loc.address],['City / State / ZIP',`${loc.city}, ${loc.state} ${loc.zip}`],['Hazard Type',`${loc.hazard} Hazard`],['Service Connections',loc.connections]].map(([l,v])=>`<div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">${l}</div><div style="font-size:13px;color:var(--text);font-weight:500;margin-top:3px">${sanitize(String(v))}</div></div>`).join('')}</div></div><div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px"><div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Primary Contact</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${[['Contact Name',loc.contact],['Phone',loc.phone],['Email',loc.email],['Overall Compliance',loc.compliance]].map(([l,v])=>`<div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">${l}</div><div style="font-size:13px;color:var(l==='Overall Compliance'?(loc.compliance==='Compliant'?'var(--green)':loc.compliance==='Overdue'?'var(--yellow)':'var(--red)'):'var(--text)');font-weight:500;margin-top:3px">${sanitize(String(v))}</div></div>`).join('')}</div></div>`;}
+function _lc(title,html){return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px"><div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">${title}</div>${html}</div>`;}
+function _lg(pairs){return`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${pairs.map(([l,v])=>`<div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">${l}</div><div style="font-size:13px;color:var(--text);font-weight:500">${v||'&mdash;'}</div></div>`).join('')}</div>`;}
 
-function locRenderAssemblies(loc){const rows=loc.assemblies.map(a=>`<tr style="border-bottom:1px solid rgba(42,48,60,.5);cursor:default"><td style="padding:8px;font-family:var(--mono);font-size:11px;color:var(--muted)">${sanitize(a.serial)}</td><td style="padding:8px;font-size:12px">${a.type}</td><td style="padding:8px;font-size:12px">${sanitize(a.model)}</td><td style="padding:8px;font-size:12px;font-weight:700;color:${a.status==='Pass'?'var(--green)':a.status==='Fail'?'var(--red)':'var(--yellow)'}">${a.status}</td><td style="padding:8px;font-family:var(--mono);font-size:11px;color:var(--muted)">${a.tested}</td><td style="padding:8px;font-family:var(--mono);font-size:11px;color:var(--muted)">${a.due}</td></tr>`).join('');return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px"><div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Assemblies at this Location</div><table style="width:100%;border-collapse:collapse"><thead><tr>${['Serial','Type','Model','Status','Tested','Due'].map(h=>`<th style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;text-align:left;padding:5px 8px;border-bottom:1px solid var(--border)">${h}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;}
+function locRenderDetails(loc){return _lc('Property Information',_lg([['Business Name',sanitize(loc.name)],['Account Number',sanitize(loc.account)],['Street Address',sanitize(loc.address)],['City / State / ZIP',loc.city+', '+loc.state+' '+loc.zip],['Hazard Type',loc.hazard+' Hazard'],['Service Connections',loc.connections]]))+_lc('Primary Contact',_lg([['Contact Name',sanitize(loc.contact)],['Phone',sanitize(loc.phone)],['Email',sanitize(loc.email)],['Overall Compliance','<span style="color:'+(loc.compliance==='Compliant'?'var(--green)':loc.compliance==='Overdue'?'var(--yellow)':'var(--red)')+'">'+loc.compliance+'</span>']]));}
+
+function locRenderAssemblies(loc){
+  const sc=s=>s==='Pass'?'var(--green)':s==='Fail'?'var(--red)':'var(--yellow)';
+  const sbg=s=>s==='Pass'?'rgba(76,175,121,.12)':s==='Fail'?'rgba(224,82,82,.12)':'rgba(240,192,64,.12)';
+  const sbr=s=>s==='Pass'?'rgba(76,175,121,.3)':s==='Fail'?'rgba(224,82,82,.3)':'rgba(240,192,64,.3)';
+  const rows=loc.assemblies.map(a=>`<tr style="border-bottom:1px solid var(--border)"><td style="padding:9px 10px;font-size:12px;font-weight:600">${a.type}</td><td style="padding:9px 10px;font-size:12px;color:var(--muted)">${a.make}</td><td style="padding:9px 10px;font-size:12px;color:var(--muted)">${a.model}</td><td style="padding:9px 10px;font-family:var(--mono);font-size:11px;color:var(--muted)">${sanitize(a.serial)}</td><td style="padding:9px 10px"><span style="font-family:var(--mono);font-size:9px;font-weight:700;color:${sc(a.status)};background:${sbg(a.status)};border:1px solid ${sbr(a.status)};padding:2px 8px;border-radius:3px">${a.status.toUpperCase()}</span></td><td style="padding:9px 10px;font-family:var(--mono);font-size:10px;color:var(--muted)">${a.due}</td></tr>`).join('');
+  return _lc('Assemblies ('+loc.assemblies.length+')','<table style="width:100%;border-collapse:collapse"><thead><tr style="border-bottom:1px solid var(--border)">'+['Type','Make','Model','Serial #','Status','Due'].map(h=>`<th style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;text-align:left;padding:5px 10px">${h}</th>`).join('')+'</tr></thead><tbody>'+rows+'</tbody></table>')+'<button onclick="alert(\'Add Assembly\')" class="btn btn-ac" style="width:100%;justify-content:center;margin-top:8px">+ Add Assembly</button>';
+}
+
+function locRenderContacts(loc){return _lc('Primary Contact',_lg([['Name',sanitize(loc.contact)],['Phone',sanitize(loc.phone)],['Email',sanitize(loc.email)],['Role','Property Manager']]))+_lc('Account',_lg([['Account #',sanitize(loc.account)],['Address',sanitize(loc.address)],['City',loc.city],['ZIP',loc.zip]]));}
 
 function locRenderComms(loc){
-  const items=loc.communications.map(c=>`<div style="display:flex;gap:10px;padding-bottom:14px"><div style="display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0"><div style="width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);flex-shrink:0;margin-top:3px"></div><div style="flex:1;width:1px;background:var(--border);margin-top:3px"></div></div><div><div style="font-weight:600;font-size:12.5px;color:var(--text)">${c.type}</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:1px">${c.date} &bull; ${c.method}</div></div></div>`).join('');
+  const tl=loc.communications.map(c=>`<div style="display:flex;gap:10px;padding-bottom:14px"><div style="display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0"><div style="width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);margin-top:3px"></div><div style="flex:1;width:1px;background:var(--border);margin-top:3px"></div></div><div><div style="font-size:12px;font-weight:600;color:var(--text)">${c.type}</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:1px">${c.date} &bull; ${c.method}</div><div style="margin-top:2px;font-family:var(--mono);font-size:9px;color:var(--green)">&#x2713; ${c.status}</div></div></div>`).join('');
   const lastDue=new Date(loc.assemblies.sort((a,b)=>new Date(b.due)-new Date(a.due))[0].due);
   const fmt=d=>d.toISOString().split('T')[0];
   const d60=new Date(lastDue);d60.setDate(d60.getDate()-60);
   const d30=new Date(lastDue);d30.setDate(d30.getDate()-30);
   const d7=new Date(lastDue);d7.setDate(d7.getDate()-7);
-  return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px"><div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Communication History</div><div>${items}</div></div><div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px"><div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Predictive Outreach Schedule</div>${[['60-Day Notice',fmt(d60),'var(--blue)'],['30-Day Notice',fmt(d30),'var(--yellow)'],['7-Day Urgent',fmt(d7),'var(--red)'],['Due Date',loc.assemblies.sort((a,b)=>new Date(b.due)-new Date(a.due))[0].due,'var(--accent)']].map(([t,d,c])=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)"><div style="width:30px;height:30px;border-radius:7px;background:rgba(${c==='var(--blue)'?'100,149,237':c==='var(--yellow)'?'240,192,64':c==='var(--red)'?'224,82,82':'249,166,30'},.12);flex-shrink:0"></div><div style="flex:1"><div style="font-size:12.5px;font-weight:600;color:var(--text)">${t}</div><div style="font-family:var(--mono);font-size:9.5px;color:var(--muted)">Scheduled</div></div><div style="font-family:var(--mono);font-size:10px;color:var(--muted)">${d}</div></div>`).join('')}</div>`;}
-
-function locRenderSurvey(loc){return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px"><div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Address Survey</div>${[['Surveyor Name','text','Matt Snider'],['Survey Date','date','2025-11-14'],['Service Connections','number',String(loc.connections)]].map(([l,t,v])=>`<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">${l}</label><input type="${t}" value="${sanitize(v)}" class="si" style="font-size:13px;padding:7px 10px"></div>`).join('')}<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Hazard Classification</label><select class="ss" style="font-size:13px;padding:7px 10px"><option ${loc.hazard==='High'?'selected':''}>High</option><option ${loc.hazard==='Medium'?'selected':''}>Medium</option><option ${loc.hazard==='Low'?'selected':''}>Low</option></select></div><div style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Site Access Notes</label><textarea rows="3" class="si" style="font-size:13px;padding:7px 10px;resize:vertical">${sanitize(loc.surveyNotes)}</textarea></div><div style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Survey Result</label><select class="ss" style="font-size:13px;padding:7px 10px"><option ${loc.lastSurvey==='Pass'?'selected':''}>Pass</option><option ${loc.lastSurvey==='Fail'?'selected':''}>Fail</option><option>Pending</option></select></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:6px"><button class="btn btn-gh btn-sm">Cancel</button><button class="btn btn-ac btn-sm">Save Survey</button></div></div>`;}
-
-function locRenderCompliance(loc){
-  const bars=loc.complianceHistory.map(y=>{const c=y.pct===100?'var(--green)':y.pct>=50?'var(--yellow)':'var(--red)';return`<div style="display:flex;align-items:center;gap:9px;margin-bottom:7px"><div style="font-family:var(--mono);font-size:10px;color:var(--muted);width:34px;flex-shrink:0">${y.year}</div><div style="flex:1;background:var(--elevated);border-radius:3px;height:13px;overflow:hidden"><div style="height:100%;border-radius:3px;width:${y.pct}%;background:${c}"></div></div><div style="font-family:var(--mono);font-size:10px;color:var(--text);width:32px;text-align:right">${y.pct}%</div></div>`;}).join('');
-  const allPass=loc.complianceHistory.filter(y=>y.pct===100).length;
-  const riskColor=loc.riskScore<30?'var(--green)':loc.riskScore<60?'var(--yellow)':'var(--red)';
-  return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px"><div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Year-Over-Year Compliance</div>${bars}<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);display:flex;gap:20px">${[['Perfect Years',allPass+' / '+loc.complianceHistory.length,'var(--green)'],['Last Survey',loc.lastSurvey,'var(--text)'],['Current Status',loc.compliance,loc.compliance==='Compliant'?'var(--green)':loc.compliance==='Overdue'?'var(--yellow)':'var(--red)']].map(([l,v,c])=>`<div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase">${l}</div><div style="font-family:var(--cond);font-weight:700;font-size:15px;color:${c}">${v}</div></div>`).join('')}</div></div><div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px"><div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">AI Risk Assessment</div><div style="display:flex;align-items:center;gap:14px;margin-bottom:10px"><div style="width:56px;height:56px;border-radius:50%;background:conic-gradient(${riskColor} ${loc.riskScore*3.6}deg,var(--elevated) 0deg);display:flex;align-items:center;justify-content:center"><div style="width:42px;height:42px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:16px;color:${riskColor}">${loc.riskScore}</div></div><div><div style="font-family:var(--cond);font-weight:700;font-size:16px;color:${riskColor}">${loc.riskScore<30?'LOW RISK':loc.riskScore<60?'MODERATE RISK':'HIGH RISK'}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">Composite score 0–100</div></div></div><div style="font-size:12px;color:var(--muted);line-height:1.6;padding:9px 11px;background:var(--elevated);border-radius:6px">${loc.riskScore<30?'✓ Excellent compliance. No immediate action required.':loc.riskScore<60?'⚠ Moderate risk. Schedule inspection within 30 days.':'⛔ High risk. Overdue assemblies detected. Immediate follow-up required.'}</div></div>`;
+  const sched=[['60-Day Notice',fmt(d60),'var(--blue)'],['30-Day Notice',fmt(d30),'var(--yellow)'],['7-Day Urgent',fmt(d7),'var(--red)'],['Due Date',loc.assemblies[0].due,'var(--accent)']].map(([t,d,c])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><div style="font-size:12px;font-weight:600;color:var(--text)">${t}</div><div style="font-family:var(--mono);font-size:10px;color:${c}">${d}</div></div>`).join('');
+  return _lc('Communication History','<div>'+tl+'</div>')+_lc('Predictive Outreach Schedule',sched);
 }
 
-// Call locInit when Locations nav item is activated
-// (already handled by nav() calling locInit via the page show)
+function locRenderSurveys(loc){
+  const s=loc.surveys[0];const rc=s.result==='Pass'?'var(--green)':s.result==='Fail'?'var(--red)':'var(--yellow)';
+  return _lc('Customer Service Inspection',_lg([['Date',s.date],['Surveyor',s.surveyor],['Result','<span style="color:'+rc+'">'+s.result+'</span>'],['','&#x200B;']])+`<div style="margin-top:10px;padding:10px 12px;background:var(--elevated);border-radius:6px;font-size:12px;color:var(--muted);line-height:1.6">${sanitize(s.notes)}</div>`)+'<button onclick="alert(\'New Survey\')" class="btn btn-gh" style="width:100%;justify-content:center;margin-top:8px">+ New Survey</button>';
+}
+
+function locRenderCompliance(loc){
+  const bars=loc.complianceHistory.map(y=>{const c=y.pct===100?'var(--green)':y.pct>=50?'var(--yellow)':'var(--red)';return`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><div style="font-family:var(--mono);font-size:10px;color:var(--muted);width:34px">${y.year}</div><div style="flex:1;background:var(--elevated);border-radius:3px;height:14px;overflow:hidden"><div style="height:100%;border-radius:3px;width:${y.pct}%;background:${c}"></div></div><div style="font-family:var(--mono);font-size:10px;color:var(--text);width:32px;text-align:right">${y.pct}%</div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);width:50px">${y.pass}P/${y.fail}F</div></div>`;}).join('');
+  const rc=loc.riskScore<30?'var(--green)':loc.riskScore<60?'var(--yellow)':'var(--red)';
+  const rl=loc.riskScore<30?'LOW RISK':loc.riskScore<60?'MODERATE RISK':'HIGH RISK';
+  const rm=loc.riskScore<30?'Excellent compliance. Continue standard monitoring.':loc.riskScore<60?'Moderate risk. Schedule inspection within 30 days.':'High risk. Immediate follow-up required.';
+  return _lc('Year-Over-Year Compliance',bars)+_lc('AI Risk Score',`<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px"><div style="width:52px;height:52px;border-radius:50%;background:conic-gradient(${rc} ${loc.riskScore*3.6}deg,var(--elevated) 0deg);display:flex;align-items:center;justify-content:center;flex-shrink:0"><div style="width:40px;height:40px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:15px;color:${rc}">${loc.riskScore}</div></div><div><div style="font-family:var(--cond);font-weight:700;font-size:15px;color:${rc}">${rl}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">Composite score 0-100</div></div></div><div style="font-size:12px;color:var(--muted);line-height:1.6;padding:9px 11px;background:var(--elevated);border-radius:6px">${rm}</div>`);
+}
+
+function locExportCSV(){
+  const h=['Account','Name','Address','City','ZIP','Phone','Contact','Email','Hazard','Compliance','Devices'];
+  const rows=locFiltered.map(l=>[l.account,l.name,l.address,l.city,l.zip,l.phone,l.contact,l.email,l.hazard,l.compliance,l.deviceCount]);
+  const csv=[h,...rows].map(r=>r.map(v=>'"'+(v||'').toString().replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='cci-locations.csv';a.click();
+}
 
 </script>
 
