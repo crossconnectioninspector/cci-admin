@@ -1057,7 +1057,136 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
   </div>
 </div>
 
-<div class="page" id="page-assemblies-page"><div class="es"><div class="es-icon">&#x2699;&#xFE0F;</div><div class="es-title">Assemblies</div><div class="es-sub">Assembly inventory coming soon.</div></div></div>
+<div class="page" id="page-assemblies-page" style="padding:0;display:none;height:calc(100vh - 56px);flex-direction:column;overflow:hidden">
+
+  <!-- Top bar -->
+  <div style="display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0">
+    <div style="flex:1;display:flex;align-items:center;gap:6px;background:var(--elevated);border:1.5px solid var(--border);border-radius:9px;padding:0 12px;height:38px;max-width:680px" onfocusin="this.style.borderColor='var(--accent)'" onfocusout="this.style.borderColor='var(--border)'">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="asmMainSearch" type="text" placeholder="Search by serial number, address, type, make..." oninput="asmApplyFilters()" style="background:none;border:none;outline:none;color:var(--text);font-family:var(--sans);font-size:13px;width:100%">
+    </div>
+    <!-- Filter pills -->
+    <div style="display:flex;gap:5px">
+      <button id="asmFilterAll" onclick="asmSetFilter('all')" style="padding:5px 12px;border-radius:6px;background:var(--accent);color:#000;font-size:12px;font-weight:700;border:none;cursor:pointer;font-family:var(--sans)">All</button>
+      <button id="asmFilterPass" onclick="asmSetFilter('pass')" style="padding:5px 12px;border-radius:6px;background:var(--elevated);color:var(--muted);font-size:12px;font-weight:600;border:1px solid var(--border);cursor:pointer;font-family:var(--sans)">Pass</button>
+      <button id="asmFilterFail" onclick="asmSetFilter('fail')" style="padding:5px 12px;border-radius:6px;background:var(--elevated);color:var(--muted);font-size:12px;font-weight:600;border:1px solid var(--border);cursor:pointer;font-family:var(--sans)">Fail</button>
+      <button id="asmFilterOverdue" onclick="asmSetFilter('overdue')" style="padding:5px 12px;border-radius:6px;background:var(--elevated);color:var(--muted);font-size:12px;font-weight:600;border:1px solid var(--border);cursor:pointer;font-family:var(--sans)">Overdue</button>
+    </div>
+    <button onclick="asmExportCSV()" class="btn btn-gh btn-sm" style="height:38px;width:38px;padding:0;justify-content:center" title="Export CSV">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    </button>
+    <div style="margin-left:auto">
+      <button onclick="asmOpenAdd()" class="btn btn-ac" style="height:38px;white-space:nowrap">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Assembly
+      </button>
+    </div>
+  </div>
+
+  <!-- Main: table + detail -->
+  <div style="flex:1;display:flex;overflow:hidden">
+
+    <!-- LEFT: table -->
+    <div id="asmTableWrap" style="display:flex;flex-direction:column;overflow:hidden;flex:1">
+      <!-- Headers -->
+      <div id="asmTableHeaders" style="display:grid;grid-template-columns:110px 80px 100px 100px 1fr 120px 110px 100px;padding:8px 16px;border-bottom:1px solid var(--border);background:var(--elevated);flex-shrink:0">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:0 6px">Serial #</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:0 6px">Type</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:0 6px">Make</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:0 6px">Model</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:0 6px">Location</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:0 6px">Account #</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:0 6px">Next Due</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:0 6px">Status</div>
+      </div>
+      <div id="asmTableBody" style="flex:1;overflow-y:auto"></div>
+      <!-- Pagination -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">Rows per page:</span>
+          <select id="asmRowsPerPage" onchange="asmChangePage(1)" class="ss" style="font-size:11px;padding:3px 6px;width:auto"><option>10</option><option>25</option><option>50</option></select>
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted)" id="asmPageInfo"></div>
+        <div style="display:flex;gap:4px">
+          <button onclick="asmChangePage(1)" class="btn btn-gh btn-sm" style="padding:4px 10px">&#x27E8;&#x27E8;</button>
+          <button onclick="asmPrevPage()" class="btn btn-gh btn-sm" style="padding:4px 10px">&#x27E8;</button>
+          <button onclick="asmNextPage()" class="btn btn-gh btn-sm" style="padding:4px 10px">&#x27E9;</button>
+          <button onclick="asmLastPage()" class="btn btn-gh btn-sm" style="padding:4px 10px">&#x27E9;&#x27E9;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: detail panel -->
+    <div id="asmDetailPanel" style="width:0;overflow:hidden;border-left:1px solid var(--border);transition:width .25s ease,opacity .2s ease;opacity:0;flex-shrink:0;display:flex;flex-direction:column;background:var(--bg)">
+      <div style="width:500px;display:flex;flex-direction:column;height:100%;overflow:hidden">
+
+        <!-- Summary header -->
+        <div id="asmDetailHeader" style="padding:16px 18px 0;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
+            <div>
+              <div id="asmDetailSerial" style="font-family:var(--cond);font-weight:900;font-size:24px;color:var(--text);line-height:1"></div>
+              <div id="asmDetailSub" style="font-size:12px;color:var(--muted);margin-top:3px"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:8px">
+              <div id="asmDetailBadge"></div>
+              <button onclick="asmCloseDetail()" style="width:26px;height:26px;border-radius:6px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px">&#x2715;</button>
+            </div>
+          </div>
+
+          <!-- Summary cards row (like SwiftComply) -->
+          <div id="asmSummaryCards" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px"></div>
+
+          <!-- Tabs -->
+          <div style="display:flex;overflow-x:auto" id="asmDetailTabs">
+            <button class="m-tab active" onclick="asmSwitchTab('details',this)">Details</button>
+            <button class="m-tab" onclick="asmSwitchTab('location',this)">Location</button>
+            <button class="m-tab" onclick="asmSwitchTab('history',this)">Report History</button>
+            <button class="m-tab" onclick="asmSwitchTab('comms',this)">Communications</button>
+            <button class="m-tab" onclick="asmSwitchTab('compliance',this)">Compliance</button>
+          </div>
+        </div>
+        <div id="asmTabBody" style="flex:1;overflow-y:auto;padding:14px 16px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Assembly Modal -->
+<div id="asmAddModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <div style="font-family:var(--cond);font-weight:900;font-size:22px;color:var(--text)">Add Assembly</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px">Register a new backflow device</div>
+      </div>
+      <button onclick="asmCloseAdd()" style="width:28px;height:28px;border-radius:6px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px">&#x2715;</button>
+    </div>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">Assembly Information</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
+      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Serial Number *</label><input type="text" id="aa-serial" class="si" placeholder="RP-0001" style="font-size:13px;padding:8px 11px"></div>
+      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Type *</label><select id="aa-type" class="ss" style="font-size:13px;padding:8px 11px"><option value="">Select type...</option><option>RPZ</option><option>DCVA</option><option>PVB</option><option>SVB</option><option>AVB</option></select></div>
+      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Make</label><input type="text" id="aa-make" class="si" placeholder="Watts, Febco, Ames..." style="font-size:13px;padding:8px 11px"></div>
+      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Model</label><input type="text" id="aa-model" class="si" placeholder="009, 860, 4000SS..." style="font-size:13px;padding:8px 11px"></div>
+      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Size</label><input type="text" id="aa-size" class="si" placeholder='3/4", 1", 2"...' style="font-size:13px;padding:8px 11px"></div>
+      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Lead Free?</label><select id="aa-leadfree" class="ss" style="font-size:13px;padding:8px 11px"><option>Unknown</option><option>Yes</option><option>No</option></select></div>
+    </div>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">Location & Compliance</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
+      <div style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Service Address *</label><input type="text" id="aa-address" class="si" placeholder="1423 N 1st St, Abilene TX 79601" style="font-size:13px;padding:8px 11px"></div>
+      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Account #</label><input type="text" id="aa-account" class="si" placeholder="ACC-00000" style="font-size:13px;padding:8px 11px"></div>
+      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Hazard Level</label><select id="aa-hazard" class="ss" style="font-size:13px;padding:8px 11px"><option value="">Select...</option><option>High</option><option>Medium</option><option>Low</option></select></div>
+      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Protection Type</label><input type="text" id="aa-protection" class="si" placeholder="Public water supply..." style="font-size:13px;padding:8px 11px"></div>
+      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Installed On</label><input type="date" id="aa-installed" class="si" style="font-size:13px;padding:8px 11px"></div>
+      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Next Test Due</label><input type="date" id="aa-duedate" class="si" style="font-size:13px;padding:8px 11px"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:18px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Notes / Location Description</label><textarea id="aa-notes" class="si" rows="2" placeholder="Mechanical room, rear entrance, meter pit..." style="font-size:13px;padding:8px 11px;resize:vertical"></textarea></div>
+    <div id="aa-error" style="display:none;background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.3);border-radius:7px;padding:10px 14px;font-size:12px;color:var(--red);margin-bottom:12px"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px">
+      <button onclick="asmCloseAdd()" class="btn btn-gh">Cancel</button>
+      <button onclick="asmSaveAdd()" class="btn btn-ac">Save Assembly</button>
+    </div>
+  </div>
+</div>
 
 <div class="page" id="page-state-reports-page"><div class="es"><div class="es-icon">&#x1F4CB;</div><div class="es-title">State Reports</div><div class="es-sub">TCEQ annual report export coming soon.</div></div></div>
 
@@ -1598,6 +1727,7 @@ function nav(id, btn) {
   if(id==='locations-page') locInit();
   if(id==='contacts-page') conInit();
   if(id==='providers-page') spInit();
+  if(id==='assemblies-page') asmInit();
 }
 
 // Dashboard theme handled below
@@ -4131,6 +4261,7 @@ document.addEventListener('click', function(e) {
   const locM=document.getElementById('locAddModal'); if(locM&&e.target===locM)locCloseAdd();
   const conM=document.getElementById('conAddModal'); if(conM&&e.target===conM)conCloseAdd();
   const spM=document.getElementById('spAddModal');  if(spM&&e.target===spM)spCloseAdd();
+  const asmM=document.getElementById('asmAddModal'); if(asmM&&e.target===asmM)asmCloseAdd();
 });
 
 // Locations: click outside detail panel
@@ -4153,6 +4284,440 @@ document.addEventListener('click', function(e) {
   const panel=document.getElementById('spDetailPanel'); if(!panel)return;
   if(!panel.contains(e.target)&&!e.target.closest('[onclick^="spSelectRow"]')&&!e.target.closest('#page-providers-page > div:first-child'))spCloseDetail();
 },true);
+
+// ═══════════════════════════════════════════════════════
+//  ASSEMBLIES MODULE
+// ═══════════════════════════════════════════════════════
+const ASM_DATA = [
+  {id:1,serial:"RP-2291",type:"RPZ",make:"Watts",model:"009",size:'3/4"',leadFree:"Yes",status:"Pass",
+   address:"1423 N 1st St",city:"Abilene",state:"TX",zip:"79601",account:"ACC-00142",
+   hazard:"High",protection:"Public Water Supply",installed:"2023-03-10",
+   lastTested:"2025-11-14",lastResult:"Pass",nextDue:"2026-11-14",testedBy:"Matt Snider",
+   notes:"East side mechanical room. Accessible via rear entrance.",
+   reportHistory:[
+     {date:"2025-11-14",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"2.1 PSI"},
+     {date:"2024-11-08",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"2.3 PSI"},
+     {date:"2023-11-02",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"1.9 PSI"},
+   ],
+   communications:[
+     {date:"2025-09-14",type:"60-Day Notice",method:"Email",status:"Sent"},
+     {date:"2025-10-14",type:"30-Day Notice",method:"Email",status:"Sent"},
+     {date:"2025-11-07",type:"7-Day Notice",method:"Email + SMS",status:"Sent"},
+   ]},
+  {id:2,serial:"DC-0044",type:"DCVA",make:"Wilkins",model:"975XL",size:'1"',leadFree:"Yes",status:"Pass",
+   address:"1423 N 1st St",city:"Abilene",state:"TX",zip:"79601",account:"ACC-00142",
+   hazard:"High",protection:"Public Water Supply",installed:"2023-03-10",
+   lastTested:"2025-11-14",lastResult:"Pass",nextDue:"2026-11-14",testedBy:"Matt Snider",
+   notes:"East side mechanical room, second assembly.",
+   reportHistory:[
+     {date:"2025-11-14",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"1.8 PSI"},
+     {date:"2024-11-08",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"1.7 PSI"},
+   ],
+   communications:[
+     {date:"2025-09-14",type:"60-Day Notice",method:"Email",status:"Sent"},
+     {date:"2025-11-07",type:"7-Day Notice",method:"Email + SMS",status:"Sent"},
+   ]},
+  {id:3,serial:"RP-0881",type:"RPZ",make:"Febco",model:"860",size:'1"',leadFree:"No",status:"Overdue",
+   address:"3801 S Clack St",city:"Abilene",state:"TX",zip:"79606",account:"ACC-00389",
+   hazard:"High",protection:"Public Water Supply - Medical",installed:"2020-05-18",
+   lastTested:"2024-10-02",lastResult:"Pass",nextDue:"2025-10-02",testedBy:"Jorge Rodriguez",
+   notes:"Main mechanical room - building B. Facilities director contact.",
+   reportHistory:[
+     {date:"2024-10-02",result:"Pass",tester:"J. Rodriguez",cert:"TX-2209",reading:"3.1 PSI"},
+     {date:"2023-09-28",result:"Pass",tester:"J. Rodriguez",cert:"TX-2209",reading:"3.0 PSI"},
+   ],
+   communications:[
+     {date:"2025-07-02",type:"60-Day Notice",method:"Email",status:"Sent"},
+     {date:"2025-09-30",type:"Overdue Notice",method:"Email",status:"Sent"},
+     {date:"2025-10-14",type:"Overdue Notice",method:"Email",status:"Sent"},
+   ]},
+  {id:4,serial:"RP-0882",type:"RPZ",make:"Febco",model:"860",size:'1"',leadFree:"No",status:"Pass",
+   address:"3801 S Clack St",city:"Abilene",state:"TX",zip:"79606",account:"ACC-00389",
+   hazard:"High",protection:"Public Water Supply - Medical",installed:"2020-05-18",
+   lastTested:"2025-03-15",lastResult:"Pass",nextDue:"2026-03-15",testedBy:"Jorge Rodriguez",
+   notes:"Secondary building connection.",
+   reportHistory:[
+     {date:"2025-03-15",result:"Pass",tester:"J. Rodriguez",cert:"TX-2209",reading:"2.8 PSI"},
+   ],
+   communications:[
+     {date:"2025-01-15",type:"60-Day Notice",method:"Email",status:"Sent"},
+   ]},
+  {id:5,serial:"DC-0199",type:"DCVA",make:"Watts",model:"007",size:'3/4"',leadFree:"No",status:"Overdue",
+   address:"3801 S Clack St",city:"Abilene",state:"TX",zip:"79606",account:"ACC-00389",
+   hazard:"High",protection:"Irrigation System",installed:"2020-05-18",
+   lastTested:"2024-10-02",lastResult:"Pass",nextDue:"2025-10-02",testedBy:"Jorge Rodriguez",
+   notes:"Irrigation connection - east grounds.",
+   reportHistory:[
+     {date:"2024-10-02",result:"Pass",tester:"J. Rodriguez",cert:"TX-2209",reading:"2.2 PSI"},
+   ],
+   communications:[
+     {date:"2025-09-30",type:"Overdue Notice",method:"Email",status:"Sent"},
+   ]},
+  {id:6,serial:"PV-0034",type:"PVB",make:"Ames",model:"4000SS",size:'1/2"',leadFree:"Yes",status:"Pass",
+   address:"4150 Buffalo Gap Rd",city:"Abilene",state:"TX",zip:"79605",account:"ACC-00217",
+   hazard:"Medium",protection:"Irrigation",installed:"2022-01-12",
+   lastTested:"2026-01-22",lastResult:"Pass",nextDue:"2027-01-22",testedBy:"Matt Snider",
+   notes:"Garden center irrigation system. Access via garden center entrance.",
+   reportHistory:[
+     {date:"2026-01-22",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"1.2 PSI"},
+     {date:"2025-01-19",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"1.1 PSI"},
+   ],
+   communications:[
+     {date:"2025-11-22",type:"60-Day Notice",method:"Email",status:"Sent"},
+     {date:"2025-12-22",type:"30-Day Notice",method:"Email",status:"Sent"},
+   ]},
+  {id:7,serial:"RP-1145",type:"RPZ",make:"Watts",model:"009M3",size:'1"',leadFree:"Yes",status:"Fail",
+   address:"2018 Grape St",city:"Abilene",state:"TX",zip:"79601",account:"ACC-00504",
+   hazard:"Medium",protection:"Public Water Supply",installed:"2019-08-22",
+   lastTested:"2025-08-10",lastResult:"Fail",nextDue:"2026-08-10",testedBy:"Matt Snider",
+   notes:"Relief valve discharged continuously. Repair order issued. Awaiting retest.",
+   reportHistory:[
+     {date:"2025-08-10",result:"Fail",tester:"Matt Snider",cert:"TX-4421",reading:"FAIL - Relief valve discharge"},
+     {date:"2024-08-05",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"2.4 PSI"},
+   ],
+   communications:[
+     {date:"2025-06-10",type:"60-Day Notice",method:"Email",status:"Sent"},
+     {date:"2025-08-10",type:"Fail Notice",method:"Email + SMS",status:"Sent"},
+     {date:"2025-08-17",type:"Repair Follow-up",method:"Email",status:"Sent"},
+   ]},
+  {id:8,serial:"DC-0288",type:"DCVA",make:"Watts",model:"007M1",size:'3/4"',leadFree:"Yes",status:"Pass",
+   address:"2018 Grape St",city:"Abilene",state:"TX",zip:"79601",account:"ACC-00504",
+   hazard:"Medium",protection:"Irrigation",installed:"2019-08-22",
+   lastTested:"2025-08-10",lastResult:"Pass",nextDue:"2026-08-10",testedBy:"Matt Snider",
+   notes:"Irrigation system assembly.",
+   reportHistory:[
+     {date:"2025-08-10",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"1.6 PSI"},
+   ],
+   communications:[
+     {date:"2025-06-10",type:"60-Day Notice",method:"Email",status:"Sent"},
+   ]},
+];
+
+let asmFiltered=[...ASM_DATA],asmActiveId=null,asmCurrentPage=1,asmDetailOpen=false,asmCurrentFilter='all';
+
+function asmInit(){
+  asmFiltered=[...ASM_DATA];asmCurrentPage=1;asmDetailOpen=false;asmCurrentFilter='all';
+  const p=document.getElementById('asmDetailPanel');if(p){p.style.width='0';p.style.opacity='0';}
+  asmSetFilter('all');
+}
+
+function asmSetFilter(f){
+  asmCurrentFilter=f;
+  // Update button styles
+  ['all','pass','fail','overdue'].forEach(filter=>{
+    const btn=document.getElementById('asmFilter'+filter.charAt(0).toUpperCase()+filter.slice(1));
+    if(!btn)return;
+    const isActive=f===filter;
+    const colors={all:'var(--accent)',pass:'var(--green)',fail:'var(--red)',overdue:'var(--yellow)'};
+    if(isActive){
+      btn.style.background=colors[filter];btn.style.color=filter==='overdue'?'#000':'#000';
+      btn.style.border='none';
+    } else {
+      btn.style.background='var(--elevated)';btn.style.color='var(--muted)';btn.style.border='1px solid var(--border)';
+    }
+  });
+  asmApplyFilters();
+}
+
+function asmApplyFilters(){
+  const ms=document.getElementById('asmMainSearch')?.value.trim().toLowerCase()||'';
+  asmFiltered=ASM_DATA.filter(a=>{
+    const matchFilter=asmCurrentFilter==='all'||a.status.toLowerCase()===asmCurrentFilter;
+    const matchSearch=!ms||a.serial.toLowerCase().includes(ms)||a.address.toLowerCase().includes(ms)||
+      a.type.toLowerCase().includes(ms)||a.make.toLowerCase().includes(ms)||a.account.toLowerCase().includes(ms);
+    return matchFilter&&matchSearch;
+  });
+  asmCurrentPage=1;asmRenderTable();
+}
+
+function asmDaysUntil(dateStr){
+  if(!dateStr)return null;
+  return Math.floor((new Date(dateStr)-new Date())/(1000*60*60*24));
+}
+
+function asmRenderTable(){
+  const body=document.getElementById('asmTableBody');
+  const rpp=parseInt(document.getElementById('asmRowsPerPage')?.value||'10');
+  const total=asmFiltered.length;
+  const totalPages=Math.max(1,Math.ceil(total/rpp));
+  if(asmCurrentPage>totalPages)asmCurrentPage=totalPages;
+  const start=(asmCurrentPage-1)*rpp;
+  const page=asmFiltered.slice(start,start+rpp);
+  const info=document.getElementById('asmPageInfo');
+  if(info)info.textContent=total===0?'No results':`${start+1}-${Math.min(start+rpp,total)} of ${total} items`;
+  if(!body)return;
+  if(!page.length){
+    body.innerHTML=`<div style="text-align:center;padding:48px;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px;opacity:.3">&#x2699;</div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">No assemblies found</div></div>`;
+    return;
+  }
+  const cols=asmDetailOpen?'110px 70px 90px 90px 1fr 100px':'110px 80px 100px 100px 1fr 120px 110px 100px';
+  // Update headers for slim mode
+  const hdrs=document.getElementById('asmTableHeaders');
+  if(hdrs){
+    hdrs.style.gridTemplateColumns=cols;
+    const headLabels=asmDetailOpen
+      ?['Serial #','Type','Make','Model','Location','Account #']
+      :['Serial #','Type','Make','Model','Location','Account #','Next Due','Status'];
+    hdrs.innerHTML=headLabels.map(h=>`<div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:0 6px">${h}</div>`).join('');
+  }
+
+  body.innerHTML=page.map(a=>{
+    const isActive=asmActiveId===a.id;
+    const sc=a.status==='Pass'?'var(--green)':a.status==='Fail'?'var(--red)':'var(--yellow)';
+    const sbg=a.status==='Pass'?'rgba(76,175,121,.12)':a.status==='Fail'?'rgba(224,82,82,.12)':'rgba(240,192,64,.12)';
+    const sbr=a.status==='Pass'?'rgba(76,175,121,.3)':a.status==='Fail'?'rgba(224,82,82,.3)':'rgba(240,192,64,.3)';
+    const days=asmDaysUntil(a.nextDue);
+    const dueColor=days===null?'var(--muted)':days<0?'var(--red)':days<30?'var(--yellow)':'var(--green)';
+    const dueLabel=days===null?'—':days<0?'OVERDUE':days===0?'TODAY':days+'d';
+
+    let cells;
+    if(asmDetailOpen){
+      cells=[
+        `<div style="font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:700">${sanitize(a.serial)}</div>`,
+        `<div style="font-size:12px;font-weight:600;color:var(--text)">${a.type}</div>`,
+        `<div style="font-size:11px;color:var(--muted)">${sanitize(a.make)}</div>`,
+        `<div style="font-size:11px;color:var(--muted)">${sanitize(a.model)}</div>`,
+        `<div style="font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(a.address)}</div>`,
+        `<div style="font-family:var(--mono);font-size:10px;color:var(--muted)">${sanitize(a.account)}</div>`,
+      ];
+    } else {
+      cells=[
+        `<div style="font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:700">${sanitize(a.serial)}</div>`,
+        `<div style="font-size:12px;font-weight:600;color:var(--text)">${a.type}</div>`,
+        `<div style="font-size:12px;color:var(--muted)">${sanitize(a.make)}</div>`,
+        `<div style="font-size:12px;color:var(--muted)">${sanitize(a.model)}</div>`,
+        `<div style="font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(a.address)}, ${a.city}</div>`,
+        `<div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${sanitize(a.account)||'&mdash;'}</div>`,
+        `<div style="font-family:var(--mono);font-size:11px;color:${dueColor};font-weight:${days!==null&&days<30?'700':'400'}">${dueLabel}</div>`,
+        `<span style="font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 8px;border-radius:3px;background:${sbg};color:${sc};border:1px solid ${sbr}">${a.status.toUpperCase()}</span>`,
+      ];
+    }
+
+    return `<div onclick="asmSelectRow(${a.id})" style="display:grid;grid-template-columns:${cols};padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;align-items:center;background:${isActive?'rgba(249,166,30,.06)':'transparent'};border-left:3px solid ${isActive?'var(--accent)':'transparent'}"
+      onmouseover="if(!${isActive})this.style.background='var(--elevated)'" onmouseout="this.style.background='${isActive?'rgba(249,166,30,.06)':'transparent'}'">
+      ${cells.map(c=>`<div style="padding:0 6px;overflow:hidden">${c}</div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+function asmChangePage(p){asmCurrentPage=p;asmRenderTable();}
+function asmPrevPage(){if(asmCurrentPage>1){asmCurrentPage--;asmRenderTable();}}
+function asmNextPage(){const rpp=parseInt(document.getElementById('asmRowsPerPage')?.value||'10');if(asmCurrentPage<Math.ceil(asmFiltered.length/rpp)){asmCurrentPage++;asmRenderTable();}}
+function asmLastPage(){const rpp=parseInt(document.getElementById('asmRowsPerPage')?.value||'10');asmCurrentPage=Math.ceil(asmFiltered.length/rpp)||1;asmRenderTable();}
+
+function asmSelectRow(id){
+  asmActiveId=id;asmDetailOpen=true;
+  const a=ASM_DATA.find(x=>x.id===id);if(!a)return;
+  const panel=document.getElementById('asmDetailPanel');if(panel){panel.style.width='500px';panel.style.opacity='1';}
+
+  // Serial + sub
+  const ser=document.getElementById('asmDetailSerial');if(ser)ser.textContent=a.serial;
+  const sub=document.getElementById('asmDetailSub');if(sub)sub.textContent=a.type+' \u2022 '+a.make+' '+a.model+' ('+a.size+') \u2022 '+a.account;
+
+  // Status badge
+  const badge=document.getElementById('asmDetailBadge');
+  if(badge){
+    const sc=a.status==='Pass'?'var(--green)':a.status==='Fail'?'var(--red)':'var(--yellow)';
+    const sbg=a.status==='Pass'?'rgba(76,175,121,.14)':a.status==='Fail'?'rgba(224,82,82,.14)':'rgba(240,192,64,.14)';
+    const sbr=a.status==='Pass'?'rgba(76,175,121,.3)':a.status==='Fail'?'rgba(224,82,82,.3)':'rgba(240,192,64,.3)';
+    badge.style.cssText=`font-family:var(--cond);font-weight:700;font-size:13px;padding:4px 12px;border-radius:5px;background:${sbg};color:${sc};border:1px solid ${sbr}`;
+    badge.textContent=a.status.toUpperCase();
+  }
+
+  // Summary cards (like SwiftComply's compliance/assembly/last comm cards)
+  const cards=document.getElementById('asmSummaryCards');
+  if(cards){
+    const days=asmDaysUntil(a.nextDue);
+    const dueColor=days===null?'var(--muted)':days<0?'var(--red)':days<30?'var(--yellow)':'var(--green)';
+    const dueText=days===null?'—':days<0?Math.abs(days)+'d overdue':days+'d remaining';
+    cards.innerHTML=[
+      ['Last Result',a.lastResult,a.lastResult==='Pass'?'var(--green)':a.lastResult==='Fail'?'var(--red)':'var(--yellow)'],
+      ['Last Tested',a.lastTested,'var(--text)'],
+      ['Next Due','<span style="color:'+dueColor+'">'+dueText+'</span>','var(--text)'],
+    ].map(([l,v,c])=>`<div style="background:var(--elevated);border:1px solid var(--border);border-radius:8px;padding:10px 12px"><div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">${l}</div><div style="font-family:var(--cond);font-weight:700;font-size:15px;color:${c}">${v}</div></div>`).join('');
+  }
+
+  // Reset to details tab
+  document.querySelectorAll('#asmDetailTabs .m-tab').forEach((b,i)=>b.classList.toggle('active',i===0));
+  const body=document.getElementById('asmTabBody');if(body)body.innerHTML=asmRenderDetails(a);
+  asmRenderTable();
+}
+
+function asmCloseDetail(){
+  asmDetailOpen=false;asmActiveId=null;
+  const p=document.getElementById('asmDetailPanel');
+  if(p){p.style.opacity='0';setTimeout(()=>{p.style.width='0';setTimeout(()=>{asmRenderTable();},260);},180);}
+  else{asmRenderTable();}
+}
+
+function asmSwitchTab(tab,btn){
+  document.querySelectorAll('#asmDetailTabs .m-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  const a=ASM_DATA.find(x=>x.id===asmActiveId);
+  const body=document.getElementById('asmTabBody');if(!body||!a)return;
+  if(tab==='details')body.innerHTML=asmRenderDetails(a);
+  else if(tab==='location')body.innerHTML=asmRenderLocation(a);
+  else if(tab==='history')body.innerHTML=asmRenderHistory(a);
+  else if(tab==='comms')body.innerHTML=asmRenderComms(a);
+  else if(tab==='compliance')body.innerHTML=asmRenderCompliance(a);
+}
+
+function _ac(title,html){return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px"><div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">${title}</div>${html}</div>`;}
+function _ag(pairs){return`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${pairs.map(([l,v])=>`<div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">${l}</div><div style="font-size:13px;color:var(--text);font-weight:500">${v||'&mdash;'}</div></div>`).join('')}</div>`;}
+
+function asmRenderDetails(a){
+  return _ac('Standard Properties',_ag([
+    ['Serial Number',sanitize(a.serial)],
+    ['Type',a.type],
+    ['Make',sanitize(a.make)],
+    ['Model',sanitize(a.model)],
+    ['Size',sanitize(a.size)],
+    ['Lead Free?',a.leadFree],
+    ['Installed On',a.installed],
+    ['Last Tested',a.lastTested],
+    ['Last Result','<span style="color:'+(a.lastResult==='Pass'?'var(--green)':a.lastResult==='Fail'?'var(--red)':'var(--yellow)')+'">'+a.lastResult+'</span>'],
+    ['Next Due',a.nextDue],
+    ['Tested By',sanitize(a.testedBy)],
+    ['Account #',sanitize(a.account)],
+  ]))+
+  _ac('Custom Properties',_ag([
+    ['Hazard Level',a.hazard],
+    ['Protection Type',sanitize(a.protection)],
+    ['Lead Free?',a.leadFree],
+    ['Service Address',sanitize(a.address)],
+  ]))+
+  (a.notes?_ac('Notes',`<div style="font-size:12px;color:var(--muted);line-height:1.6;padding:9px 11px;background:var(--elevated);border-radius:6px">${sanitize(a.notes)}</div>`):'');
+}
+
+function asmRenderLocation(a){
+  const mapUrl=`https://maps.google.com/maps?q=${encodeURIComponent(a.address+','+a.city+','+a.state+' '+a.zip)}&output=embed`;
+  return _ac('Service Location',_ag([
+    ['Street Address',sanitize(a.address)],
+    ['City',a.city],
+    ['State / ZIP',a.state+' '+a.zip],
+    ['Account #',sanitize(a.account)],
+  ]))+
+  `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px">
+    <div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;padding:14px 14px 0">Map</div>
+    <div style="padding:10px 14px">
+      <a href="https://maps.google.com/?q=${encodeURIComponent(a.address+','+a.city+','+a.state)}" target="_blank"
+        style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--accent);text-decoration:none;margin-bottom:10px">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+        ${sanitize(a.address)}, ${a.city}
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </a>
+    </div>
+    <div style="background:var(--elevated);height:180px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:var(--muted)">
+      &#x1F4CD; ${sanitize(a.address)}, ${a.city}, ${a.state} ${a.zip}
+    </div>
+  </div>`;
+}
+
+function asmRenderHistory(a){
+  if(!a.reportHistory||!a.reportHistory.length)return _ac('Report History','<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">No test reports on file.</div>');
+  const rows=a.reportHistory.map((r,i)=>{
+    const sc=r.result==='Pass'?'var(--green)':r.result==='Fail'?'var(--red)':'var(--yellow)';
+    const sbg=r.result==='Pass'?'rgba(76,175,121,.12)':'rgba(224,82,82,.12)';
+    const sbr=r.result==='Pass'?'rgba(76,175,121,.3)':'rgba(224,82,82,.3)';
+    return `<div style="padding:12px;background:${i%2===0?'var(--elevated)':'var(--surface)'};border-radius:8px;margin-bottom:6px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${r.date}</div>
+        <span style="font-family:var(--mono);font-size:9px;font-weight:700;color:${sc};background:${sbg};border:1px solid ${sbr};padding:2px 8px;border-radius:3px">${r.result.toUpperCase()}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div><div style="font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase">Tester</div><div style="font-size:12px;color:var(--text)">${sanitize(r.tester)}</div></div>
+        <div><div style="font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase">Cert #</div><div style="font-family:var(--mono);font-size:11px;color:var(--text)">${sanitize(r.cert)}</div></div>
+        <div style="grid-column:1/-1"><div style="font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase">Reading</div><div style="font-size:12px;color:var(--text)">${sanitize(r.reading)}</div></div>
+      </div>
+    </div>`;
+  }).join('');
+  return _ac('Report History ('+a.reportHistory.length+')',rows);
+}
+
+function asmRenderComms(a){
+  if(!a.communications||!a.communications.length)return _ac('Communications','<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">No communications logged.</div>');
+  const tl=a.communications.map(c=>{
+    const dc=c.status==='Sent'?'var(--green)':'var(--muted)';
+    return `<div style="display:flex;gap:10px;padding-bottom:14px">
+      <div style="display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0">
+        <div style="width:9px;height:9px;border-radius:50%;background:${dc};box-shadow:0 0 5px ${dc};margin-top:3px"></div>
+        <div style="flex:1;width:1px;background:var(--border);margin-top:3px"></div>
+      </div>
+      <div><div style="font-size:12px;font-weight:600;color:var(--text)">${c.type}</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:1px">${c.date} &bull; ${c.method}</div>
+      <div style="margin-top:2px;font-family:var(--mono);font-size:9px;color:${dc}">&#x2713; ${c.status}</div></div>
+    </div>`;
+  }).join('');
+  return _ac('Communication History',`<div>${tl}</div>`);
+}
+
+function asmRenderCompliance(a){
+  const sc=a.status==='Pass'?'var(--green)':a.status==='Fail'?'var(--red)':'var(--yellow)';
+  const days=asmDaysUntil(a.nextDue);
+  const dueColor=days===null?'var(--muted)':days<0?'var(--red)':days<30?'var(--yellow)':'var(--green)';
+  return _ac('Current Compliance Status',_ag([
+    ['Status','<span style="color:'+sc+'">'+a.status+'</span>'],
+    ['Last Test Result','<span style="color:'+(a.lastResult==='Pass'?'var(--green)':a.lastResult==='Fail'?'var(--red)':'var(--yellow)')+'">'+a.lastResult+'</span>'],
+    ['Last Tested On',a.lastTested],
+    ['Tested By',sanitize(a.testedBy)],
+    ['Next Due',a.nextDue],
+    ['Days Until Due','<span style="color:'+dueColor+'">'+(days===null?'—':days<0?Math.abs(days)+' days overdue':days+' days')+'</span>'],
+  ]))+
+  (a.notes&&a.lastResult==='Fail'?_ac('Failure Notes',`<div style="font-size:12px;color:var(--muted);line-height:1.6;padding:9px 11px;background:rgba(224,82,82,.08);border:1px solid rgba(224,82,82,.2);border-radius:6px">${sanitize(a.notes)}</div>`):'')+
+  _ac('Add Test Report',`<button onclick="alert('Navigate to Add Report to submit a new test')" class="btn btn-ac" style="width:100%;justify-content:center">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    + Add Test Report
+  </button>`);
+}
+
+function asmOpenAdd(){const m=document.getElementById('asmAddModal');if(m)m.style.display='flex';}
+function asmCloseAdd(){
+  const m=document.getElementById('asmAddModal');if(m)m.style.display='none';
+  ['aa-serial','aa-make','aa-model','aa-size','aa-address','aa-account','aa-protection','aa-notes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['aa-type','aa-leadfree','aa-hazard'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['aa-installed','aa-duedate'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+}
+function asmSaveAdd(){
+  const serial=document.getElementById('aa-serial')?.value.trim();
+  const type=document.getElementById('aa-type')?.value;
+  const address=document.getElementById('aa-address')?.value.trim();
+  const err=document.getElementById('aa-error');
+  if(!serial){if(err){err.textContent='Serial number is required.';err.style.display='block';}return;}
+  if(!type){if(err){err.textContent='Assembly type is required.';err.style.display='block';}return;}
+  if(!address){if(err){err.textContent='Service address is required.';err.style.display='block';}return;}
+  const newAsm={
+    id:ASM_DATA.length+1,serial,type,
+    make:document.getElementById('aa-make')?.value.trim()||'',
+    model:document.getElementById('aa-model')?.value.trim()||'',
+    size:document.getElementById('aa-size')?.value.trim()||'',
+    leadFree:document.getElementById('aa-leadfree')?.value||'Unknown',
+    status:'Pass',address,
+    city:'Abilene',state:'TX',zip:'',
+    account:document.getElementById('aa-account')?.value.trim()||'',
+    hazard:document.getElementById('aa-hazard')?.value||'',
+    protection:document.getElementById('aa-protection')?.value.trim()||'',
+    installed:document.getElementById('aa-installed')?.value||'',
+    lastTested:'',lastResult:'Pending',
+    nextDue:document.getElementById('aa-duedate')?.value||'',
+    testedBy:'',notes:document.getElementById('aa-notes')?.value.trim()||'',
+    reportHistory:[],communications:[]
+  };
+  ASM_DATA.push(newAsm);asmFiltered=[...ASM_DATA];asmCloseAdd();asmRenderTable();
+  // TODO: save to Supabase backflow_reports
+}
+function asmExportCSV(){
+  const h=['Serial #','Type','Make','Model','Size','Address','Account','Status','Last Tested','Next Due'];
+  const rows=asmFiltered.map(a=>[a.serial,a.type,a.make,a.model,a.size,a.address,a.account,a.status,a.lastTested,a.nextDue]);
+  const csv=[h,...rows].map(r=>r.map(v=>'"'+(v||'').toString().replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='bcp-assemblies.csv';a.click();
+}
+
+// Click outside to close
+document.addEventListener('click',function(e){
+  if(!asmDetailOpen)return;
+  const panel=document.getElementById('asmDetailPanel');if(!panel)return;
+  if(!panel.contains(e.target)&&!e.target.closest('[onclick^="asmSelectRow"]')&&!e.target.closest('#page-assemblies-page > div:first-child')&&!e.target.closest('#asmAddModal'))asmCloseDetail();
+},true);
+
 </script>
 
 <!-- ══════════════════════════════════════════════════════
