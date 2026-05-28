@@ -1118,7 +1118,7 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
 
     <!-- RIGHT: detail panel -->
     <div id="asmDetailPanel" style="width:0;overflow:hidden;border-left:1px solid var(--border);transition:width .25s ease,opacity .2s ease;opacity:0;flex-shrink:0;display:flex;flex-direction:column;background:var(--bg)">
-      <div style="width:500px;display:flex;flex-direction:column;height:100%;overflow:hidden">
+      <div style="width:560px;display:flex;flex-direction:column;height:100%;overflow:hidden">
 
         <!-- Summary header -->
         <div id="asmDetailHeader" style="padding:16px 18px 0;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">
@@ -1138,11 +1138,11 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
 
           <!-- Tabs -->
           <div style="display:flex;overflow-x:auto" id="asmDetailTabs">
-            <button class="m-tab active" onclick="asmSwitchTab('details',this)">Details</button>
-            <button class="m-tab" onclick="asmSwitchTab('location',this)">Location</button>
-            <button class="m-tab" onclick="asmSwitchTab('history',this)">Report History</button>
-            <button class="m-tab" onclick="asmSwitchTab('comms',this)">Communications</button>
-            <button class="m-tab" onclick="asmSwitchTab('compliance',this)">Compliance</button>
+            <button class="m-tab active" onclick="asmSwitchTab('details',this)" style="font-size:11px;padding:8px 10px">Details</button>
+            <button class="m-tab" onclick="asmSwitchTab('location',this)" style="font-size:11px;padding:8px 10px">Location</button>
+            <button class="m-tab" onclick="asmSwitchTab('history',this)" style="font-size:11px;padding:8px 10px">History</button>
+            <button class="m-tab" onclick="asmSwitchTab('comms',this)" style="font-size:11px;padding:8px 10px">Comms</button>
+            <button class="m-tab" onclick="asmSwitchTab('compliance',this)" style="font-size:11px;padding:8px 10px">Compliance</button>
           </div>
         </div>
         <div id="asmTabBody" style="flex:1;overflow-y:auto;padding:14px 16px"></div>
@@ -4508,7 +4508,7 @@ function asmLastPage(){const rpp=parseInt(document.getElementById('asmRowsPerPag
 function asmSelectRow(id){
   asmActiveId=id;asmDetailOpen=true;
   const a=ASM_DATA.find(x=>x.id===id);if(!a)return;
-  const panel=document.getElementById('asmDetailPanel');if(panel){panel.style.width='500px';panel.style.opacity='1';}
+  const panel=document.getElementById('asmDetailPanel');if(panel){panel.style.width='560px';panel.style.opacity='1';}
 
   // Serial + sub
   const ser=document.getElementById('asmDetailSerial');if(ser)ser.textContent=a.serial;
@@ -4589,27 +4589,59 @@ function asmRenderDetails(a){
 }
 
 function asmRenderLocation(a){
-  const mapUrl=`https://maps.google.com/maps?q=${encodeURIComponent(a.address+','+a.city+','+a.state+' '+a.zip)}&output=embed`;
-  return _ac('Service Location',_ag([
+  const mapId='asm-map-'+a.id;
+  const html=_ac('Service Location',_ag([
     ['Street Address',sanitize(a.address)],
     ['City',a.city],
     ['State / ZIP',a.state+' '+a.zip],
     ['Account #',sanitize(a.account)],
+    ['Hazard Level',a.hazard||'—'],
+    ['Protection Type',sanitize(a.protection)||'—'],
   ]))+
   `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px">
-    <div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;padding:14px 14px 0">Map</div>
-    <div style="padding:10px 14px">
-      <a href="https://maps.google.com/?q=${encodeURIComponent(a.address+','+a.city+','+a.state)}" target="_blank"
-        style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--accent);text-decoration:none;margin-bottom:10px">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
-        ${sanitize(a.address)}, ${a.city}
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-      </a>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;padding:14px 14px 8px;display:flex;align-items:center;justify-content:space-between">
+      <span>Location Map</span>
+      <a href="https://www.openstreetmap.org/search?query=${encodeURIComponent(a.address+' '+a.city+' '+a.state)}" target="_blank" style="font-family:var(--mono);font-size:9px;color:var(--accent);text-decoration:none;letter-spacing:1px">Open in Maps &#x2197;</a>
     </div>
-    <div style="background:var(--elevated);height:180px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:var(--muted)">
-      &#x1F4CD; ${sanitize(a.address)}, ${a.city}, ${a.state} ${a.zip}
-    </div>
+    <div id="${mapId}" style="height:220px;width:100%;background:var(--elevated)"></div>
+    <div style="padding:8px 14px 10px;font-family:var(--mono);font-size:10px;color:var(--muted)">&#x1F4CD; ${sanitize(a.address)}, ${a.city}, ${a.state} ${a.zip}</div>
   </div>`;
+
+  // Initialize Leaflet map after render
+  setTimeout(()=>{
+    const mapEl=document.getElementById(mapId);
+    if(!mapEl||mapEl._leaflet_id)return;
+    // Geocode using Nominatim (free, no API key)
+    const query=encodeURIComponent(a.address+', '+a.city+', '+a.state+' '+a.zip+', USA');
+    fetch('https://nominatim.openstreetmap.org/search?format=json&q='+query+'&limit=1')
+      .then(r=>r.json())
+      .then(data=>{
+        let lat=32.4487, lng=-99.7331; // Abilene TX default
+        if(data&&data[0]){lat=parseFloat(data[0].lat);lng=parseFloat(data[0].lon);}
+        if(!document.getElementById(mapId))return; // tab may have changed
+        const map=L.map(mapId,{zoomControl:true,scrollWheelZoom:false}).setView([lat,lng],16);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+          attribution:'&copy; OpenStreetMap contributors',maxZoom:19
+        }).addTo(map);
+        // Custom orange marker
+        const icon=L.divIcon({
+          html:`<div style="background:var(--accent);width:14px;height:14px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.5)"></div>`,
+          className:'',iconAnchor:[7,7]
+        });
+        L.marker([lat,lng],{icon}).addTo(map)
+          .bindPopup(`<b>${a.serial}</b><br>${a.address}<br>${a.type} - ${a.make} ${a.model}`)
+          .openPopup();
+      })
+      .catch(()=>{
+        // Fallback: use Abilene center
+        if(!document.getElementById(mapId))return;
+        const map=L.map(mapId,{zoomControl:true,scrollWheelZoom:false}).setView([32.4487,-99.7331],13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+          attribution:'&copy; OpenStreetMap contributors'
+        }).addTo(map);
+      });
+  },100);
+  return html;
 }
 
 function asmRenderHistory(a){
