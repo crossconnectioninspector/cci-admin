@@ -44,11 +44,11 @@ function sanitize(str) {
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;display:flex;font-weight:400;font-size:13.5px;line-height:var(--lh)}
 ::-webkit-scrollbar{width:5px;height:5px}
-.rpt-opt{display:flex;align-items:center;gap:9px;width:100%;padding:9px 12px;border-radius:7px;background:transparent;border:none;color:var(--text);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;text-align:left;transition:background .12s;position:relative}
-.rpt-opt:hover{background:var(--elevated)}
-.rpt-opt.active{background:rgba(249,166,30,.1);color:var(--accent)}
+.rpt-opt{display:flex;align-items:center;gap:10px;width:100%;padding:10px 13px;border-radius:10px;background:transparent;border:none;color:var(--text);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;text-align:left;transition:all .15s;position:relative}
+.rpt-opt:hover{background:rgba(255,255,255,.05);transform:translateX(2px)}
+.rpt-opt.active{background:rgba(249,166,30,.12);color:var(--accent);box-shadow:inset 0 0 0 1px rgba(249,166,30,.2)}
 .rpt-opt-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.rpt-opt-tag{margin-left:auto;font-family:var(--mono);font-size:9.5px;color:var(--muted);background:var(--elevated);border:1px solid var(--border);border-radius:4px;padding:2px 7px;white-space:nowrap}
+.rpt-opt-tag{margin-left:auto;font-family:var(--mono);font-size:9.5px;color:var(--muted);background:var(--elevated);border:1px solid var(--border);border-radius:20px;padding:2px 9px;white-space:nowrap;letter-spacing:.3px}
 .rpt-opt.active .rpt-opt-tag{color:var(--accent);border-color:rgba(249,166,30,.3);background:rgba(249,166,30,.08)}
 
 
@@ -783,7 +783,7 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
       <div style="position:relative;min-width:320px" id="rptPickerWrap">
         <!-- Trigger button -->
         <button onclick="rptTogglePicker()" id="rptPickerBtn"
-          style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:var(--elevated);border:1.5px solid var(--border);border-radius:10px;cursor:pointer;color:var(--text);font-family:var(--sans);font-size:13.5px;font-weight:600;transition:border-color .15s;text-align:left"
+          style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;background:var(--elevated);border:1.5px solid var(--border);border-radius:14px;cursor:pointer;color:var(--text);font-family:var(--sans);font-size:13.5px;font-weight:600;transition:all .2s;text-align:left;box-shadow:0 2px 8px rgba(0,0,0,.2)"
           onmouseover="this.style.borderColor='var(--accent)'" onmouseout="if(!document.getElementById('rptPickerMenu').classList.contains('open'))this.style.borderColor='var(--border)'">
           <div style="display:flex;align-items:center;gap:8px">
             <span id="rptPickerIcon" style="font-size:16px">📊</span>
@@ -794,11 +794,11 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
 
         <!-- Dropdown menu -->
         <div id="rptPickerMenu"
-          style="display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;min-width:340px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;z-index:200;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.5)">
+          style="display:none;position:absolute;top:calc(100% + 8px);left:0;right:0;min-width:340px;background:var(--surface);border:1.5px solid var(--border);border-radius:18px;z-index:200;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.04)">
 
           <!-- Assemblies group -->
           <div style="padding:8px 8px 4px">
-            <div style="font-family:var(--mono);font-size:9.5px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:6px 10px 4px">📋 Assemblies</div>
+            <div style="font-family:var(--mono);font-size:9.5px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;padding:8px 13px 4px;opacity:.8">📋 Assemblies</div>
             <button class="rpt-opt" onclick="rptPickReport('asm-overdue','📋','Assemblies Past Due')">
               <span class="rpt-opt-dot" style="background:var(--red)"></span>Assemblies Past Due
               <span class="rpt-opt-tag">overdue</span>
@@ -813,22 +813,22 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
             </button>
           </div>
 
-          <div style="height:1px;background:var(--border);margin:0 8px"></div>
+          <div style="height:1px;background:var(--border);margin:4px 12px;opacity:.6"></div>
 
           <!-- Locations group -->
           <div style="padding:4px 8px">
-            <div style="font-family:var(--mono);font-size:9.5px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:6px 10px 4px">📍 Locations</div>
+            <div style="font-family:var(--mono);font-size:9.5px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;padding:8px 13px 4px;opacity:.8">📍 Locations</div>
             <button class="rpt-opt" onclick="rptPickReport('loc-overdue','📍','Locations Past Due')">
               <span class="rpt-opt-dot" style="background:var(--red)"></span>Locations Past Due
               <span class="rpt-opt-tag">overdue</span>
             </button>
           </div>
 
-          <div style="height:1px;background:var(--border);margin:0 8px"></div>
+          <div style="height:1px;background:var(--border);margin:4px 12px;opacity:.6"></div>
 
           <!-- Test Reports group -->
           <div style="padding:4px 8px">
-            <div style="font-family:var(--mono);font-size:9.5px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:6px 10px 4px">📝 Test Reports</div>
+            <div style="font-family:var(--mono);font-size:9.5px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;padding:8px 13px 4px;opacity:.8">📝 Test Reports</div>
             <button class="rpt-opt" onclick="rptPickReport('tests-all','📝','All Test Reports')">
               <span class="rpt-opt-dot" style="background:var(--blue)"></span>Assembly Test Reports List
               <span class="rpt-opt-tag">all</span>
@@ -839,11 +839,11 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
             </button>
           </div>
 
-          <div style="height:1px;background:var(--border);margin:0 8px"></div>
+          <div style="height:1px;background:var(--border);margin:4px 12px;opacity:.6"></div>
 
           <!-- Communications group -->
           <div style="padding:4px 8px">
-            <div style="font-family:var(--mono);font-size:9.5px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:6px 10px 4px">📨 Communications</div>
+            <div style="font-family:var(--mono);font-size:9.5px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;padding:8px 13px 4px;opacity:.8">📨 Communications</div>
             <button class="rpt-opt" onclick="rptPickReport('comms-sent','📨','Comms Sent — Assembly')">
               <span class="rpt-opt-dot" style="background:var(--green)"></span>Communications Sent — Assembly
               <span class="rpt-opt-tag">outreach</span>
@@ -854,11 +854,11 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
             </button>
           </div>
 
-          <div style="height:1px;background:var(--border);margin:0 8px"></div>
+          <div style="height:1px;background:var(--border);margin:4px 12px;opacity:.6"></div>
 
           <!-- Service Providers group -->
           <div style="padding:4px 8px 8px">
-            <div style="font-family:var(--mono);font-size:9.5px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:6px 10px 4px">🔧 Service Providers</div>
+            <div style="font-family:var(--mono);font-size:9.5px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;padding:8px 13px 4px;opacity:.8">🔧 Service Providers</div>
             <button class="rpt-opt" onclick="rptPickReport('sp-gauges','🔧','Test Kit Calibrations')">
               <span class="rpt-opt-dot" style="background:var(--accent)"></span>Test Kit Calibrations List
               <span class="rpt-opt-tag">gauges</span>
@@ -5500,9 +5500,22 @@ function rptTogglePicker(){
   const btn=document.getElementById('rptPickerBtn');
   if(!menu)return;
   const isOpen=menu.style.display==='block';
-  menu.style.display=isOpen?'none':'block';
+  if(!isOpen){
+    menu.style.display='block';
+    menu.style.opacity='0';
+    menu.style.transform='translateY(-6px) scale(.98)';
+    menu.style.transition='opacity .18s ease,transform .18s ease';
+    requestAnimationFrame(()=>{
+      menu.style.opacity='1';
+      menu.style.transform='translateY(0) scale(1)';
+    });
+  } else {
+    menu.style.opacity='0';
+    menu.style.transform='translateY(-6px) scale(.98)';
+    setTimeout(()=>{ menu.style.display='none'; },180);
+  }
   if(arrow)arrow.style.transform=isOpen?'':'rotate(180deg)';
-  if(btn)btn.style.borderColor=isOpen?'var(--border)':'var(--accent)';
+  if(btn){btn.style.borderColor=isOpen?'var(--border)':'var(--accent)';btn.style.boxShadow=isOpen?'0 2px 8px rgba(0,0,0,.2)':'0 0 0 3px rgba(249,166,30,.12),0 2px 8px rgba(0,0,0,.2)';}
 }
 
 function rptPickReport(val, icon, label){
@@ -5535,9 +5548,12 @@ document.addEventListener('click',function(e){
     const menu=document.getElementById('rptPickerMenu');
     const arrow=document.getElementById('rptPickerArrow');
     const btn=document.getElementById('rptPickerBtn');
-    if(menu)menu.style.display='none';
+    if(menu&&menu.style.display==='block'){
+      menu.style.opacity='0';menu.style.transform='translateY(-6px) scale(.98)';
+      setTimeout(()=>{menu.style.display='none';},180);
+    }
     if(arrow)arrow.style.transform='';
-    if(btn)btn.style.borderColor='var(--border)';
+    if(btn){btn.style.borderColor='var(--border)';btn.style.boxShadow='0 2px 8px rgba(0,0,0,.2)';}
   }
 },true);
 
