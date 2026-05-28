@@ -1063,7 +1063,7 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
     </div>
 
     <!-- RIGHT: detail panel -->
-    <div id="conDetailPanel" style="width:0;overflow:hidden;border-left:1px solid var(--border);transition:width .25s ease;flex-shrink:0;display:flex;flex-direction:column;background:var(--bg)">
+    <div id="conDetailPanel" style="width:0;overflow:hidden;border-left:1px solid var(--border);transition:width .25s ease,opacity .2s ease;opacity:0;flex-shrink:0;display:flex;flex-direction:column;background:var(--bg)">
       <div style="width:420px;display:flex;flex-direction:column;height:100%;overflow:hidden">
         <div style="padding:14px 18px 0;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">
@@ -4268,6 +4268,21 @@ document.addEventListener('click', function(e) {
     }
   }
 }, true);
+// Contacts: click outside detail panel to close
+document.addEventListener('click', function(e) {
+  if (!conDetailOpen) return;
+  const panel = document.getElementById('conDetailPanel');
+  if (!panel) return;
+  const inPanel = panel.contains(e.target);
+  const inRow = e.target.closest && e.target.closest('[onclick^="conSelectRow"]');
+  const inTopBar = e.target.closest && e.target.closest('#page-contacts-page > div:first-child');
+  const inAdvPanel = e.target.closest && e.target.closest('#conAdvPanel');
+  const inModal = e.target.closest && e.target.closest('#conAddModal');
+  if (!inPanel && !inRow && !inTopBar && !inAdvPanel && !inModal) {
+    conCloseDetail();
+  }
+}, true);
+
 
 function locChangePage(p){locCurrentPage=p;locRenderTable();}
 function locPrevPage(){if(locCurrentPage>1){locCurrentPage--;locRenderTable();}}
@@ -4673,7 +4688,7 @@ function conLastPage(){const rpp=parseInt(document.getElementById('conRowsPerPag
 function conSelectRow(id){
   conActiveId=id;conDetailOpen=true;
   const c=CON_DATA.find(x=>x.id===id);if(!c)return;
-  const panel=document.getElementById('conDetailPanel');if(panel)panel.style.width='420px';
+  const panel=document.getElementById('conDetailPanel');if(panel){panel.style.width='420px';panel.style.opacity='1';}
   const nm=document.getElementById('conDetailName');if(nm)nm.textContent=c.name;
   const rl=document.getElementById('conDetailRole');if(rl)rl.textContent=c.role+' \u2022 '+c.city+', '+c.state;
   document.querySelectorAll('#conDetailTabs .m-tab').forEach((b,i)=>b.classList.toggle('active',i===0));
@@ -4683,8 +4698,14 @@ function conSelectRow(id){
 
 function conCloseDetail(){
   conDetailOpen=false;conActiveId=null;
-  const p=document.getElementById('conDetailPanel');if(p)p.style.width='0';
-  conRenderTable();
+  const p=document.getElementById('conDetailPanel');
+  if(p){
+    p.style.opacity='0';
+    setTimeout(()=>{
+      p.style.width='0';
+      setTimeout(()=>{ conRenderTable(); }, 260);
+    }, 180);
+  } else { conRenderTable(); }
 }
 
 function conSwitchTab(tab,btn){
