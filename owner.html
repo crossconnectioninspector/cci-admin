@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Cross Connection Inspector — Property Owner Portal</title>
+<title>Backflow Check Pro — Property Owner Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@400;600;700;900&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -106,7 +106,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:24px;width:100%;max-width:400px;padding:40px 32px;box-shadow:0 8px 32px rgba(0,0,0,.5)">
     <div style="text-align:center;margin-bottom:36px">
       <div style="width:64px;height:64px;background:var(--accent);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px;box-shadow:0 8px 32px rgba(249,166,30,.35)">🏠</div>
-      <div style="font-family:var(--cond);font-size:28px;font-weight:900;line-height:1.05;letter-spacing:-.5px">Cross Connection<br>Inspector</div>
+      <div style="font-family:var(--cond);font-size:28px;font-weight:900;line-height:1.05;letter-spacing:-.5px">Backflow Check Pro</div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:3px;margin-top:8px;text-transform:uppercase">PROPERTY OWNER PORTAL</div>
     </div>
     <div style="margin-bottom:18px">
@@ -196,8 +196,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
     <!-- Contact -->
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:24px;text-align:center">
       <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">NEED HELP?</div>
-      <div style="font-size:13px;color:var(--muted);line-height:1.6">Contact Cross Connection Inspector</div>
-      <a href="mailto:crossconnectioninspector@outlook.com" style="font-family:var(--mono);font-size:11px;color:var(--accent);display:block;margin-top:8px;letter-spacing:.5px">crossconnectioninspector@outlook.com</a>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6">Contact Backflow Check Pro</div>
+      <a href="mailto:backflowcheckpro@outlook.com" style="font-family:var(--mono);font-size:11px;color:var(--accent);display:block;margin-top:8px;letter-spacing:.5px">backflowcheckpro@outlook.com</a>
     </div>
 
   </div>
@@ -347,11 +347,11 @@ async function loadDevices() {
     const myDevices = [...seen.values()];
 
     if (myDevices.length === 0) {
-      heroWrap.innerHTML = heroHTML('warn', '❓', 'No Devices Found', 'We don\'t have any devices registered to your account yet. Contact Cross Connection Inspector to register your device.');
+      heroWrap.innerHTML = heroHTML('warn', '❓', 'No Devices Found', 'We don\'t have any devices registered to your account yet. Contact Backflow Check Pro to register your device.');
       container.innerHTML = `<div class="empty">
         <span class="empty-icon">🔧</span>
         <div class="empty-title">No Devices Registered</div>
-        <div class="empty-sub">CONTACT CROSS CONNECTION INSPECTOR<br>YOUR BACKFLOW PREVENTION ASSEMBLY</div>
+        <div class="empty-sub">CONTACT BACKFLOW CHECK PRO<br>YOUR BACKFLOW PREVENTION ASSEMBLY</div>
       </div>`;
       return;
     }
