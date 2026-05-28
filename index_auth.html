@@ -889,7 +889,7 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     </button>
     <div style="margin-left:auto">
-      <button onclick="alert('Add Location')" class="btn btn-ac" style="height:38px;white-space:nowrap">
+      <button onclick="locOpenAdd()" class="btn btn-ac" style="height:38px;white-space:nowrap">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Add Location
       </button>
@@ -1142,6 +1142,98 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
 <div class="page" id="page-settings-page"><div class="es"><div class="es-icon">&#x2699;&#xFE0F;</div><div class="es-title">Settings</div><div class="es-sub">System settings coming soon.</div></div></div>
 <div class="page" id="page-knowledge-page"><div class="es"><div class="es-icon">&#x1F4DA;</div><div class="es-title">Knowledge Base</div><div class="es-sub">Training resources and TCEQ regulations coming soon.</div></div></div>
 
+
+<!-- Add Location Modal -->
+<div id="locAddModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.5)">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <div style="font-family:var(--cond);font-weight:900;font-size:24px;color:var(--text)">Add Location</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-top:2px">New address for backflow compliance tracking</div>
+      </div>
+      <button onclick="locCloseAdd()" style="width:30px;height:30px;border-radius:7px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">&#x2715;</button>
+    </div>
+
+    <!-- Section: Property -->
+    <div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">Property Information</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
+      <div style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1">
+        <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Street Address *</label>
+        <input type="text" id="la-address" class="si" placeholder="123 Main St" style="font-size:13px;padding:8px 11px">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Business / Property Name</label>
+        <input type="text" id="la-name" class="si" placeholder="Circle K, Walmart..." style="font-size:13px;padding:8px 11px">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Account Number</label>
+        <input type="text" id="la-account" class="si" placeholder="ACC-00000" style="font-size:13px;padding:8px 11px">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">City</label>
+        <input type="text" id="la-city" class="si" placeholder="Abilene" style="font-size:13px;padding:8px 11px" value="Abilene">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">State</label>
+        <input type="text" id="la-state" class="si" placeholder="TX" style="font-size:13px;padding:8px 11px" value="TX">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">ZIP Code</label>
+        <input type="text" id="la-zip" class="si" placeholder="79601" style="font-size:13px;padding:8px 11px">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Hazard Type *</label>
+        <select id="la-hazard" class="ss" style="font-size:13px;padding:8px 11px">
+          <option value="">Select hazard level...</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+        </select>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Service Connections</label>
+        <input type="number" id="la-connections" class="si" placeholder="1" min="1" value="1" style="font-size:13px;padding:8px 11px">
+      </div>
+    </div>
+
+    <!-- Section: Contact -->
+    <div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">Primary Contact</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
+      <div style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1">
+        <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Contact Name</label>
+        <input type="text" id="la-contact" class="si" placeholder="First and last name" style="font-size:13px;padding:8px 11px">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Phone</label>
+        <input type="text" id="la-phone" class="si" placeholder="(325) 555-0000" style="font-size:13px;padding:8px 11px">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Email</label>
+        <input type="text" id="la-email" class="si" placeholder="owner@email.com" style="font-size:13px;padding:8px 11px">
+      </div>
+    </div>
+
+    <!-- Section: Notes -->
+    <div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">Site Notes</div>
+    <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:20px">
+      <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Access notes, building info, special instructions...</label>
+      <textarea id="la-notes" class="si" rows="3" placeholder="e.g. Mechanical room accessible via rear entrance. Contact on site M-F 8-5." style="font-size:13px;padding:8px 11px;resize:vertical"></textarea>
+    </div>
+
+    <!-- Error message -->
+    <div id="la-error" style="display:none;background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.3);border-radius:7px;padding:10px 14px;font-size:12px;color:var(--red);margin-bottom:14px"></div>
+
+    <!-- Actions -->
+    <div style="display:flex;justify-content:flex-end;gap:8px">
+      <button onclick="locCloseAdd()" class="btn btn-gh" style="font-size:13px;padding:8px 16px">Cancel</button>
+      <button onclick="locSaveAdd()" class="btn btn-ac" style="font-size:13px;padding:8px 20px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save Location
+      </button>
+    </div>
+  </div>
+</div>
 </main><!-- /main -->
 
 <!-- MOBILE BOTTOM NAV -->
@@ -4409,6 +4501,105 @@ function conExportCSV(){
   const csv=[h,...rows].map(r=>r.map(v=>'"'+(v||'').toString().replace(/"/g,'""')+'"').join(',')).join('\n');
   const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='bcp-contacts.csv';a.click();
 }
+
+
+// ── ADD LOCATION MODAL ────────────────────────────────────────────────────────
+function locOpenAdd() {
+  const m = document.getElementById('locAddModal');
+  if (m) m.style.display = 'flex';
+  // Clear error
+  const err = document.getElementById('la-error');
+  if (err) { err.style.display = 'none'; err.textContent = ''; }
+}
+
+function locCloseAdd() {
+  const m = document.getElementById('locAddModal');
+  if (m) m.style.display = 'none';
+  // Clear all fields
+  ['la-address','la-name','la-account','la-zip','la-contact','la-phone','la-email','la-notes'].forEach(id => {
+    const e = document.getElementById(id); if (e) e.value = '';
+  });
+  document.getElementById('la-city').value = 'Abilene';
+  document.getElementById('la-state').value = 'TX';
+  document.getElementById('la-connections').value = '1';
+  document.getElementById('la-hazard').value = '';
+}
+
+function locSaveAdd() {
+  const address = document.getElementById('la-address')?.value.trim();
+  const hazard = document.getElementById('la-hazard')?.value;
+  const err = document.getElementById('la-error');
+
+  // Validate required fields
+  if (!address) {
+    if (err) { err.textContent = 'Street address is required.'; err.style.display = 'block'; }
+    document.getElementById('la-address')?.focus();
+    return;
+  }
+  if (!hazard) {
+    if (err) { err.textContent = 'Please select a hazard type.'; err.style.display = 'block'; }
+    document.getElementById('la-hazard')?.focus();
+    return;
+  }
+
+  // Build new location object
+  const newLoc = {
+    id: LOC_DATA.length + 1,
+    address,
+    name: document.getElementById('la-name')?.value.trim() || address,
+    account: document.getElementById('la-account')?.value.trim() || 'ACC-' + String(Date.now()).slice(-5),
+    city: document.getElementById('la-city')?.value.trim() || 'Abilene',
+    state: document.getElementById('la-state')?.value.trim() || 'TX',
+    zip: document.getElementById('la-zip')?.value.trim() || '',
+    hazard,
+    hazardRating: hazard === 'High' ? 8 : hazard === 'Medium' ? 5 : 2,
+    compliance: 'Compliant',
+    lastSurvey: 'Pending',
+    connections: parseInt(document.getElementById('la-connections')?.value || '1'),
+    riskScore: 0,
+    deviceCount: 0,
+    contact: document.getElementById('la-contact')?.value.trim() || '',
+    phone: document.getElementById('la-phone')?.value.trim() || '',
+    email: document.getElementById('la-email')?.value.trim() || '',
+    surveyNotes: document.getElementById('la-notes')?.value.trim() || '',
+    assemblies: [],
+    communications: [],
+    surveys: [],
+    complianceHistory: []
+  };
+
+  // Add to local data
+  LOC_DATA.push(newLoc);
+  locFiltered = [...LOC_DATA];
+  locCurrentPage = Math.ceil(LOC_DATA.length / parseInt(document.getElementById('locRowsPerPage')?.value || '10'));
+  locCloseAdd();
+  locRenderTable();
+
+  // TODO: Save to Supabase
+  // await supabase.from('locations').insert([newLoc]);
+
+  // Flash success - highlight the new row briefly
+  setTimeout(() => {
+    const rows = document.querySelectorAll('#locTableBody > div');
+    const last = rows[rows.length - 1];
+    if (last) {
+      last.style.background = 'rgba(61,184,112,0.15)';
+      last.style.borderLeft = '3px solid var(--green)';
+      setTimeout(() => {
+        last.style.background = '';
+        last.style.borderLeft = '3px solid transparent';
+      }, 2000);
+    }
+  }, 100);
+}
+
+// Close modal on backdrop click
+document.addEventListener('click', function(e) {
+  const modal = document.getElementById('locAddModal');
+  if (modal && e.target === modal) locCloseAdd();
+  const conModal = document.getElementById('conAddModal');
+  if (conModal && e.target === conModal) conCloseAdd();
+});
 
 </script>
 
