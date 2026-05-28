@@ -4963,12 +4963,15 @@ const RPT_DEFINITIONS = {
     headers: ['Serial #','Type','Make','Model','Address','Account #','Last Tested','Next Due','Days Overdue'],
     stat_cards: true,
     filter: a => {
-      const days = Math.floor((new Date() - new Date(a.nextDue)) / 86400000);
+      const due = a.nextDue || a.next_due || a.due_date || '';
+      if(!due) return false;
+      const days = Math.floor((new Date() - new Date(due)) / 86400000);
       return days > 0;
     },
     row: a => {
-      const days = Math.floor((new Date() - new Date(a.nextDue)) / 86400000);
-      return [a.serial, a.type, a.make, a.model, a.address+', '+a.city, a.account, a.lastTested||'—', a.nextDue||'—', days+'d'];
+      const due = a.nextDue||a.next_due||a.due_date||'';
+      const days = due ? Math.floor((new Date() - new Date(due)) / 86400000) : 0;
+      return [a.serial, a.type, a.make, a.model, (a.address||'')+(a.city?', '+a.city:''), a.account, a.lastTested||a.last_tested||'—', due||'—', days+'d'];
     },
     row_color: () => 'rgba(224,82,82,.04)',
     stats: data => [
@@ -5210,8 +5213,26 @@ const RPT_DEFINITIONS = {
 function rptGetData(source) {
   if(source === 'locations') return typeof LOC_DATA !== 'undefined' ? LOC_DATA : [];
   if(source === 'testers') return typeof SP_DATA !== 'undefined' ? SP_DATA : [];
+
   if(source === 'test_reports') {
-    // Flatten all report history from assemblies
+    // PRIMARY: pull from live Supabase DB (backflow_reports table)
+    if(typeof DB !== 'undefined' && DB.length > 0) {
+      return DB.map(r => ({
+        serial:    r.serial_number || r.serial || '—',
+        type:      r.assembly_type || r.type || '—',
+        make:      r.manufacturer  || r.make  || '—',
+        model:     r.model         || '—',
+        address:   r.address       || r.service_address || '—',
+        account:   r.account_number || r.account || '—',
+        date:      r.date          || r.test_date || '—',
+        result:    r.result        || r.test_result || '—',
+        tester:    r.tester        || r.tester_name || '—',
+        cert:      r.cert_number   || r.tester_cert || '—',
+        reading:   r.initial_check1 || r.reading || '—',
+        notes:     r.notes         || '',
+      }));
+    }
+    // FALLBACK: pull from ASM_DATA demo data
     const reports = [];
     if(typeof ASM_DATA !== 'undefined') {
       ASM_DATA.forEach(a => {
@@ -5222,7 +5243,9 @@ function rptGetData(source) {
     }
     return reports;
   }
+
   if(source === 'comms') {
+    // Pull from ASM_DATA communications
     const comms = [];
     if(typeof ASM_DATA !== 'undefined') {
       ASM_DATA.forEach(a => {
@@ -5231,9 +5254,39 @@ function rptGetData(source) {
         });
       });
     }
+    // Also pull manual logged comms from LOC_DATA
+    if(typeof LOC_DATA !== 'undefined') {
+      LOC_DATA.forEach(loc => {
+        (loc.communications||[]).forEach(c => {
+          comms.push({...c, address:loc.address, account:loc.account, serial:'—'});
+        });
+      });
+    }
     return comms;
   }
-  // Default: assemblies
+
+  // Default: assemblies — use live DB if available, else ASM_DATA
+  if(typeof DB !== 'undefined' && DB.length > 0) {
+    return DB.map(r => ({
+      id:        r.id,
+      serial:    r.serial_number || r.serial || '—',
+      type:      r.assembly_type || r.type || '—',
+      make:      r.manufacturer  || r.make  || '—',
+      model:     r.model         || '—',
+      size:      r.size          || '—',
+      address:   r.address       || r.service_address || '—',
+      city:      r.city          || 'Abilene',
+      account:   r.account_number || r.account || '—',
+      hazard:    r.hazard_level  || r.hazard || '—',
+      status:    r.result        || r.status || '—',
+      lastResult:r.result        || '—',
+      lastTested:r.date          || '—',
+      nextDue:   r.next_due      || r.due_date || '—',
+      testedBy:  r.tester        || '—',
+      notes:     r.notes         || '',
+      deviceCount: 1,
+    }));
+  }
   return typeof ASM_DATA !== 'undefined' ? ASM_DATA : [];
 }
 
