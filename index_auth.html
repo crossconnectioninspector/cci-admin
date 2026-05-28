@@ -952,7 +952,7 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
     </div>
 
     <!-- DETAIL PANEL — hidden until row clicked, slides in from right -->
-    <div id="locDetailPanel" style="width:0;overflow:hidden;border-left:1px solid var(--border);transition:width .25s ease;flex-shrink:0;display:flex;flex-direction:column;background:var(--bg)">
+    <div id="locDetailPanel" style="width:0;overflow:hidden;border-left:1px solid var(--border);transition:width .25s ease,opacity .2s ease;opacity:0;flex-shrink:0;display:flex;flex-direction:column;background:var(--bg)">
       <div style="width:480px;display:flex;flex-direction:column;height:100%;overflow:hidden">
         <!-- Header -->
         <div style="padding:14px 18px 0;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">
@@ -4162,6 +4162,24 @@ function locRenderTable(){
   }).join('');
 }
 
+// Click outside detail panel to close it
+document.addEventListener('click', function(e) {
+  if (!locDetailOpen) return;
+  const panel = document.getElementById('locDetailPanel');
+  const tableWrap = document.getElementById('locTableWrap');
+  // If click is in the table area (not the detail panel) and not on a row, close
+  if (panel && tableWrap) {
+    const inPanel = panel.contains(e.target);
+    const inRow = e.target.closest && e.target.closest('[onclick^="locSelectRow"]');
+    const inTopBar = e.target.closest && e.target.closest('#page-locations-page > div:first-child');
+    const inAdvPanel = e.target.closest && e.target.closest('#locAdvPanel');
+    const inPagination = e.target.closest && e.target.closest('[onclick^="locChangePage"],[onclick^="locPrevPage"],[onclick^="locNextPage"],[onclick^="locLastPage"]');
+    if (!inPanel && !inRow && !inTopBar && !inAdvPanel && !inPagination) {
+      locCloseDetail();
+    }
+  }
+}, true);
+
 function locChangePage(p){locCurrentPage=p;locRenderTable();}
 function locPrevPage(){if(locCurrentPage>1){locCurrentPage--;locRenderTable();}}
 function locNextPage(){
@@ -4176,7 +4194,7 @@ function locLastPage(){
 function locSelectRow(id){
   locActiveId=id;locDetailOpen=true;
   const loc=LOC_DATA.find(l=>l.id===id);if(!loc)return;
-  const panel=document.getElementById('locDetailPanel');if(panel)panel.style.width='480px';
+  const panel=document.getElementById('locDetailPanel');if(panel){panel.style.width='480px';panel.style.opacity='1';}
   // Header
   const addr=document.getElementById('locDetailAddr');if(addr)addr.textContent=loc.address;
   const sub=document.getElementById('locDetailSub');if(sub)sub.textContent=loc.name+' \u2022 '+loc.city+', '+loc.state+' '+loc.zip;
@@ -4202,8 +4220,11 @@ function locSelectRow(id){
 
 function locCloseDetail(){
   locDetailOpen=false;locActiveId=null;
-  const p=document.getElementById('locDetailPanel');if(p)p.style.width='0';
-  locRenderTable();
+  const p=document.getElementById('locDetailPanel');
+  if(p){
+    p.style.opacity='0';
+    setTimeout(()=>{ p.style.width='0'; locRenderTable(); }, 200);
+  } else { locRenderTable(); }
 }
 
 function locSwitchTab(tab,btn){
