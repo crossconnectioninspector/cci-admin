@@ -28,7 +28,347 @@ function sanitize(str) {
     .replace(/\//g, '&#x2F;');
 }
 </script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
+
+// ═══════════════════════════════════════════════════════
+//  SERVICE PROVIDERS — TESTER APPROVAL MODULE
+// ═══════════════════════════════════════════════════════
+
+// Required fields for approval
+const SP_REQUIRED = ['cert_number','company','license_exp','gauge_cal_date','gauge_serial'];
+const SP_REQUIRED_LABELS = {
+  cert_number: 'TCEQ Cert Number',
+  company: 'Company / Firm',
+  license_exp: 'License Expiration Date',
+  gauge_cal_date: 'Gauge Calibration Date',
+  gauge_serial: 'Gauge Serial Number',
+};
+
+// Local demo data — in production, loaded from Supabase auth.admin.listUsers()
+const SP_DATA = [
+  {id:1,name:"Matt Snider",email:"matt@backflowcheckpro.com",company:"Backflow Check Pro",cert_number:"TX-4421",phone:"(325) 555-0101",gauge_serial:"GAU-2291",gauge_cal_date:"2026-09-01",gauge_cal_due:"2026-09-01",license_number:"LIC-0042",license_exp:"2027-03-15",testsRun:47,status:"active",approved_at:"2025-01-10",notes:"Lead tester.",
+    testHistory:[{date:"2026-01-22",address:"4150 Buffalo Gap Rd",assembly:"PV-0034",result:"Pass"},{date:"2025-11-14",address:"1423 N 1st St",assembly:"RP-2291",result:"Pass"}]},
+  {id:2,name:"Jorge Rodriguez",email:"j.rodriguez@abileneplumbing.com",company:"Abilene Plumbing Co.",cert_number:"TX-2209",phone:"(325) 555-0217",gauge_serial:"GAU-1144",gauge_cal_date:"2026-06-15",gauge_cal_due:"2026-06-15",license_number:"LIC-0088",license_exp:"2026-11-30",testsRun:23,status:"active",approved_at:"2025-03-15",notes:"",
+    testHistory:[{date:"2025-10-02",address:"3801 S Clack St",assembly:"RP-0881",result:"Pass"}]},
+  {id:3,name:"Sandra Williams",email:"s.williams@williamsbackflow.com",company:"Williams Backflow LLC",cert_number:"TX-3387",phone:"(325) 555-0344",gauge_serial:"GAU-0882",gauge_cal_date:"",gauge_cal_due:"",license_number:"",license_exp:"",testsRun:31,status:"pending",submitted_at:"2026-05-20",notes:"Missing gauge cal and license info.",
+    testHistory:[]},
+  {id:4,name:"David Kim",email:"d.kim@kimmechanical.com",company:"Kim Mechanical Services",cert_number:"",phone:"(325) 555-0488",gauge_serial:"",gauge_cal_date:"",gauge_cal_due:"",license_number:"",license_exp:"",testsRun:0,status:"pending",submitted_at:"2026-05-27",notes:"New submission — multiple fields missing.",
+    testHistory:[]},
+];
+
+let spFiltered=[...SP_DATA],spActiveId=null,spCurrentPage=1,spDetailOpen=false,spCurrentTab='active';
+
+function spInit(){
+  spCurrentPage=1;spDetailOpen=false;
+  const p=document.getElementById('spDetailPanel');if(p){p.style.width='0';p.style.opacity='0';}
+  spSetTab('active');
+  spUpdatePendingBadge();
+}
+
+function spRefresh(){
+  // In production: fetch from Supabase auth.admin.listUsers()
+  // For now, reload from SP_DATA
+  spInit();
+  const btn = event.currentTarget;
+  btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Synced!';
+  setTimeout(()=>{ btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Sync from Portal'; }, 2000);
+}
+
+function spUpdatePendingBadge(){
+  const pending = SP_DATA.filter(t=>t.status==='pending').length;
+  const badge = document.getElementById('spPendingBadge');
+  if(badge){ badge.textContent=pending; badge.style.display=pending>0?'inline':'none'; }
+}
+
+function spSetTab(tab){
+  spCurrentTab = tab;
+  spCurrentPage = 1;
+  const btnA=document.getElementById('spTabActive'), btnP=document.getElementById('spTabPending');
+  if(btnA){ btnA.style.background=tab==='active'?'var(--accent)':'transparent'; btnA.style.color=tab==='active'?'#000':'var(--muted)'; }
+  if(btnP){ btnP.style.background=tab==='pending'?'var(--yellow)':'transparent'; btnP.style.color=tab==='pending'?'#000':'var(--muted)'; }
+  spApplyFilters();
+}
+
+function spApplyFilters(){
+  const ms=document.getElementById('spMainSearch')?.value.trim().toLowerCase()||'';
+  spFiltered=SP_DATA.filter(t=>
+    t.status===spCurrentTab &&
+    (!ms||t.name.toLowerCase().includes(ms)||t.cert_number.toLowerCase().includes(ms)||
+     t.company.toLowerCase().includes(ms)||t.email.toLowerCase().includes(ms))
+  );
+  spRenderTable();
+}
+
+function spMissingFields(t){
+  return SP_REQUIRED.filter(f=>!t[f]||t[f].toString().trim()==='');
+}
+
+function spCalStatus(dateStr){
+  if(!dateStr)return{label:'Missing',color:'var(--red)',expired:true};
+  const d=new Date(dateStr),now=new Date();
+  const days=Math.floor((d-now)/(1000*60*60*24));
+  if(days<0)return{label:'EXPIRED',color:'var(--red)',expired:true};
+  if(days<60)return{label:days+'d left',color:'var(--yellow)',expired:false};
+  return{label:dateStr,color:'var(--green)',expired:false};
+}
+
+function spRenderTable(){
+  const body=document.getElementById('spTableBody');
+  const rpp=parseInt(document.getElementById('spRowsPerPage')?.value||'10');
+  const total=spFiltered.length;
+  const totalPages=Math.max(1,Math.ceil(total/rpp));
+  if(spCurrentPage>totalPages)spCurrentPage=totalPages;
+  const start=(spCurrentPage-1)*rpp;
+  const page=spFiltered.slice(start,start+rpp);
+  const info=document.getElementById('spPageInfo');
+  if(info)info.textContent=total===0?'No results':`${start+1}-${Math.min(start+rpp,total)} of ${total} items`;
+
+  const isPending = spCurrentTab==='pending';
+  const cols = spDetailOpen
+    ? '1fr 110px 100px 80px'
+    : isPending
+      ? '1fr 120px 130px 110px 1fr'
+      : '1fr 120px 130px 110px 130px 100px';
+
+  const hdrs=document.getElementById('spTableHeaders');
+  if(hdrs){
+    hdrs.style.gridTemplateColumns=cols;
+    const headLabels = spDetailOpen
+      ? ['Name','Cert #','Phone','Tests']
+      : isPending
+        ? ['Name / Company','Cert #','Phone','Submitted','Missing Fields']
+        : ['Name / Company','Cert #','Phone','Tests Run','Gauge Cal Expiry','Status'];
+    hdrs.innerHTML=headLabels.map(h=>`<div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:0 8px">${h}</div>`).join('');
+  }
+
+  if(!body)return;
+  if(!page.length){
+    const msg = isPending ? 'No pending submissions.' : 'No active testers.';
+    body.innerHTML=`<div style="text-align:center;padding:48px;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px;opacity:.3">&#x1F527;</div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">${msg}</div></div>`;
+    return;
+  }
+
+  body.innerHTML=page.map(t=>{
+    const isActive=spActiveId===t.id;
+    const initials=t.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    const missing = spMissingFields(t);
+    const cal=spCalStatus(t.gauge_cal_date);
+    const statusColor=t.status==='active'?'var(--green)':t.status==='pending'?'var(--yellow)':'var(--red)';
+    const statusBg=t.status==='active'?'rgba(76,175,121,.12)':t.status==='pending'?'rgba(240,192,64,.12)':'rgba(224,82,82,.12)';
+    const statusBorder=t.status==='active'?'rgba(76,175,121,.3)':t.status==='pending'?'rgba(240,192,64,.3)':'rgba(224,82,82,.3)';
+
+    let cells;
+    if(spDetailOpen){
+      cells=[
+        `<div style="display:flex;align-items:center;gap:8px"><div style="width:26px;height:26px;border-radius:50%;background:${t.status==='pending'?'var(--yellow)':'var(--accent)'};display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:11px;color:#000;flex-shrink:0">${initials}</div><div style="font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(t.name)}</div></div>`,
+        `<div style="font-family:var(--mono);font-size:11px;color:var(--text)">${sanitize(t.cert_number)||'&mdash;'}</div>`,
+        `<div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${sanitize(t.phone)||'&mdash;'}</div>`,
+        `<div style="font-family:var(--cond);font-weight:700;font-size:15px;color:var(--text)">${t.testsRun}</div>`,
+      ];
+    } else if(isPending){
+      const missingChips = missing.length===0
+        ? `<span style="font-family:var(--mono);font-size:9px;color:var(--green)">&#x2713; All fields present</span>`
+        : missing.map(f=>`<span style="font-family:var(--mono);font-size:9px;padding:1px 6px;background:rgba(224,82,82,.12);color:var(--red);border:1px solid rgba(224,82,82,.25);border-radius:3px;margin-right:3px">${SP_REQUIRED_LABELS[f]}</span>`).join('');
+      cells=[
+        `<div style="display:flex;align-items:center;gap:10px"><div style="width:30px;height:30px;border-radius:50%;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:12px;color:#000;flex-shrink:0">${initials}</div><div><div style="font-size:13px;font-weight:600;color:var(--text)">${sanitize(t.name)}</div><div style="font-size:11px;color:var(--muted);margin-top:1px">${sanitize(t.company)||'No company'}</div></div></div>`,
+        `<div style="font-family:var(--mono);font-size:11px;color:${t.cert_number?'var(--text)':'var(--red)'}">${sanitize(t.cert_number)||'MISSING'}</div>`,
+        `<div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${sanitize(t.phone)||'&mdash;'}</div>`,
+        `<div style="font-family:var(--mono);font-size:10px;color:var(--muted)">${t.submitted_at||'&mdash;'}</div>`,
+        `<div style="display:flex;flex-wrap:wrap;gap:3px;align-items:center">${missingChips}</div>`,
+      ];
+    } else {
+      cells=[
+        `<div style="display:flex;align-items:center;gap:10px"><div style="width:30px;height:30px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:12px;color:#000;flex-shrink:0">${initials}</div><div><div style="font-size:13px;font-weight:600;color:var(--text)">${sanitize(t.name)}</div><div style="font-size:11px;color:var(--muted);margin-top:1px">${sanitize(t.company)}</div></div></div>`,
+        `<div style="font-family:var(--mono);font-size:11px;color:var(--text)">${sanitize(t.cert_number)}</div>`,
+        `<div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${sanitize(t.phone)}</div>`,
+        `<div style="font-family:var(--cond);font-weight:700;font-size:16px;color:var(--text);text-align:center">${t.testsRun}</div>`,
+        `<div style="font-family:var(--mono);font-size:11px;color:${cal.color}">${cal.label}</div>`,
+        `<span style="font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 8px;border-radius:3px;background:${statusBg};color:${statusColor};border:1px solid ${statusBorder}">${t.status.toUpperCase()}</span>`,
+      ];
+    }
+
+    return `<div onclick="spSelectRow(${t.id})" style="display:grid;grid-template-columns:${cols};padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;align-items:center;background:${isActive?'rgba(249,166,30,.06)':'transparent'};border-left:3px solid ${isActive?'var(--accent)':'transparent'}"
+      onmouseover="if(!${isActive})this.style.background='var(--elevated)'" onmouseout="this.style.background='${isActive?'rgba(249,166,30,.06)':'transparent'}'">
+      ${cells.map(c=>`<div style="padding:0 8px;overflow:hidden">${c}</div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+function spChangePage(p){spCurrentPage=p;spRenderTable();}
+function spPrevPage(){if(spCurrentPage>1){spCurrentPage--;spRenderTable();}}
+function spNextPage(){const rpp=parseInt(document.getElementById('spRowsPerPage')?.value||'10');if(spCurrentPage<Math.ceil(spFiltered.length/rpp)){spCurrentPage++;spRenderTable();}}
+function spLastPage(){const rpp=parseInt(document.getElementById('spRowsPerPage')?.value||'10');spCurrentPage=Math.ceil(spFiltered.length/rpp)||1;spRenderTable();}
+
+function spSelectRow(id){
+  spActiveId=id;spDetailOpen=true;
+  const t=SP_DATA.find(x=>x.id===id);if(!t)return;
+  const panel=document.getElementById('spDetailPanel');if(panel){panel.style.width='440px';panel.style.opacity='1';}
+
+  // Header
+  const nm=document.getElementById('spDetailName');if(nm)nm.textContent=t.name;
+  const sb=document.getElementById('spDetailSub');if(sb)sb.textContent=(t.company||'No company')+' \u2022 '+t.email;
+
+  // Status badge
+  const badge=document.getElementById('spDetailStatusBadge');
+  if(badge){
+    const sc=t.status==='active'?'var(--green)':t.status==='pending'?'var(--yellow)':'var(--red)';
+    const sbg=t.status==='active'?'rgba(76,175,121,.14)':t.status==='pending'?'rgba(240,192,64,.14)':'rgba(224,82,82,.14)';
+    const sbr=t.status==='active'?'rgba(76,175,121,.3)':t.status==='pending'?'rgba(240,192,64,.3)':'rgba(224,82,82,.3)';
+    badge.style.cssText=`font-family:var(--cond);font-weight:700;font-size:12px;padding:4px 10px;border-radius:5px;background:${sbg};color:${sc};border:1px solid ${sbr}`;
+    badge.textContent=t.status.toUpperCase();
+  }
+
+  // Show/hide approval actions
+  const actions=document.getElementById('spApprovalActions');
+  if(actions){
+    if(t.status==='pending'){
+      actions.style.display='block';
+      const missing=spMissingFields(t);
+      const mf=document.getElementById('spMissingFields');
+      if(mf){
+        if(missing.length===0){
+          mf.innerHTML=`<div style="font-family:var(--mono);font-size:10px;color:var(--green)">&#x2713; All required fields present — ready to approve</div>`;
+        } else {
+          mf.innerHTML=`<div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:5px">Missing required fields:</div>`+
+            missing.map(f=>`<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px"><div style="width:5px;height:5px;border-radius:50%;background:var(--red);flex-shrink:0"></div><span style="font-size:12px;color:var(--text)">${SP_REQUIRED_LABELS[f]}</span></div>`).join('');
+        }
+      }
+    } else {
+      actions.style.display='none';
+    }
+  }
+
+  document.querySelectorAll('#spDetailTabs .m-tab').forEach((b,i)=>b.classList.toggle('active',i===0));
+  const body=document.getElementById('spTabBody');if(body)body.innerHTML=spRenderInfo(t);
+  spRenderTable();
+}
+
+function spCloseDetail(){
+  spDetailOpen=false;spActiveId=null;
+  const p=document.getElementById('spDetailPanel');
+  if(p){p.style.opacity='0';setTimeout(()=>{p.style.width='0';setTimeout(()=>{spRenderTable();},260);},180);}
+  else{spRenderTable();}
+}
+
+function spSwitchTab(tab,btn){
+  document.querySelectorAll('#spDetailTabs .m-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  const t=SP_DATA.find(x=>x.id===spActiveId);
+  const body=document.getElementById('spTabBody');if(!body||!t)return;
+  if(tab==='info')body.innerHTML=spRenderInfo(t);
+  else if(tab==='tests')body.innerHTML=spRenderTests(t);
+  else if(tab==='credentials')body.innerHTML=spRenderCredentials(t);
+}
+
+// ── APPROVAL ACTIONS ──────────────────────────────────────────────────────────
+function spApprove(){
+  const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return;
+  const missing=spMissingFields(t);
+  if(missing.length>0){
+    if(!confirm('This tester is missing required fields:\n\n'+missing.map(f=>'\u2022 '+SP_REQUIRED_LABELS[f]).join('\n')+'\n\nApprove anyway?'))return;
+  }
+  t.status='active';
+  t.approved_at=new Date().toISOString().split('T')[0];
+  // In production: update Supabase user_metadata { approved: true, approved_at: date }
+  spUpdatePendingBadge();
+  spSelectRow(t.id);
+  spRenderTable();
+  // Flash success
+  const badge=document.getElementById('spDetailStatusBadge');
+  if(badge){badge.textContent='APPROVED \u2713';badge.style.color='var(--green)';}
+  setTimeout(()=>spSelectRow(t.id),1500);
+}
+
+function spRequestInfo(){
+  const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return;
+  const missing=spMissingFields(t);
+  const fieldList=missing.map(f=>'\u2022 '+SP_REQUIRED_LABELS[f]).join('\n');
+  // In production: send email via Supabase edge function / Resend
+  alert('Notification sent to '+t.email+':\n\nPlease log into the Backflow Check Pro tester portal and complete your profile.\n\nMissing information:\n'+fieldList);
+  t.notes=(t.notes?t.notes+'\n':'')+'['+new Date().toISOString().split('T')[0]+'] Admin requested missing info via email.';
+}
+
+function spReject(){
+  const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return;
+  if(!confirm('Reject '+t.name+'? This will remove them from the pending queue.'))return;
+  t.status='rejected';
+  spUpdatePendingBadge();
+  spCloseDetail();
+  spSetTab('pending');
+}
+
+// ── TAB CONTENT ───────────────────────────────────────────────────────────────
+function _sp(title,html){return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px"><div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">${title}</div>${html}</div>`;}
+function _sg(pairs){return`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${pairs.map(([l,v])=>`<div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">${l}</div><div style="font-size:13px;color:var(--text);font-weight:500">${v||'<span style=color:var(--red)>Missing</span>'}</div></div>`).join('')}</div>`;}
+
+function spRenderInfo(t){
+  const initials=t.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+  const sc=t.status==='active'?'var(--green)':t.status==='pending'?'var(--yellow)':'var(--red)';
+  return `<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px">
+    <div style="width:52px;height:52px;border-radius:50%;background:${t.status==='pending'?'var(--yellow)':'var(--accent)'};display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:20px;color:#000;flex-shrink:0">${initials}</div>
+    <div><div style="font-family:var(--cond);font-weight:900;font-size:18px;color:var(--text)">${sanitize(t.name)}</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:2px">${sanitize(t.company)||'No company on file'}</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:1px">${sanitize(t.email)}</div></div>
+  </div>`+
+  _sp('Contact & Profile',_sg([
+    ['Phone',sanitize(t.phone)],
+    ['Email',sanitize(t.email)],
+    ['TCEQ Cert #',sanitize(t.cert_number)],
+    ['Company',sanitize(t.company)],
+    ['Tests Completed',t.testsRun+' total'],
+    ['Status',`<span style="color:${sc}">${t.status.toUpperCase()}</span>`],
+  ]))+
+  (t.notes?_sp('Notes',`<div style="font-size:12px;color:var(--muted);line-height:1.6;padding:9px 11px;background:var(--elevated);border-radius:6px">${sanitize(t.notes)}</div>`):'');
+}
+
+function spRenderTests(t){
+  if(!t.testHistory||!t.testHistory.length)return _sp('Test History','<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">No tests submitted yet.</div>');
+  const rows=t.testHistory.map(h=>{
+    const rc=h.result==='Pass'?'var(--green)':'var(--red)';
+    const rbg=h.result==='Pass'?'rgba(76,175,121,.12)':'rgba(224,82,82,.12)';
+    const rbr=h.result==='Pass'?'rgba(76,175,121,.3)':'rgba(224,82,82,.3)';
+    return `<tr style="border-bottom:1px solid var(--border)"><td style="padding:8px;font-family:var(--mono);font-size:10px;color:var(--muted)">${h.date}</td><td style="padding:8px;font-size:12px;color:var(--text)">${sanitize(h.address)}</td><td style="padding:8px;font-family:var(--mono);font-size:10px;color:var(--muted)">${sanitize(h.assembly)}</td><td style="padding:8px"><span style="font-family:var(--mono);font-size:9px;font-weight:700;color:${rc};background:${rbg};border:1px solid ${rbr};padding:2px 7px;border-radius:3px">${h.result.toUpperCase()}</span></td></tr>`;
+  }).join('');
+  return _sp('Test History ('+t.testHistory.length+')', '<table style="width:100%;border-collapse:collapse"><thead><tr style="border-bottom:1px solid var(--border)">'+['Date','Address','Assembly','Result'].map(h=>`<th style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;text-align:left;padding:5px 8px">${h}</th>`).join('')+'</tr></thead><tbody>'+rows+'</tbody></table>');
+}
+
+function spRenderCredentials(t){
+  const cal=spCalStatus(t.gauge_cal_date);
+  const lic=spCalStatus(t.license_exp);
+  const fieldRow=(label,value,missing)=>`<div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">${label}</div><div style="font-size:13px;color:${missing?'var(--red)':'var(--text)'};font-weight:500">${missing?'&#x26A0; Missing':sanitize(value)}</div></div>`;
+  return _sp('Credentials & Equipment',
+    `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      ${fieldRow('TCEQ Cert #',t.cert_number,!t.cert_number)}
+      ${fieldRow('License #',t.license_number,!t.license_number)}
+      <div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">License Expiry</div><div style="font-size:13px;color:${lic.color};font-weight:500">${!t.license_exp?'&#x26A0; Missing':lic.label}</div></div>
+      ${fieldRow('Gauge Serial #',t.gauge_serial,!t.gauge_serial)}
+      <div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">Gauge Cal Expiry</div><div style="font-size:13px;color:${cal.color};font-weight:500">${!t.gauge_cal_date?'&#x26A0; Missing':cal.label}</div></div>
+      ${fieldRow('Approved',t.approved_at||'Not yet approved',false)}
+    </div>`
+  );
+}
+
+function spExportCSV(){
+  const h=['Name','Email','Company','Cert #','Phone','Gauge Serial','Cal Expiry','License Expiry','Tests Run','Status'];
+  const rows=spFiltered.map(t=>[t.name,t.email,t.company,t.cert_number,t.phone,t.gauge_serial,t.gauge_cal_date,t.license_exp,t.testsRun,t.status]);
+  const csv=[h,...rows].map(r=>r.map(v=>'"'+(v||'').toString().replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='bcp-testers.csv';a.click();
+}
+
+// Click outside to close
+document.addEventListener('click', function(e) {
+  if (!spDetailOpen) return;
+  const panel=document.getElementById('spDetailPanel');
+  if(!panel)return;
+  const inPanel=panel.contains(e.target);
+  const inRow=e.target.closest&&e.target.closest('[onclick^="spSelectRow"]');
+  const inTopBar=e.target.closest&&e.target.closest('#page-providers-page > div:first-child');
+  if(!inPanel&&!inRow&&!inTopBar)spCloseDetail();
+},true);
+
+
+
+
+</script>
 <style>
 :root {
   --bg:#13161a; --surface:#1e2228; --elevated:#272c35;
@@ -5070,592 +5410,6 @@ document.addEventListener('click', function(e) {
 });
 
 
-// SERVICE PROVIDERS MODULE
-const SP_DATA = [
-  {id:1,name:"Matt Snider",company:"Snider Backflow Services",license:"TX-4421",phone:"(325) 555-0100",email:"matt@sniderbackflow.com",gaugeCalDue:"2026-09-01",licenseExp:"2027-06-01",certs:["RPZ","DCVA","PVB","SVB"],totalTests:47,status:"Active",testHistory:[{date:"2025-11-14",address:"1423 N 1st St",type:"RPZ",result:"Pass"},{date:"2025-08-10",address:"2018 Grape St",type:"RPZ",result:"Fail"},{date:"2026-01-22",address:"4150 Buffalo Gap Rd",type:"PVB",result:"Pass"}]},
-  {id:2,name:"Jose Rodriguez",company:"Rodriguez Plumbing",license:"TX-2209",phone:"(325) 555-0177",email:"j.rodriguez@rpbackflow.com",gaugeCalDue:"2026-06-15",licenseExp:"2026-12-01",certs:["RPZ","DCVA"],totalTests:31,status:"Active",testHistory:[{date:"2025-10-02",address:"3801 S Clack St",type:"RPZ",result:"Pass"}]},
-  {id:3,name:"Sandra Williams",company:"Williams Inspection Co.",license:"TX-3387",phone:"(325) 555-0244",email:"s.williams@wico.com",gaugeCalDue:"2025-12-01",licenseExp:"2026-08-15",certs:["RPZ","DCVA","PVB"],totalTests:18,status:"Gauge Expired",testHistory:[{date:"2025-07-20",address:"512 Ambler Ave",type:"RPZ",result:"Pass"}]},
-  {id:4,name:"Derek Holt",company:"Holt Mechanical",license:"TX-5512",phone:"(325) 555-0399",email:"d.holt@holtmech.com",gaugeCalDue:"2026-11-30",licenseExp:"2027-03-01",certs:["RPZ","DCVA","PVB","SVB"],totalTests:62,status:"Active",testHistory:[{date:"2026-02-14",address:"101 Pine St",type:"DCVA",result:"Pass"}]},
-];
 
-let spFiltered=[...SP_DATA],spActiveId=null,spCurrentPage=1,spDetailOpen=false;
 
-function spInit(){spFiltered=[...SP_DATA];spCurrentPage=1;spDetailOpen=false;const p=document.getElementById('spDetailPanel');if(p){p.style.width='0';p.style.opacity='0';}spRenderTable();}
-
-function spApplyFilters(){const ms=document.getElementById('spMainSearch')?.value.trim().toLowerCase()||'';spFiltered=SP_DATA.filter(s=>!ms||s.name.toLowerCase().includes(ms)||s.company.toLowerCase().includes(ms)||s.license.toLowerCase().includes(ms)||s.phone.includes(ms));spCurrentPage=1;spRenderTable();}
-
-function spSS(st){if(st==='Active')return{bg:'rgba(76,175,121,.14)',col:'var(--green)',br:'rgba(76,175,121,.3)'};if(st==='Gauge Expired')return{bg:'rgba(224,82,82,.14)',col:'var(--red)',br:'rgba(224,82,82,.3)'};return{bg:'rgba(240,192,64,.14)',col:'var(--yellow)',br:'rgba(240,192,64,.3)'};}
-
-function spCC(d){if(!d)return'var(--muted)';const days=Math.floor((new Date(d)-new Date())/864e5);return days<0?'var(--red)':days<60?'var(--yellow)':'var(--green)';}
-
-function spBadge(st){const s=spSS(st);return '<span style="font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 8px;border-radius:3px;background:'+s.bg+';color:'+s.col+';border:1px solid '+s.br+'">'+st.toUpperCase()+'</span>';}
-
-function spCard(title,html){return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px"><div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">'+title+'</div>'+html+'</div>';}
-
-function spRenderTable(){
-  const body=document.getElementById('spTableBody');
-  const total=spFiltered.length,rpp=10,start=(spCurrentPage-1)*rpp;
-  const page=spFiltered.slice(start,start+rpp);
-  const info=document.getElementById('spPageInfo');
-  if(info)info.textContent=total===0?'No results':(start+1)+'-'+Math.min(start+rpp,total)+' of '+total+' providers';
-  const slim=spDetailOpen;
-  const cols=slim?'1fr 130px 120px 110px':'1fr 140px 130px 120px 80px 110px';
-  const hdrEl=document.getElementById('spTableHeaders');
-  if(hdrEl){
-    hdrEl.style.gridTemplateColumns=cols;
-    const heads=slim?['Name','License #','Phone','Status']:['Name / Company','License #','Phone','Gauge Cal. Due','Tests','Status'];
-    hdrEl.innerHTML=heads.map(function(h){return '<div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:0 8px">'+h+'</div>';}).join('');
-  }
-  if(!body)return;
-  if(!page.length){body.innerHTML='<div style="text-align:center;padding:48px;color:var(--muted)"><div style="font-size:32px;opacity:.3">&#x1F527;</div><div style="font-size:14px;font-weight:600;color:var(--text);margin-top:10px">No providers found</div></div>';return;}
-  body.innerHTML=page.map(function(s){
-    const isAct=spActiveId===s.id;
-    const ini=s.name.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
-    const avatar='<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:13px;color:#000;flex-shrink:0">'+ini+'</div>';
-    const nameCell=slim
-      ? '<div style="display:flex;align-items:center;gap:8px">'+avatar+'<div style="font-size:12px;font-weight:600;color:var(--text)">'+sanitize(s.name)+'</div></div>'
-      : '<div style="display:flex;align-items:center;gap:10px">'+avatar+'<div><div style="font-size:13px;font-weight:600;color:var(--text)">'+sanitize(s.name)+'</div><div style="font-size:11px;color:var(--muted)">'+sanitize(s.company)+'</div></div></div>';
-    const cells=slim
-      ? [nameCell,'<div style="font-family:var(--mono);font-size:11px;color:var(--muted)">'+sanitize(s.license)+'</div>','<div style="font-family:var(--mono);font-size:11px;color:var(--muted)">'+sanitize(s.phone)+'</div>',spBadge(s.status)]
-      : [nameCell,'<div style="font-family:var(--mono);font-size:11px;color:var(--muted)">'+sanitize(s.license)+'</div>','<div style="font-family:var(--mono);font-size:11px;color:var(--muted)">'+sanitize(s.phone)+'</div>','<div style="font-family:var(--mono);font-size:11px;color:'+spCC(s.gaugeCalDue)+'">'+s.gaugeCalDue+'</div>','<div style="text-align:center;font-family:var(--cond);font-weight:700;font-size:16px;color:var(--text)">'+s.totalTests+'</div>',spBadge(s.status)];
-    const bg=isAct?'rgba(249,166,30,.06)':'transparent';
-    const bl=isAct?'var(--accent)':'transparent';
-    return '<div onclick="spSelectRow('+s.id+')" style="display:grid;grid-template-columns:'+cols+';padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;align-items:center;background:'+bg+';border-left:3px solid '+bl+'">'+cells.map(function(c){return '<div style="padding:0 8px;overflow:hidden">'+c+'</div>';}).join('')+'</div>';
-  }).join('');
-}
-
-function spChangePage(p){spCurrentPage=p;spRenderTable();}
-function spPrevPage(){if(spCurrentPage>1){spCurrentPage--;spRenderTable();}}
-function spNextPage(){if(spCurrentPage<Math.ceil(spFiltered.length/10)){spCurrentPage++;spRenderTable();}}
-
-function spSelectRow(id){
-  spActiveId=id;spDetailOpen=true;
-  const s=SP_DATA.find(function(x){return x.id===id;});if(!s)return;
-  const panel=document.getElementById('spDetailPanel');if(panel){panel.style.width='420px';panel.style.opacity='1';}
-  const nm=document.getElementById('spDetailName');if(nm)nm.textContent=s.name;
-  const sb=document.getElementById('spDetailSub');if(sb)sb.textContent=s.company+' \u2022 '+s.license;
-  document.querySelectorAll('#spDetailTabs .m-tab').forEach(function(b,i){b.classList.toggle('active',i===0);});
-  const body=document.getElementById('spTabBody');if(body)body.innerHTML=spRenderInfo(s);
-  spRenderTable();
-}
-
-function spCloseDetail(){
-  spDetailOpen=false;spActiveId=null;
-  const p=document.getElementById('spDetailPanel');
-  if(p){p.style.opacity='0';setTimeout(function(){p.style.width='0';spRenderTable();},200);}
-}
-
-function spSwitchTab(tab,btn){
-  document.querySelectorAll('#spDetailTabs .m-tab').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');
-  const s=SP_DATA.find(function(x){return x.id===spActiveId;});
-  const body=document.getElementById('spTabBody');if(!body||!s)return;
-  if(tab==='info')body.innerHTML=spRenderInfo(s);
-  else if(tab==='tests')body.innerHTML=spRenderTests(s);
-  else if(tab==='credentials')body.innerHTML=spRenderCreds(s);
-}
-
-function spRenderInfo(s){
-  const ss=spSS(s.status);const ini=s.name.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
-  const avatar='<div style="width:52px;height:52px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:20px;color:#000;flex-shrink:0">'+ini+'</div>';
-  const certChips=s.certs.map(function(c){return '<span style="font-family:var(--mono);font-size:10px;font-weight:700;padding:4px 10px;border-radius:4px;background:rgba(249,166,30,.12);color:var(--accent);border:1px solid rgba(249,166,30,.3)">'+c+'</span>';}).join('');
-  const fields=[['Phone',s.phone],['Email',s.email],['License #',s.license],['Total Tests',s.totalTests+' completed']];
-  const grid=fields.map(function(kv){return '<div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">'+kv[0]+'</div><div style="font-size:13px;color:var(--text);font-weight:500">'+sanitize(String(kv[1]))+'</div></div>';}).join('');
-  return '<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px">'+avatar+'<div><div style="font-family:var(--cond);font-weight:900;font-size:18px;color:var(--text)">'+sanitize(s.name)+'</div><div style="font-size:12px;color:var(--muted);margin-top:2px">'+sanitize(s.company)+'</div><span style="font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 8px;border-radius:3px;background:'+ss.bg+';color:'+ss.col+';border:1px solid '+ss.br+';display:inline-block;margin-top:4px">'+s.status.toUpperCase()+'</span></div></div>'+
-    spCard('Contact Info','<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+grid+'</div>')+
-    spCard('Certified Types','<div style="display:flex;gap:6px;flex-wrap:wrap">'+certChips+'</div>');
-}
-
-function spRenderTests(s){
-  const rows=s.testHistory.map(function(t){
-    const rc=t.result==='Pass'?'var(--green)':'var(--red)';
-    const rbg=t.result==='Pass'?'rgba(76,175,121,.12)':'rgba(224,82,82,.12)';
-    const rbr=t.result==='Pass'?'rgba(76,175,121,.3)':'rgba(224,82,82,.3)';
-    return '<tr style="border-bottom:1px solid var(--border)"><td style="padding:8px;font-family:var(--mono);font-size:10px;color:var(--muted)">'+t.date+'</td><td style="padding:8px;font-size:12px;color:var(--text)">'+sanitize(t.address)+'</td><td style="padding:8px;font-family:var(--mono);font-size:11px;color:var(--text)">'+t.type+'</td><td style="padding:8px"><span style="font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;background:'+rbg+';color:'+rc+';border:1px solid '+rbr+'">'+t.result.toUpperCase()+'</span></td></tr>';
-  }).join('');
-  return spCard('Test History ('+s.testHistory.length+')','<table style="width:100%;border-collapse:collapse"><thead><tr style="border-bottom:1px solid var(--border)"><th style="font-family:var(--mono);font-size:9px;color:var(--muted);text-align:left;padding:5px 8px">Date</th><th style="font-family:var(--mono);font-size:9px;color:var(--muted);text-align:left;padding:5px 8px">Address</th><th style="font-family:var(--mono);font-size:9px;color:var(--muted);text-align:left;padding:5px 8px">Type</th><th style="font-family:var(--mono);font-size:9px;color:var(--muted);text-align:left;padding:5px 8px">Result</th></tr></thead><tbody>'+rows+'</tbody></table>');
-}
-
-function spRenderCreds(s){
-  const cc=spCC(s.gaugeCalDue);const ec=spCC(s.licenseExp);
-  const days=s.gaugeCalDue?Math.floor((new Date(s.gaugeCalDue)-new Date())/864e5):null;
-  const certChips=s.certs.map(function(c){return '<span style="font-family:var(--mono);font-size:10px;font-weight:700;padding:4px 10px;border-radius:4px;background:rgba(249,166,30,.12);color:var(--accent);border:1px solid rgba(249,166,30,.3)">'+c+'</span>';}).join('');
-  return spCard('Calibration & License','<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
-    '<div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">TCEQ License #</div><div style="font-size:13px;color:var(--text);font-weight:500">'+sanitize(s.license)+'</div></div>'+
-    '<div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">License Expiry</div><div style="font-size:13px;color:'+ec+';font-weight:500">'+s.licenseExp+'</div></div>'+
-    '<div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">Gauge Cal. Due</div><div style="font-size:13px;color:'+cc+';font-weight:500">'+s.gaugeCalDue+'</div></div>'+
-    '<div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">Days Until Cal.</div><div style="font-size:13px;color:'+cc+';font-weight:700">'+(days!==null?(days<0?'EXPIRED':days+' days'):'&mdash;')+'</div></div>'+
-    '</div>')+
-    spCard('Certified Types','<div style="display:flex;gap:6px;flex-wrap:wrap">'+certChips+'</div>');
-}
-
-function spOpenAdd(){const m=document.getElementById('spAddModal');if(m)m.style.display='flex';}
-function spCloseAdd(){const m=document.getElementById('spAddModal');if(m)m.style.display='none';['sp-add-name','sp-add-company','sp-add-license','sp-add-phone','sp-add-email','sp-add-cal','sp-add-exp','sp-add-certs'].forEach(function(id){const e=document.getElementById(id);if(e)e.value='';});}
-function spSaveAdd(){
-  const name=document.getElementById('sp-add-name')?.value.trim();
-  if(!name){alert('Name is required.');return;}
-  const certs=(document.getElementById('sp-add-certs')?.value||'').split(',').map(function(c){return c.trim();}).filter(Boolean);
-  SP_DATA.push({id:SP_DATA.length+1,name:name,company:document.getElementById('sp-add-company')?.value.trim()||'',license:document.getElementById('sp-add-license')?.value.trim()||'',phone:document.getElementById('sp-add-phone')?.value.trim()||'',email:document.getElementById('sp-add-email')?.value.trim()||'',gaugeCalDue:document.getElementById('sp-add-cal')?.value||'',licenseExp:document.getElementById('sp-add-exp')?.value||'',certs:certs,totalTests:0,status:'Active',testHistory:[]});
-  spFiltered=[...SP_DATA];spCloseAdd();spRenderTable();
-}
-function spExportCSV(){
-  const h=['Name','Company','License','Phone','Email','Gauge Cal Due','Status'];
-  const rows=spFiltered.map(function(s){return [s.name,s.company,s.license,s.phone,s.email,s.gaugeCalDue,s.status];});
-  const csv=[h].concat(rows).map(function(r){return r.map(function(v){return '"'+(v||'').toString().replace(/"/g,'""')+'"';}).join(',');}).join('\n');
-  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='bcp-providers.csv';a.click();
-}
-document.addEventListener('click',function(e){
-  if(!spDetailOpen)return;
-  const panel=document.getElementById('spDetailPanel');
-  const inPanel=panel&&panel.contains(e.target);
-  const inRow=e.target.closest&&e.target.closest('[onclick^="spSelectRow"]');
-  const inBar=e.target.closest&&e.target.closest('#page-providers-page > div:first-child');
-  if(!inPanel&&!inRow&&!inBar)spCloseDetail();
-},true);
-
-</script>
-
-<!-- ══════════════════════════════════════════════════════
-     MOBILE ADMIN — Activates on phones after login
-══════════════════════════════════════════════════════ -->
-<div id="mobile-admin">
-
-  <!-- TOPBAR -->
-  <div class="ma-topbar">
-    <div class="ma-logo">
-      <div class="ma-logo-icon">🛡️</div>
-      <div class="ma-logo-text">BCP Admin</div>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px">
-      <div class="ma-admin-pill">ADMIN</div>
-      <button onclick="switchMobileToDesktop()"
-        style="font-family:var(--mono);font-size:8px;color:var(--muted);background:var(--elevated);border:1px solid var(--border);border-radius:7px;padding:5px 9px;cursor:pointer;letter-spacing:.5px">
-        🖥 DESKTOP
-      </button>
-      <button onclick="mobileAdminLogout()"
-        style="font-family:var(--mono);font-size:8px;color:var(--red);background:rgba(224,82,82,.08);border:1px solid rgba(224,82,82,.2);border-radius:7px;padding:5px 9px;cursor:pointer;letter-spacing:.5px;font-weight:700">
-        ↩ OUT
-      </button>
-    </div>
-  </div>
-
-  <!-- PAGE: DASHBOARD -->
-  <div class="ma-content" id="ma-page-dashboard">
-    <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:14px">OVERVIEW</div>
-
-    <div class="ma-stats" id="ma-stats-grid">
-      <div class="ma-stat">
-        <div class="ma-stat-val" id="ma-total">—</div>
-        <div class="ma-stat-label">TOTAL TESTS</div>
-      </div>
-      <div class="ma-stat">
-        <div class="ma-stat-val" style="color:var(--green)" id="ma-pass">—</div>
-        <div class="ma-stat-label">PASSED</div>
-      </div>
-      <div class="ma-stat">
-        <div class="ma-stat-val" style="color:var(--red)" id="ma-fail">—</div>
-        <div class="ma-stat-label">FAILED</div>
-      </div>
-      <div class="ma-stat">
-        <div class="ma-stat-val" style="color:var(--yellow)" id="ma-overdue">—</div>
-        <div class="ma-stat-label">OVERDUE</div>
-      </div>
-    </div>
-
-    <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:10px;margin-top:4px">RECENT REPORTS</div>
-    <div id="ma-recent-list">
-      <div style="text-align:center;padding:32px;color:var(--muted);font-family:var(--mono);font-size:10px">Loading…</div>
-    </div>
-
-    <button class="ma-desktop-btn" onclick="switchMobileToDesktop()">🖥 Switch to Full Desktop View</button>
-  </div>
-
-  <!-- PAGE: REPORTS -->
-  <div class="ma-content" id="ma-page-reports" style="display:none">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <div style="font-family:var(--cond);font-size:20px;font-weight:900">All Reports</div>
-      <button onclick="loadMobileReports()" style="font-family:var(--mono);font-size:9px;color:var(--accent);background:rgba(249,166,30,.08);border:1px solid rgba(249,166,30,.2);border-radius:7px;padding:5px 10px;cursor:pointer">↻ Refresh</button>
-    </div>
-    <div id="ma-all-reports-list">
-      <div style="text-align:center;padding:32px;color:var(--muted);font-family:var(--mono);font-size:10px">Loading…</div>
-    </div>
-  </div>
-
-  <!-- PAGE: RISK MAP -->
-  <div id="ma-page-risk" style="display:none;flex-direction:column;flex:1">
-    <div style="padding:14px 14px 0;flex-shrink:0">
-      <div style="font-family:var(--cond);font-size:20px;font-weight:900;margin-bottom:4px">City Risk Map</div>
-      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:10px">TCEQ 290.47(f) APPENDIX F</div>
-    </div>
-    <div style="flex:1;position:relative;min-height:0">
-      <div id="ma-risk-map" style="width:100%;height:100%;min-height:400px"></div>
-    </div>
-  </div>
-
-  <!-- PAGE: ADD REPORT -->
-  <div class="ma-content" id="ma-page-add" style="display:none">
-    <div style="font-family:var(--cond);font-size:20px;font-weight:900;margin-bottom:14px">Add Report</div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px">
-      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:12px">USE DESKTOP FOR FULL FORM</div>
-      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:14px">The full report submission form is available in Desktop view. For quick field submissions, use the Tester Portal.</p>
-      <button onclick="switchMobileToDesktop()" style="width:100%;padding:14px;background:var(--accent);color:#000;border:none;border-radius:12px;font-family:var(--cond);font-size:18px;font-weight:900;cursor:pointer">Open Desktop View</button>
-      <div style="margin-top:10px;text-align:center">
-        <a href="tester.html" style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:1px">Or open Tester Portal →</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- BOTTOM NAV -->
-  <div class="ma-bottom-nav">
-    <button class="ma-bn active" id="ma-bn-dashboard" onclick="switchMobilePage('dashboard')">
-      <span class="ma-bn-icon">📊</span>OVERVIEW
-    </button>
-    <button class="ma-bn" id="ma-bn-reports" onclick="switchMobilePage('reports')">
-      <span class="ma-bn-icon">📋</span>REPORTS
-    </button>
-    <button class="ma-bn" id="ma-bn-risk" onclick="switchMobilePage('risk')">
-      <span class="ma-bn-icon">🗺️</span>RISK MAP
-    </button>
-    <button class="ma-bn" id="ma-bn-add" onclick="switchMobilePage('add')">
-      <span class="ma-bn-icon">➕</span>ADD
-    </button>
-  </div>
-
-</div>
-
-</body>
-</html>// ═══════════════════════════════════════════════════════
-//  SERVICE PROVIDERS — TESTER APPROVAL MODULE
-// ═══════════════════════════════════════════════════════
-
-// Required fields for approval
-const SP_REQUIRED = ['cert_number','company','license_exp','gauge_cal_date','gauge_serial'];
-const SP_REQUIRED_LABELS = {
-  cert_number: 'TCEQ Cert Number',
-  company: 'Company / Firm',
-  license_exp: 'License Expiration Date',
-  gauge_cal_date: 'Gauge Calibration Date',
-  gauge_serial: 'Gauge Serial Number',
-};
-
-// Local demo data — in production, loaded from Supabase auth.admin.listUsers()
-const SP_DATA = [
-  {id:1,name:"Matt Snider",email:"matt@backflowcheckpro.com",company:"Backflow Check Pro",cert_number:"TX-4421",phone:"(325) 555-0101",gauge_serial:"GAU-2291",gauge_cal_date:"2026-09-01",gauge_cal_due:"2026-09-01",license_number:"LIC-0042",license_exp:"2027-03-15",testsRun:47,status:"active",approved_at:"2025-01-10",notes:"Lead tester.",
-    testHistory:[{date:"2026-01-22",address:"4150 Buffalo Gap Rd",assembly:"PV-0034",result:"Pass"},{date:"2025-11-14",address:"1423 N 1st St",assembly:"RP-2291",result:"Pass"}]},
-  {id:2,name:"Jorge Rodriguez",email:"j.rodriguez@abileneplumbing.com",company:"Abilene Plumbing Co.",cert_number:"TX-2209",phone:"(325) 555-0217",gauge_serial:"GAU-1144",gauge_cal_date:"2026-06-15",gauge_cal_due:"2026-06-15",license_number:"LIC-0088",license_exp:"2026-11-30",testsRun:23,status:"active",approved_at:"2025-03-15",notes:"",
-    testHistory:[{date:"2025-10-02",address:"3801 S Clack St",assembly:"RP-0881",result:"Pass"}]},
-  {id:3,name:"Sandra Williams",email:"s.williams@williamsbackflow.com",company:"Williams Backflow LLC",cert_number:"TX-3387",phone:"(325) 555-0344",gauge_serial:"GAU-0882",gauge_cal_date:"",gauge_cal_due:"",license_number:"",license_exp:"",testsRun:31,status:"pending",submitted_at:"2026-05-20",notes:"Missing gauge cal and license info.",
-    testHistory:[]},
-  {id:4,name:"David Kim",email:"d.kim@kimmechanical.com",company:"Kim Mechanical Services",cert_number:"",phone:"(325) 555-0488",gauge_serial:"",gauge_cal_date:"",gauge_cal_due:"",license_number:"",license_exp:"",testsRun:0,status:"pending",submitted_at:"2026-05-27",notes:"New submission — multiple fields missing.",
-    testHistory:[]},
-];
-
-let spFiltered=[...SP_DATA],spActiveId=null,spCurrentPage=1,spDetailOpen=false,spCurrentTab='active';
-
-function spInit(){
-  spCurrentPage=1;spDetailOpen=false;
-  const p=document.getElementById('spDetailPanel');if(p){p.style.width='0';p.style.opacity='0';}
-  spSetTab('active');
-  spUpdatePendingBadge();
-}
-
-function spRefresh(){
-  // In production: fetch from Supabase auth.admin.listUsers()
-  // For now, reload from SP_DATA
-  spInit();
-  const btn = event.currentTarget;
-  btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Synced!';
-  setTimeout(()=>{ btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Sync from Portal'; }, 2000);
-}
-
-function spUpdatePendingBadge(){
-  const pending = SP_DATA.filter(t=>t.status==='pending').length;
-  const badge = document.getElementById('spPendingBadge');
-  if(badge){ badge.textContent=pending; badge.style.display=pending>0?'inline':'none'; }
-}
-
-function spSetTab(tab){
-  spCurrentTab = tab;
-  spCurrentPage = 1;
-  const btnA=document.getElementById('spTabActive'), btnP=document.getElementById('spTabPending');
-  if(btnA){ btnA.style.background=tab==='active'?'var(--accent)':'transparent'; btnA.style.color=tab==='active'?'#000':'var(--muted)'; }
-  if(btnP){ btnP.style.background=tab==='pending'?'var(--yellow)':'transparent'; btnP.style.color=tab==='pending'?'#000':'var(--muted)'; }
-  spApplyFilters();
-}
-
-function spApplyFilters(){
-  const ms=document.getElementById('spMainSearch')?.value.trim().toLowerCase()||'';
-  spFiltered=SP_DATA.filter(t=>
-    t.status===spCurrentTab &&
-    (!ms||t.name.toLowerCase().includes(ms)||t.cert_number.toLowerCase().includes(ms)||
-     t.company.toLowerCase().includes(ms)||t.email.toLowerCase().includes(ms))
-  );
-  spRenderTable();
-}
-
-function spMissingFields(t){
-  return SP_REQUIRED.filter(f=>!t[f]||t[f].toString().trim()==='');
-}
-
-function spCalStatus(dateStr){
-  if(!dateStr)return{label:'Missing',color:'var(--red)',expired:true};
-  const d=new Date(dateStr),now=new Date();
-  const days=Math.floor((d-now)/(1000*60*60*24));
-  if(days<0)return{label:'EXPIRED',color:'var(--red)',expired:true};
-  if(days<60)return{label:days+'d left',color:'var(--yellow)',expired:false};
-  return{label:dateStr,color:'var(--green)',expired:false};
-}
-
-function spRenderTable(){
-  const body=document.getElementById('spTableBody');
-  const rpp=parseInt(document.getElementById('spRowsPerPage')?.value||'10');
-  const total=spFiltered.length;
-  const totalPages=Math.max(1,Math.ceil(total/rpp));
-  if(spCurrentPage>totalPages)spCurrentPage=totalPages;
-  const start=(spCurrentPage-1)*rpp;
-  const page=spFiltered.slice(start,start+rpp);
-  const info=document.getElementById('spPageInfo');
-  if(info)info.textContent=total===0?'No results':`${start+1}-${Math.min(start+rpp,total)} of ${total} items`;
-
-  const isPending = spCurrentTab==='pending';
-  const cols = spDetailOpen
-    ? '1fr 110px 100px 80px'
-    : isPending
-      ? '1fr 120px 130px 110px 1fr'
-      : '1fr 120px 130px 110px 130px 100px';
-
-  const hdrs=document.getElementById('spTableHeaders');
-  if(hdrs){
-    hdrs.style.gridTemplateColumns=cols;
-    const headLabels = spDetailOpen
-      ? ['Name','Cert #','Phone','Tests']
-      : isPending
-        ? ['Name / Company','Cert #','Phone','Submitted','Missing Fields']
-        : ['Name / Company','Cert #','Phone','Tests Run','Gauge Cal Expiry','Status'];
-    hdrs.innerHTML=headLabels.map(h=>`<div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:0 8px">${h}</div>`).join('');
-  }
-
-  if(!body)return;
-  if(!page.length){
-    const msg = isPending ? 'No pending submissions.' : 'No active testers.';
-    body.innerHTML=`<div style="text-align:center;padding:48px;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px;opacity:.3">&#x1F527;</div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">${msg}</div></div>`;
-    return;
-  }
-
-  body.innerHTML=page.map(t=>{
-    const isActive=spActiveId===t.id;
-    const initials=t.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
-    const missing = spMissingFields(t);
-    const cal=spCalStatus(t.gauge_cal_date);
-    const statusColor=t.status==='active'?'var(--green)':t.status==='pending'?'var(--yellow)':'var(--red)';
-    const statusBg=t.status==='active'?'rgba(76,175,121,.12)':t.status==='pending'?'rgba(240,192,64,.12)':'rgba(224,82,82,.12)';
-    const statusBorder=t.status==='active'?'rgba(76,175,121,.3)':t.status==='pending'?'rgba(240,192,64,.3)':'rgba(224,82,82,.3)';
-
-    let cells;
-    if(spDetailOpen){
-      cells=[
-        `<div style="display:flex;align-items:center;gap:8px"><div style="width:26px;height:26px;border-radius:50%;background:${t.status==='pending'?'var(--yellow)':'var(--accent)'};display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:11px;color:#000;flex-shrink:0">${initials}</div><div style="font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(t.name)}</div></div>`,
-        `<div style="font-family:var(--mono);font-size:11px;color:var(--text)">${sanitize(t.cert_number)||'&mdash;'}</div>`,
-        `<div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${sanitize(t.phone)||'&mdash;'}</div>`,
-        `<div style="font-family:var(--cond);font-weight:700;font-size:15px;color:var(--text)">${t.testsRun}</div>`,
-      ];
-    } else if(isPending){
-      const missingChips = missing.length===0
-        ? `<span style="font-family:var(--mono);font-size:9px;color:var(--green)">&#x2713; All fields present</span>`
-        : missing.map(f=>`<span style="font-family:var(--mono);font-size:9px;padding:1px 6px;background:rgba(224,82,82,.12);color:var(--red);border:1px solid rgba(224,82,82,.25);border-radius:3px;margin-right:3px">${SP_REQUIRED_LABELS[f]}</span>`).join('');
-      cells=[
-        `<div style="display:flex;align-items:center;gap:10px"><div style="width:30px;height:30px;border-radius:50%;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:12px;color:#000;flex-shrink:0">${initials}</div><div><div style="font-size:13px;font-weight:600;color:var(--text)">${sanitize(t.name)}</div><div style="font-size:11px;color:var(--muted);margin-top:1px">${sanitize(t.company)||'No company'}</div></div></div>`,
-        `<div style="font-family:var(--mono);font-size:11px;color:${t.cert_number?'var(--text)':'var(--red)'}">${sanitize(t.cert_number)||'MISSING'}</div>`,
-        `<div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${sanitize(t.phone)||'&mdash;'}</div>`,
-        `<div style="font-family:var(--mono);font-size:10px;color:var(--muted)">${t.submitted_at||'&mdash;'}</div>`,
-        `<div style="display:flex;flex-wrap:wrap;gap:3px;align-items:center">${missingChips}</div>`,
-      ];
-    } else {
-      cells=[
-        `<div style="display:flex;align-items:center;gap:10px"><div style="width:30px;height:30px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:12px;color:#000;flex-shrink:0">${initials}</div><div><div style="font-size:13px;font-weight:600;color:var(--text)">${sanitize(t.name)}</div><div style="font-size:11px;color:var(--muted);margin-top:1px">${sanitize(t.company)}</div></div></div>`,
-        `<div style="font-family:var(--mono);font-size:11px;color:var(--text)">${sanitize(t.cert_number)}</div>`,
-        `<div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${sanitize(t.phone)}</div>`,
-        `<div style="font-family:var(--cond);font-weight:700;font-size:16px;color:var(--text);text-align:center">${t.testsRun}</div>`,
-        `<div style="font-family:var(--mono);font-size:11px;color:${cal.color}">${cal.label}</div>`,
-        `<span style="font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 8px;border-radius:3px;background:${statusBg};color:${statusColor};border:1px solid ${statusBorder}">${t.status.toUpperCase()}</span>`,
-      ];
-    }
-
-    return `<div onclick="spSelectRow(${t.id})" style="display:grid;grid-template-columns:${cols};padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;align-items:center;background:${isActive?'rgba(249,166,30,.06)':'transparent'};border-left:3px solid ${isActive?'var(--accent)':'transparent'}"
-      onmouseover="if(!${isActive})this.style.background='var(--elevated)'" onmouseout="this.style.background='${isActive?'rgba(249,166,30,.06)':'transparent'}'">
-      ${cells.map(c=>`<div style="padding:0 8px;overflow:hidden">${c}</div>`).join('')}
-    </div>`;
-  }).join('');
-}
-
-function spChangePage(p){spCurrentPage=p;spRenderTable();}
-function spPrevPage(){if(spCurrentPage>1){spCurrentPage--;spRenderTable();}}
-function spNextPage(){const rpp=parseInt(document.getElementById('spRowsPerPage')?.value||'10');if(spCurrentPage<Math.ceil(spFiltered.length/rpp)){spCurrentPage++;spRenderTable();}}
-function spLastPage(){const rpp=parseInt(document.getElementById('spRowsPerPage')?.value||'10');spCurrentPage=Math.ceil(spFiltered.length/rpp)||1;spRenderTable();}
-
-function spSelectRow(id){
-  spActiveId=id;spDetailOpen=true;
-  const t=SP_DATA.find(x=>x.id===id);if(!t)return;
-  const panel=document.getElementById('spDetailPanel');if(panel){panel.style.width='440px';panel.style.opacity='1';}
-
-  // Header
-  const nm=document.getElementById('spDetailName');if(nm)nm.textContent=t.name;
-  const sb=document.getElementById('spDetailSub');if(sb)sb.textContent=(t.company||'No company')+' \u2022 '+t.email;
-
-  // Status badge
-  const badge=document.getElementById('spDetailStatusBadge');
-  if(badge){
-    const sc=t.status==='active'?'var(--green)':t.status==='pending'?'var(--yellow)':'var(--red)';
-    const sbg=t.status==='active'?'rgba(76,175,121,.14)':t.status==='pending'?'rgba(240,192,64,.14)':'rgba(224,82,82,.14)';
-    const sbr=t.status==='active'?'rgba(76,175,121,.3)':t.status==='pending'?'rgba(240,192,64,.3)':'rgba(224,82,82,.3)';
-    badge.style.cssText=`font-family:var(--cond);font-weight:700;font-size:12px;padding:4px 10px;border-radius:5px;background:${sbg};color:${sc};border:1px solid ${sbr}`;
-    badge.textContent=t.status.toUpperCase();
-  }
-
-  // Show/hide approval actions
-  const actions=document.getElementById('spApprovalActions');
-  if(actions){
-    if(t.status==='pending'){
-      actions.style.display='block';
-      const missing=spMissingFields(t);
-      const mf=document.getElementById('spMissingFields');
-      if(mf){
-        if(missing.length===0){
-          mf.innerHTML=`<div style="font-family:var(--mono);font-size:10px;color:var(--green)">&#x2713; All required fields present — ready to approve</div>`;
-        } else {
-          mf.innerHTML=`<div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:5px">Missing required fields:</div>`+
-            missing.map(f=>`<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px"><div style="width:5px;height:5px;border-radius:50%;background:var(--red);flex-shrink:0"></div><span style="font-size:12px;color:var(--text)">${SP_REQUIRED_LABELS[f]}</span></div>`).join('');
-        }
-      }
-    } else {
-      actions.style.display='none';
-    }
-  }
-
-  document.querySelectorAll('#spDetailTabs .m-tab').forEach((b,i)=>b.classList.toggle('active',i===0));
-  const body=document.getElementById('spTabBody');if(body)body.innerHTML=spRenderInfo(t);
-  spRenderTable();
-}
-
-function spCloseDetail(){
-  spDetailOpen=false;spActiveId=null;
-  const p=document.getElementById('spDetailPanel');
-  if(p){p.style.opacity='0';setTimeout(()=>{p.style.width='0';setTimeout(()=>{spRenderTable();},260);},180);}
-  else{spRenderTable();}
-}
-
-function spSwitchTab(tab,btn){
-  document.querySelectorAll('#spDetailTabs .m-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
-  const t=SP_DATA.find(x=>x.id===spActiveId);
-  const body=document.getElementById('spTabBody');if(!body||!t)return;
-  if(tab==='info')body.innerHTML=spRenderInfo(t);
-  else if(tab==='tests')body.innerHTML=spRenderTests(t);
-  else if(tab==='credentials')body.innerHTML=spRenderCredentials(t);
-}
-
-// ── APPROVAL ACTIONS ──────────────────────────────────────────────────────────
-function spApprove(){
-  const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return;
-  const missing=spMissingFields(t);
-  if(missing.length>0){
-    if(!confirm('This tester is missing required fields:\n\n'+missing.map(f=>'\u2022 '+SP_REQUIRED_LABELS[f]).join('\n')+'\n\nApprove anyway?'))return;
-  }
-  t.status='active';
-  t.approved_at=new Date().toISOString().split('T')[0];
-  // In production: update Supabase user_metadata { approved: true, approved_at: date }
-  spUpdatePendingBadge();
-  spSelectRow(t.id);
-  spRenderTable();
-  // Flash success
-  const badge=document.getElementById('spDetailStatusBadge');
-  if(badge){badge.textContent='APPROVED \u2713';badge.style.color='var(--green)';}
-  setTimeout(()=>spSelectRow(t.id),1500);
-}
-
-function spRequestInfo(){
-  const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return;
-  const missing=spMissingFields(t);
-  const fieldList=missing.map(f=>'\u2022 '+SP_REQUIRED_LABELS[f]).join('\n');
-  // In production: send email via Supabase edge function / Resend
-  alert('Notification sent to '+t.email+':\n\nPlease log into the Backflow Check Pro tester portal and complete your profile.\n\nMissing information:\n'+fieldList);
-  t.notes=(t.notes?t.notes+'\n':'')+'['+new Date().toISOString().split('T')[0]+'] Admin requested missing info via email.';
-}
-
-function spReject(){
-  const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return;
-  if(!confirm('Reject '+t.name+'? This will remove them from the pending queue.'))return;
-  t.status='rejected';
-  spUpdatePendingBadge();
-  spCloseDetail();
-  spSetTab('pending');
-}
-
-// ── TAB CONTENT ───────────────────────────────────────────────────────────────
-function _sp(title,html){return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px"><div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">${title}</div>${html}</div>`;}
-function _sg(pairs){return`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${pairs.map(([l,v])=>`<div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">${l}</div><div style="font-size:13px;color:var(--text);font-weight:500">${v||'<span style=color:var(--red)>Missing</span>'}</div></div>`).join('')}</div>`;}
-
-function spRenderInfo(t){
-  const initials=t.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
-  const sc=t.status==='active'?'var(--green)':t.status==='pending'?'var(--yellow)':'var(--red)';
-  return `<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px">
-    <div style="width:52px;height:52px;border-radius:50%;background:${t.status==='pending'?'var(--yellow)':'var(--accent)'};display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:20px;color:#000;flex-shrink:0">${initials}</div>
-    <div><div style="font-family:var(--cond);font-weight:900;font-size:18px;color:var(--text)">${sanitize(t.name)}</div>
-    <div style="font-size:12px;color:var(--muted);margin-top:2px">${sanitize(t.company)||'No company on file'}</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:1px">${sanitize(t.email)}</div></div>
-  </div>`+
-  _sp('Contact & Profile',_sg([
-    ['Phone',sanitize(t.phone)],
-    ['Email',sanitize(t.email)],
-    ['TCEQ Cert #',sanitize(t.cert_number)],
-    ['Company',sanitize(t.company)],
-    ['Tests Completed',t.testsRun+' total'],
-    ['Status',`<span style="color:${sc}">${t.status.toUpperCase()}</span>`],
-  ]))+
-  (t.notes?_sp('Notes',`<div style="font-size:12px;color:var(--muted);line-height:1.6;padding:9px 11px;background:var(--elevated);border-radius:6px">${sanitize(t.notes)}</div>`):'');
-}
-
-function spRenderTests(t){
-  if(!t.testHistory||!t.testHistory.length)return _sp('Test History','<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">No tests submitted yet.</div>');
-  const rows=t.testHistory.map(h=>{
-    const rc=h.result==='Pass'?'var(--green)':'var(--red)';
-    const rbg=h.result==='Pass'?'rgba(76,175,121,.12)':'rgba(224,82,82,.12)';
-    const rbr=h.result==='Pass'?'rgba(76,175,121,.3)':'rgba(224,82,82,.3)';
-    return `<tr style="border-bottom:1px solid var(--border)"><td style="padding:8px;font-family:var(--mono);font-size:10px;color:var(--muted)">${h.date}</td><td style="padding:8px;font-size:12px;color:var(--text)">${sanitize(h.address)}</td><td style="padding:8px;font-family:var(--mono);font-size:10px;color:var(--muted)">${sanitize(h.assembly)}</td><td style="padding:8px"><span style="font-family:var(--mono);font-size:9px;font-weight:700;color:${rc};background:${rbg};border:1px solid ${rbr};padding:2px 7px;border-radius:3px">${h.result.toUpperCase()}</span></td></tr>`;
-  }).join('');
-  return _sp('Test History ('+t.testHistory.length+')', '<table style="width:100%;border-collapse:collapse"><thead><tr style="border-bottom:1px solid var(--border)">'+['Date','Address','Assembly','Result'].map(h=>`<th style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;text-align:left;padding:5px 8px">${h}</th>`).join('')+'</tr></thead><tbody>'+rows+'</tbody></table>');
-}
-
-function spRenderCredentials(t){
-  const cal=spCalStatus(t.gauge_cal_date);
-  const lic=spCalStatus(t.license_exp);
-  const fieldRow=(label,value,missing)=>`<div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">${label}</div><div style="font-size:13px;color:${missing?'var(--red)':'var(--text)'};font-weight:500">${missing?'&#x26A0; Missing':sanitize(value)}</div></div>`;
-  return _sp('Credentials & Equipment',
-    `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      ${fieldRow('TCEQ Cert #',t.cert_number,!t.cert_number)}
-      ${fieldRow('License #',t.license_number,!t.license_number)}
-      <div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">License Expiry</div><div style="font-size:13px;color:${lic.color};font-weight:500">${!t.license_exp?'&#x26A0; Missing':lic.label}</div></div>
-      ${fieldRow('Gauge Serial #',t.gauge_serial,!t.gauge_serial)}
-      <div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">Gauge Cal Expiry</div><div style="font-size:13px;color:${cal.color};font-weight:500">${!t.gauge_cal_date?'&#x26A0; Missing':cal.label}</div></div>
-      ${fieldRow('Approved',t.approved_at||'Not yet approved',false)}
-    </div>`
-  );
-}
-
-function spExportCSV(){
-  const h=['Name','Email','Company','Cert #','Phone','Gauge Serial','Cal Expiry','License Expiry','Tests Run','Status'];
-  const rows=spFiltered.map(t=>[t.name,t.email,t.company,t.cert_number,t.phone,t.gauge_serial,t.gauge_cal_date,t.license_exp,t.testsRun,t.status]);
-  const csv=[h,...rows].map(r=>r.map(v=>'"'+(v||'').toString().replace(/"/g,'""')+'"').join(',')).join('\n');
-  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='bcp-testers.csv';a.click();
-}
-
-// Click outside to close
-document.addEventListener('click', function(e) {
-  if (!spDetailOpen) return;
-  const panel=document.getElementById('spDetailPanel');
-  if(!panel)return;
-  const inPanel=panel.contains(e.target);
-  const inRow=e.target.closest&&e.target.closest('[onclick^="spSelectRow"]');
-  const inTopBar=e.target.closest&&e.target.closest('#page-providers-page > div:first-child');
-  if(!inPanel&&!inRow&&!inTopBar)spCloseDetail();
-},true);
-
-
+</html>
