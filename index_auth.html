@@ -4357,6 +4357,15 @@ function locSwitchTab(tab,btn){
   document.querySelectorAll('#locDetailTabs .m-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
   const loc=LOC_DATA.find(l=>l.id===locActiveId);
   const body=document.getElementById('locTabBody');if(!body||!loc)return;
+  // Reset edit mode when switching tabs (except stay in edit if already editing same tab)
+  locEditMode=false;
+  const editBtn=document.getElementById('locEditBtn');
+  if(editBtn){
+    editBtn.style.borderColor='';editBtn.style.color='';editBtn.style.background='';
+    editBtn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit';
+    // Only show edit button on editable tabs
+    editBtn.style.display=['details','assemblies','contacts'].includes(tab)?'flex':'none';
+  }
   if(tab==='details')body.innerHTML=locRenderDetails(loc);
   else if(tab==='assemblies')body.innerHTML=locRenderAssemblies(loc);
   else if(tab==='contacts')body.innerHTML=locRenderContacts(loc);
@@ -4403,6 +4412,47 @@ function locRenderAssemblies(loc){
   const sc=s=>s==='Pass'?'var(--green)':s==='Fail'?'var(--red)':'var(--yellow)';
   const sbg=s=>s==='Pass'?'rgba(76,175,121,.12)':s==='Fail'?'rgba(224,82,82,.12)':'rgba(240,192,64,.12)';
   const sbr=s=>s==='Pass'?'rgba(76,175,121,.3)':s==='Fail'?'rgba(224,82,82,.3)':'rgba(240,192,64,.3)';
+
+  if(locEditMode){
+    // Edit mode — inline editable rows + add new assembly row
+    const editRows = loc.assemblies.map((a,i)=>`
+      <tr style="border-bottom:1px solid var(--border);background:var(--elevated)">
+        <td style="padding:6px 5px"><select id="ae-type-${i}" class="ss" style="font-size:11px;padding:4px 5px;width:60px"><option${a.type==='RPZ'?' selected':''}>RPZ</option><option${a.type==='DCVA'?' selected':''}>DCVA</option><option${a.type==='PVB'?' selected':''}>PVB</option><option${a.type==='SVB'?' selected':''}>SVB</option></select></td>
+        <td style="padding:6px 5px"><input id="ae-make-${i}" class="si" value="${sanitize(a.make)}" style="font-size:11px;padding:4px 6px;width:70px"></td>
+        <td style="padding:6px 5px"><input id="ae-model-${i}" class="si" value="${sanitize(a.model)}" style="font-size:11px;padding:4px 6px;width:70px"></td>
+        <td style="padding:6px 5px"><input id="ae-size-${i}" class="si" value="${sanitize(a.size)}" style="font-size:11px;padding:4px 6px;width:50px"></td>
+        <td style="padding:6px 5px"><input id="ae-serial-${i}" class="si" value="${sanitize(a.serial)}" style="font-size:11px;padding:4px 6px;width:80px"></td>
+        <td style="padding:6px 5px"><select id="ae-status-${i}" class="ss" style="font-size:11px;padding:4px 5px;width:70px;color:${sc(a.status)}"><option${a.status==='Pass'?' selected':''}>Pass</option><option${a.status==='Fail'?' selected':''}>Fail</option><option${a.status==='Overdue'?' selected':''}>Overdue</option></select></td>
+        <td style="padding:6px 5px"><input id="ae-due-${i}" class="si" type="date" value="${a.due}" style="font-size:11px;padding:4px 6px;width:110px"></td>
+        <td style="padding:6px 5px"><button onclick="locDeleteAssembly(${i})" style="background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.25);border-radius:4px;color:var(--red);cursor:pointer;padding:3px 7px;font-size:11px">&#x2715;</button></td>
+      </tr>`).join('');
+
+    const addRow = `<tr style="border-top:2px solid var(--border);background:rgba(249,166,30,.04)">
+      <td style="padding:6px 5px"><select id="ae-type-new" class="ss" style="font-size:11px;padding:4px 5px;width:60px"><option>RPZ</option><option>DCVA</option><option>PVB</option><option>SVB</option></select></td>
+      <td style="padding:6px 5px"><input id="ae-make-new" class="si" placeholder="Make" style="font-size:11px;padding:4px 6px;width:70px"></td>
+      <td style="padding:6px 5px"><input id="ae-model-new" class="si" placeholder="Model" style="font-size:11px;padding:4px 6px;width:70px"></td>
+      <td style="padding:6px 5px"><input id="ae-size-new" class="si" placeholder='3/4"' style="font-size:11px;padding:4px 6px;width:50px"></td>
+      <td style="padding:6px 5px"><input id="ae-serial-new" class="si" placeholder="Serial #" style="font-size:11px;padding:4px 6px;width:80px"></td>
+      <td style="padding:6px 5px"><select id="ae-status-new" class="ss" style="font-size:11px;padding:4px 5px;width:70px"><option>Pass</option><option>Fail</option><option>Overdue</option></select></td>
+      <td style="padding:6px 5px"><input id="ae-due-new" class="si" type="date" style="font-size:11px;padding:4px 6px;width:110px"></td>
+      <td style="padding:6px 5px"><button onclick="locAddAssemblyRow()" style="background:rgba(249,166,30,.12);border:1px solid rgba(249,166,30,.3);border-radius:4px;color:var(--accent);cursor:pointer;padding:3px 7px;font-size:11px">+ Add</button></td>
+    </tr>`;
+
+    return _lc('Assemblies — Editing ('+loc.assemblies.length+')',
+      `<div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;min-width:520px">
+          <thead><tr style="border-bottom:1px solid var(--border)">${['Type','Make','Model','Size','Serial #','Status','Due',''].map(h=>`<th style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;text-align:left;padding:5px 8px">${h}</th>`).join('')}</tr></thead>
+          <tbody>${editRows}${addRow}</tbody>
+        </table>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px">
+        <button onclick="locEditMode=false;locToggleEdit()" class="btn btn-gh btn-sm">Cancel</button>
+        <button onclick="locSaveAssemblies()" class="btn btn-ac btn-sm">Save Assemblies</button>
+      </div>`
+    );
+  }
+
+  // Read-only mode
   const rows=loc.assemblies.map(a=>`<tr style="border-bottom:1px solid var(--border)">
     <td style="padding:9px 8px;font-size:12px;font-weight:600">${a.type}</td>
     <td style="padding:9px 8px;font-size:12px;color:var(--muted)">${a.make}</td>
@@ -4412,12 +4462,38 @@ function locRenderAssemblies(loc){
     <td style="padding:9px 8px"><span style="font-family:var(--mono);font-size:9px;font-weight:700;color:${sc(a.status)};background:${sbg(a.status)};border:1px solid ${sbr(a.status)};padding:2px 7px;border-radius:3px">${a.status.toUpperCase()}</span></td>
     <td style="padding:9px 8px;font-family:var(--mono);font-size:10px;color:var(--muted)">${a.due}</td>
   </tr>`).join('');
-  return _lc('Assemblies ('+loc.assemblies.length+')','<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:480px"><thead><tr style="border-bottom:1px solid var(--border)">'+['Type','Make','Model','Size','Serial #','Status','Due'].map(h=>`<th style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;text-align:left;padding:5px 8px">${h}</th>`).join('')+'</tr></thead><tbody>'+rows+'</tbody></table></div>')+'<button onclick="alert(\'Add Assembly\')" class="btn btn-ac" style="width:100%;justify-content:center;margin-top:8px">+ Add Assembly</button>';
+  return _lc('Assemblies ('+loc.assemblies.length+')','<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:480px"><thead><tr style="border-bottom:1px solid var(--border)">'+['Type','Make','Model','Size','Serial #','Status','Due'].map(h=>`<th style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;text-align:left;padding:5px 8px">${h}</th>`).join('')+'</tr></thead><tbody>'+rows+'</tbody></table></div>')+'<button onclick="locAddAssemblyRow()" class="btn btn-ac" style="width:100%;justify-content:center;margin-top:8px">+ Add Assembly</button>';
 }
 
 function locRenderContacts(loc){
-  return _lc('Primary Contact',_lg([['Name',sanitize(loc.contact)],['Phone',sanitize(loc.phone)],['Email',sanitize(loc.email)],['Role','Property Manager']]))+
-    _lc('Account',_lg([['Account #',sanitize(loc.account)],['Address',sanitize(loc.address)],['City',loc.city],['ZIP',loc.zip]]));
+  if(locEditMode){
+    const ef=(id,val,type='text')=>`<input id="${id}" type="${type}" value="${sanitize(val||'')}" class="si" style="font-size:12px;padding:5px 8px;width:100%">`;
+    return _lc('Primary Contact — Editing',
+      `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="grid-column:1/-1"><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">Contact Name</div>${ef('ec-contact',loc.contact)}</div>
+        <div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">Phone</div>${ef('ec-phone',loc.phone)}</div>
+        <div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">Email</div>${ef('ec-email',loc.email)}</div>
+        <div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">Role / Title</div>${ef('ec-role',loc.role||'Property Manager')}</div>
+        <div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">Owner Name</div>${ef('ec-owner',loc.ownerName||'')}</div>
+      </div>`) +
+    _lc('Account Info — Editing',
+      `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">Account #</div>${ef('ec-account',loc.account)}</div>
+        <div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">ZIP</div>${ef('ec-zip',loc.zip)}</div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+        <button onclick="locEditMode=false;locToggleEdit()" class="btn btn-gh btn-sm">Cancel</button>
+        <button onclick="locSaveContact()" class="btn btn-ac btn-sm">Save Contact</button>
+      </div>`);
+  }
+  return _lc('Primary Contact',_lg([
+    ['Contact Name',sanitize(loc.contact)],
+    ['Phone',sanitize(loc.phone)],
+    ['Email',sanitize(loc.email)],
+    ['Role',sanitize(loc.role||'Property Manager')],
+    ['Owner Name',sanitize(loc.ownerName||'')],
+    ['Account #',sanitize(loc.account)],
+  ]))+_lc('Address',_lg([['Street',sanitize(loc.address)],['City',loc.city],['State',loc.state],['ZIP',loc.zip]]));
 }
 
 function locRenderComms(loc){
@@ -4488,7 +4564,7 @@ function locToggleEdit() {
       btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit';
     }
   }
-  // Re-render current tab with edit mode
+  // Re-render current active tab with new edit mode
   const loc = LOC_DATA.find(l=>l.id===locActiveId);
   if (!loc) return;
   const activeTab = document.querySelector('#locDetailTabs .m-tab.active');
@@ -4496,7 +4572,9 @@ function locToggleEdit() {
   const body = document.getElementById('locTabBody');
   if (body) {
     if (tabName === 'details') body.innerHTML = locRenderDetails(loc);
-    else if (tabName === 'survey') body.innerHTML = locRenderSurveys(loc);
+    else if (tabName === 'assemblies') body.innerHTML = locRenderAssemblies(loc);
+    else if (tabName === 'contacts') body.innerHTML = locRenderContacts(loc);
+    else if (tabName === 'surveys') body.innerHTML = locRenderSurveys(loc);
   }
 }
 
@@ -4537,6 +4615,82 @@ function locSaveEdit() {
       setTimeout(() => { btn.innerHTML = orig; btn.style.color=''; btn.style.borderColor=''; }, 1500);
     }
   }
+}
+
+function locSaveAssemblies() {
+  const loc = LOC_DATA.find(l=>l.id===locActiveId); if(!loc)return;
+  // Save edits to existing assemblies
+  loc.assemblies.forEach((a,i)=>{
+    const g = id => document.getElementById(id)?.value?.trim();
+    a.type   = g('ae-type-'+i)   || a.type;
+    a.make   = g('ae-make-'+i)   || a.make;
+    a.model  = g('ae-model-'+i)  || a.model;
+    a.size   = g('ae-size-'+i)   || a.size;
+    a.serial = g('ae-serial-'+i) || a.serial;
+    a.status = g('ae-status-'+i) || a.status;
+    a.due    = g('ae-due-'+i)    || a.due;
+  });
+  // Add new assembly if serial is filled in
+  const newSerial = document.getElementById('ae-serial-new')?.value?.trim();
+  if(newSerial){
+    loc.assemblies.push({
+      type:   document.getElementById('ae-type-new')?.value||'RPZ',
+      make:   document.getElementById('ae-make-new')?.value?.trim()||'',
+      model:  document.getElementById('ae-model-new')?.value?.trim()||'',
+      size:   document.getElementById('ae-size-new')?.value?.trim()||'',
+      serial: newSerial,
+      status: document.getElementById('ae-status-new')?.value||'Pass',
+      due:    document.getElementById('ae-due-new')?.value||'',
+      tested: new Date().toISOString().split('T')[0],
+    });
+    loc.deviceCount = loc.assemblies.length;
+  }
+  locEditMode=false; locToggleEdit();
+  const body=document.getElementById('locTabBody');
+  if(body)body.innerHTML=locRenderAssemblies(loc);
+  locRenderTable();
+  // TODO: save to Supabase backflow_reports
+}
+
+function locDeleteAssembly(idx) {
+  const loc = LOC_DATA.find(l=>l.id===locActiveId); if(!loc)return;
+  if(!confirm('Remove assembly '+loc.assemblies[idx].serial+'?')) return;
+  loc.assemblies.splice(idx, 1);
+  loc.deviceCount = loc.assemblies.length;
+  const body=document.getElementById('locTabBody');
+  if(body)body.innerHTML=locRenderAssemblies(loc);
+}
+
+function locAddAssemblyRow() {
+  // If not in edit mode, switch to edit mode on assemblies tab first
+  if(!locEditMode){
+    locEditMode=true;
+    locToggleEdit();
+    // Switch to assemblies tab
+    const tabs=document.querySelectorAll('#locDetailTabs .m-tab');
+    tabs.forEach(b=>b.classList.remove('active'));
+    if(tabs[1])tabs[1].classList.add('active');
+    const loc=LOC_DATA.find(l=>l.id===locActiveId);
+    const body=document.getElementById('locTabBody');
+    if(body&&loc)body.innerHTML=locRenderAssemblies(loc);
+  }
+}
+
+function locSaveContact() {
+  const loc = LOC_DATA.find(l=>l.id===locActiveId); if(!loc)return;
+  const g = id => document.getElementById(id)?.value?.trim();
+  loc.contact   = g('ec-contact')  || loc.contact;
+  loc.phone     = g('ec-phone')    || loc.phone;
+  loc.email     = g('ec-email')    || loc.email;
+  loc.role      = g('ec-role')     || loc.role;
+  loc.ownerName = g('ec-owner')    || loc.ownerName;
+  loc.account   = g('ec-account')  || loc.account;
+  loc.zip       = g('ec-zip')      || loc.zip;
+  locEditMode=false; locToggleEdit();
+  const body=document.getElementById('locTabBody');
+  if(body)body.innerHTML=locRenderContacts(loc);
+  locRenderTable();
+  // TODO: save to Supabase
 }
 
 // ── COMMS NOTES ───────────────────────────────────────────────────────────────
