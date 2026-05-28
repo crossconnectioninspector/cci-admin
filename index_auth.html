@@ -3878,7 +3878,13 @@ const LOC_HEADS_FULL=['Address','Name / Business','Device Types','Size','Serial 
 const LOC_COLS_SLIM='160px 1fr 100px 90px 80px';
 const LOC_HEADS_SLIM=['Address','Name','Device Type','Account #','Hazard'];
 
-function locInit(){locFiltered=[...LOC_DATA];locCurrentPage=1;locDetailOpen=false;locEditMode=false;const p=document.getElementById('locDetailPanel');if(p){p.style.width='0';p.style.opacity='0';}locRenderHeaders();locRenderTable();locRenderSavedChips();}
+function locInit(){
+  // Restore persisted comms notes from localStorage
+  locLoadCommsFromStorage();
+  locFiltered=[...LOC_DATA];locCurrentPage=1;locDetailOpen=false;locEditMode=false;
+  const p=document.getElementById('locDetailPanel');if(p){p.style.width='0';p.style.opacity='0';}
+  locRenderHeaders();locRenderTable();locRenderSavedChips();
+}
 
 function locRenderHeaders(){const h=document.getElementById('locTableHeaders');if(!h)return;const cols=locDetailOpen?LOC_COLS_SLIM:LOC_COLS_FULL;const heads=locDetailOpen?LOC_HEADS_SLIM:LOC_HEADS_FULL;h.style.gridTemplateColumns=cols;h.innerHTML=heads.map(t=>`<div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:0 8px">${t}</div>`).join('');}
 
@@ -3929,7 +3935,62 @@ function locSaveContact(){const loc=LOC_DATA.find(l=>l.id===locActiveId);if(!loc
 
 function locRenderComms(loc){if(!loc.communications)loc.communications=[];const dotColor=c=>c.status==='Logged'?'var(--blue)':c.status==='Sent'?'var(--green)':'var(--muted)';const tl=loc.communications.map(c=>`<div style="display:flex;gap:10px;padding-bottom:14px"><div style="display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0"><div style="width:9px;height:9px;border-radius:50%;background:${dotColor(c)};box-shadow:0 0 5px ${dotColor(c)};margin-top:3px"></div><div style="flex:1;width:1px;background:var(--border);margin-top:3px"></div></div><div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--text)">${c.type}</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:1px">${c.date} &bull; ${c.method}</div>${c.notes?`<div style="margin-top:5px;padding:7px 10px;background:var(--elevated);border-radius:5px;font-size:11px;color:var(--muted);line-height:1.5">${sanitize(c.notes)}</div>`:''}<div style="margin-top:2px;font-family:var(--mono);font-size:9px;color:${dotColor(c)}">&#x2713; ${c.status}</div></div></div>`).join('');const lastDue=new Date(loc.assemblies.sort((a,b)=>new Date(b.due)-new Date(a.due))[0].due);const fmt=d=>d.toISOString().split('T')[0];const d60=new Date(lastDue);d60.setDate(d60.getDate()-60);const d30=new Date(lastDue);d30.setDate(d30.getDate()-30);const d7=new Date(lastDue);d7.setDate(d7.getDate()-7);const sched=[['60-Day Notice',fmt(d60),'var(--blue)'],['30-Day Notice',fmt(d30),'var(--yellow)'],['7-Day Urgent',fmt(d7),'var(--red)'],['Due Date',loc.assemblies[0].due,'var(--accent)']].map(([t,d,c])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><div style="font-size:12px;font-weight:600;color:var(--text)">${t}</div><div style="font-family:var(--mono);font-size:10px;color:${c}">${d}</div></div>`).join('');const noteForm=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px"><div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Log Communication</div><div style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px"><select id="comm-note-type" class="ss" style="font-size:12px;padding:7px 10px;flex-shrink:0;width:140px"><option>Phone Call</option><option>Email Sent</option><option>In Person</option><option>Voicemail</option><option>Text Message</option><option>Letter</option></select><div style="font-family:var(--mono);font-size:10px;color:var(--muted);align-self:center">${new Date().toISOString().split('T')[0]}</div></div><textarea id="comm-note-text" class="si" rows="3" placeholder="Enter notes..." style="font-size:12px;padding:8px 10px;resize:vertical;line-height:1.5"></textarea><div style="display:flex;justify-content:flex-end"><button onclick="locAddCommNote(${loc.id})" class="btn btn-ac btn-sm">+ Log Entry</button></div></div></div>`;return noteForm+_lc('Communication History ('+(loc.communications.length)+')',loc.communications.length?'<div>'+tl+'</div>':'<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">No communications logged yet.</div>')+_lc('Predictive Outreach Schedule',sched);}
 
-function locAddCommNote(locId){const typeEl=document.getElementById('comm-note-type');const textEl=document.getElementById('comm-note-text');if(!typeEl||!textEl)return;const noteText=textEl.value.trim();if(!noteText){textEl.style.borderColor='var(--red)';setTimeout(()=>textEl.style.borderColor='',1500);return;}const loc=LOC_DATA.find(l=>l.id===locId);if(!loc)return;if(!loc.communications)loc.communications=[];loc.communications.unshift({date:new Date().toISOString().split('T')[0],type:typeEl.value,method:'Manual Entry',status:'Logged',notes:noteText});textEl.value='';const body=document.getElementById('locTabBody');if(body)body.innerHTML=locRenderComms(loc);}
+// ── PERSISTENT COMMS NOTES (localStorage) ────────────────────────────────────
+function locSaveCommsToStorage(){
+  const store={};
+  LOC_DATA.forEach(loc=>{
+    const manual=loc.communications?loc.communications.filter(c=>c.method==='Manual Entry'):[];
+    if(manual.length) store[loc.id]=manual;
+  });
+  try{localStorage.setItem('bcp_loc_comms',JSON.stringify(store));}catch(e){}
+}
+
+function locLoadCommsFromStorage(){
+  try{
+    const raw=localStorage.getItem('bcp_loc_comms');
+    if(!raw)return;
+    const store=JSON.parse(raw);
+    LOC_DATA.forEach(loc=>{
+      if(store[loc.id]){
+        // Merge saved manual entries with existing (avoid duplicates by date+type)
+        const existing=new Set((loc.communications||[]).map(c=>c.date+'|'+c.type+'|'+c.notes));
+        store[loc.id].forEach(saved=>{
+          const key=saved.date+'|'+saved.type+'|'+saved.notes;
+          if(!existing.has(key)){
+            if(!loc.communications)loc.communications=[];
+            loc.communications.unshift(saved);
+          }
+        });
+      }
+    });
+  }catch(e){}
+}
+
+function locAddCommNote(locId){
+  const typeEl=document.getElementById('comm-note-type');
+  const textEl=document.getElementById('comm-note-text');
+  if(!typeEl||!textEl)return;
+  const noteText=textEl.value.trim();
+  if(!noteText){textEl.style.borderColor='var(--red)';setTimeout(()=>textEl.style.borderColor='',1500);return;}
+  const loc=LOC_DATA.find(l=>l.id===locId);
+  if(!loc)return;
+  if(!loc.communications)loc.communications=[];
+  loc.communications.unshift({
+    date:new Date().toISOString().split('T')[0],
+    type:typeEl.value,
+    method:'Manual Entry',
+    status:'Logged',
+    notes:noteText
+  });
+  textEl.value='';
+  // Persist to localStorage so notes survive page navigation
+  locSaveCommsToStorage();
+  const body=document.getElementById('locTabBody');
+  if(body)body.innerHTML=locRenderComms(loc);
+  // Show brief save confirmation
+  const btn=document.querySelector('[onclick^="locAddCommNote"]');
+  if(btn){const orig=btn.innerHTML;btn.innerHTML='&#x2713; Logged';btn.style.background='rgba(76,175,121,.2)';setTimeout(()=>{btn.innerHTML=orig;btn.style.background='';},1500);}
+}
 
 function locRenderSurveys(loc){const s=loc.surveys&&loc.surveys[0];if(!s)return _lc('Surveys','<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">No surveys on file.</div>');const rc=s.result==='Pass'?'var(--green)':s.result==='Fail'?'var(--red)':'var(--yellow)';return _lc('Customer Service Inspection',_lg([['Date',s.date],['Surveyor',s.surveyor],['Result','<span style="color:'+rc+'">'+s.result+'</span>'],['','&nbsp;']])+`<div style="margin-top:10px;padding:10px 12px;background:var(--elevated);border-radius:6px;font-size:12px;color:var(--muted);line-height:1.6">${sanitize(s.notes)}</div>`)+'<button onclick="alert(\'New Survey\')" class="btn btn-gh" style="width:100%;justify-content:center;margin-top:8px">+ New Survey</button>';}
 
