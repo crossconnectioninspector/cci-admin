@@ -1166,7 +1166,7 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
 
     <!-- RIGHT: detail panel -->
     <div id="asmDetailPanel" style="width:0;overflow:hidden;border-left:1px solid var(--border);transition:width .25s ease,opacity .2s ease;opacity:0;flex-shrink:0;display:flex;flex-direction:column;background:var(--bg)">
-      <div style="width:560px;display:flex;flex-direction:column;height:100%;overflow:hidden">
+      <div style="width:600px;display:flex;flex-direction:column;height:100%;overflow:hidden">
 
         <!-- Summary header -->
         <div id="asmDetailHeader" style="padding:16px 18px 0;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">
@@ -1185,12 +1185,12 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
           <div id="asmSummaryCards" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px"></div>
 
           <!-- Tabs -->
-          <div style="display:flex;overflow-x:auto" id="asmDetailTabs">
-            <button class="m-tab active" onclick="asmSwitchTab('details',this)" style="font-size:11px;padding:8px 10px">Details</button>
-            <button class="m-tab" onclick="asmSwitchTab('location',this)" style="font-size:11px;padding:8px 10px">Location</button>
-            <button class="m-tab" onclick="asmSwitchTab('history',this)" style="font-size:11px;padding:8px 10px">History</button>
-            <button class="m-tab" onclick="asmSwitchTab('comms',this)" style="font-size:11px;padding:8px 10px">Comms</button>
-            <button class="m-tab" onclick="asmSwitchTab('compliance',this)" style="font-size:11px;padding:8px 10px">Compliance</button>
+          <div style="display:flex;overflow-x:auto;scrollbar-width:none" id="asmDetailTabs">
+            <button class="m-tab active" onclick="asmSwitchTab('details',this)" style="font-size:11.5px;padding:8px 12px;letter-spacing:.1px">Details</button>
+            <button class="m-tab" onclick="asmSwitchTab('location',this)" style="font-size:11.5px;padding:8px 12px;letter-spacing:.1px">Location</button>
+            <button class="m-tab" onclick="asmSwitchTab('history',this)" style="font-size:11.5px;padding:8px 12px;letter-spacing:.1px">History</button>
+            <button class="m-tab" onclick="asmSwitchTab('comms',this)" style="font-size:11.5px;padding:8px 12px;letter-spacing:.1px">Comms</button>
+            <button class="m-tab" onclick="asmSwitchTab('compliance',this)" style="font-size:11.5px;padding:8px 12px;letter-spacing:.1px">Compliance</button>
           </div>
         </div>
         <div id="asmTabBody" style="flex:1;overflow-y:auto;padding:14px 16px"></div>
@@ -4556,7 +4556,7 @@ function asmLastPage(){const rpp=parseInt(document.getElementById('asmRowsPerPag
 function asmSelectRow(id){
   asmActiveId=id;asmDetailOpen=true;
   const a=ASM_DATA.find(x=>x.id===id);if(!a)return;
-  const panel=document.getElementById('asmDetailPanel');if(panel){panel.style.width='560px';panel.style.opacity='1';}
+  const panel=document.getElementById('asmDetailPanel');if(panel){panel.style.width='600px';panel.style.opacity='1';}
 
   // Serial + sub
   const ser=document.getElementById('asmDetailSerial');if(ser)ser.textContent=a.serial;
@@ -4599,7 +4599,8 @@ function asmCloseDetail(){
 }
 
 function asmSwitchTab(tab,btn){
-  document.querySelectorAll('#asmDetailTabs .m-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  document.querySelectorAll('#asmDetailTabs .m-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
   const a=ASM_DATA.find(x=>x.id===asmActiveId);
   const body=document.getElementById('asmTabBody');if(!body||!a)return;
   if(tab==='details')body.innerHTML=asmRenderDetails(a);
@@ -4607,6 +4608,13 @@ function asmSwitchTab(tab,btn){
   else if(tab==='history')body.innerHTML=asmRenderHistory(a);
   else if(tab==='comms')body.innerHTML=asmRenderComms(a);
   else if(tab==='compliance')body.innerHTML=asmRenderCompliance(a);
+  // If location tab, force map resize after tab animation settles
+  if(tab==='location'){
+    setTimeout(()=>{
+      const mapEl=document.querySelector('[id^="asm-map-"]');
+      if(mapEl&&mapEl._leafletMap){mapEl._leafletMap.invalidateSize();}
+    },300);
+  }
 }
 
 function _ac(title,html){return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px"><div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:1.4px;text-transform:uppercase;margin-bottom:13px;font-weight:600">${title}</div>${html}</div>`;}
@@ -4637,58 +4645,81 @@ function asmRenderDetails(a){
 }
 
 function asmRenderLocation(a){
-  const mapId='asm-map-'+a.id;
-  const html=_ac('Service Location',_ag([
-    ['Street Address',sanitize(a.address)],
-    ['City',a.city],
-    ['State / ZIP',a.state+' '+a.zip],
-    ['Account #',sanitize(a.account)],
-    ['Hazard Level',a.hazard||'—'],
-    ['Protection Type',sanitize(a.protection)||'—'],
-  ]))+
+  const mapId = 'asm-map-' + a.id;
+  const html = _ac('Service Location', _ag([
+    ['Street Address', sanitize(a.address)],
+    ['City', a.city],
+    ['State / ZIP', a.state + ' ' + a.zip],
+    ['Account #', sanitize(a.account)],
+    ['Hazard Level', a.hazard || '—'],
+    ['Protection Type', sanitize(a.protection) || '—'],
+  ])) +
   `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px">
-    <div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;padding:14px 14px 8px;display:flex;align-items:center;justify-content:space-between">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:1.4px;text-transform:uppercase;padding:14px 16px 8px;font-weight:600;display:flex;align-items:center;justify-content:space-between">
       <span>Location Map</span>
-      <a href="https://www.openstreetmap.org/search?query=${encodeURIComponent(a.address+' '+a.city+' '+a.state)}" target="_blank" style="font-family:var(--mono);font-size:9px;color:var(--accent);text-decoration:none;letter-spacing:1px">Open in Maps &#x2197;</a>
+      <a href="https://www.openstreetmap.org/search?query=${encodeURIComponent(a.address + ' ' + a.city + ' ' + a.state)}" target="_blank"
+        style="font-family:var(--mono);font-size:9px;color:var(--accent);text-decoration:none;letter-spacing:1px;display:flex;align-items:center;gap:4px">
+        Open in Maps
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </a>
     </div>
-    <div id="${mapId}" style="height:220px;width:100%;background:var(--elevated)"></div>
-    <div style="padding:8px 14px 10px;font-family:var(--mono);font-size:10px;color:var(--muted)">&#x1F4CD; ${sanitize(a.address)}, ${a.city}, ${a.state} ${a.zip}</div>
+    <div id="${mapId}" style="height:240px;width:100%;background:var(--elevated);position:relative"></div>
+    <div style="padding:8px 16px 12px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+      ${sanitize(a.address)}, ${a.city}, ${a.state} ${a.zip}
+    </div>
   </div>`;
 
-  // Initialize Leaflet map after render
-  setTimeout(()=>{
-    const mapEl=document.getElementById(mapId);
-    if(!mapEl||mapEl._leaflet_id)return;
-    // Geocode using Nominatim (free, no API key)
-    const query=encodeURIComponent(a.address+', '+a.city+', '+a.state+' '+a.zip+', USA');
-    fetch('https://nominatim.openstreetmap.org/search?format=json&q='+query+'&limit=1')
-      .then(r=>r.json())
-      .then(data=>{
-        let lat=32.4487, lng=-99.7331; // Abilene TX default
-        if(data&&data[0]){lat=parseFloat(data[0].lat);lng=parseFloat(data[0].lon);}
-        if(!document.getElementById(mapId))return; // tab may have changed
-        const map=L.map(mapId,{zoomControl:true,scrollWheelZoom:false}).setView([lat,lng],16);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-          attribution:'&copy; OpenStreetMap contributors',maxZoom:19
+  // Initialize map after DOM renders - use requestAnimationFrame for reliable sizing
+  setTimeout(() => {
+    const mapEl = document.getElementById(mapId);
+    if (!mapEl) return;
+    // Check if already initialized
+    if (mapEl._leaflet_id) {
+      // Already has a map - just invalidate size
+      const existingMap = mapEl._leafletMap;
+      if (existingMap) { existingMap.invalidateSize(); return; }
+    }
+
+    // Show loading indicator
+    mapEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-family:var(--mono);font-size:11px;gap:8px"><span>&#x1F4CD;</span> Loading map...</div>';
+
+    const q = encodeURIComponent(a.address + ', ' + a.city + ', ' + a.state + ' ' + a.zip + ', USA');
+    fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + q + '&limit=1')
+      .then(r => r.json())
+      .then(data => {
+        let lat = 32.4487, lng = -99.7331;
+        if (data && data[0]) { lat = parseFloat(data[0].lat); lng = parseFloat(data[0].lon); }
+        const el = document.getElementById(mapId);
+        if (!el) return;
+        el.innerHTML = ''; // Clear loading text
+        const map = L.map(mapId, { zoomControl: true, scrollWheelZoom: false, attributionControl: true }).setView([lat, lng], 17);
+        el._leafletMap = map;
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+          maxZoom: 19
         }).addTo(map);
-        // Custom orange marker
-        const icon=L.divIcon({
-          html:`<div style="background:var(--accent);width:14px;height:14px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.5)"></div>`,
-          className:'',iconAnchor:[7,7]
-        });
-        L.marker([lat,lng],{icon}).addTo(map)
-          .bindPopup(`<b>${a.serial}</b><br>${a.address}<br>${a.type} - ${a.make} ${a.model}`)
+        // Orange custom marker
+        const markerHtml = '<div style="background:#f9a61e;width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.5)"></div>';
+        const icon = L.divIcon({ html: markerHtml, className: '', iconAnchor: [8, 8] });
+        L.marker([lat, lng], { icon })
+          .addTo(map)
+          .bindPopup('<div style="font-family:sans-serif;font-size:12px;line-height:1.5"><b>' + a.serial + '</b><br>' + a.address + '<br>' + a.type + ' \u2022 ' + a.make + ' ' + a.model + '</div>')
           .openPopup();
+        // Force Leaflet to recalculate size after tab animation
+        setTimeout(() => { map.invalidateSize(); }, 200);
       })
-      .catch(()=>{
-        // Fallback: use Abilene center
-        if(!document.getElementById(mapId))return;
-        const map=L.map(mapId,{zoomControl:true,scrollWheelZoom:false}).setView([32.4487,-99.7331],13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-          attribution:'&copy; OpenStreetMap contributors'
-        }).addTo(map);
+      .catch(() => {
+        const el = document.getElementById(mapId);
+        if (!el) return;
+        el.innerHTML = '';
+        const map = L.map(mapId, { zoomControl: true, scrollWheelZoom: false }).setView([32.4487, -99.7331], 13);
+        el._leafletMap = map;
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
+        setTimeout(() => { map.invalidateSize(); }, 200);
       });
-  },100);
+  }, 150);
+
   return html;
 }
 
