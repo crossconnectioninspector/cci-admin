@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cross Connection Inspector — Admin Portal</title>
+<title>Backflow Check Pro — Admin Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600;700;900&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -373,7 +373,7 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
     <!-- Logo -->
     <div style="text-align:center;margin-bottom:36px">
       <div style="width:64px;height:64px;background:var(--accent);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px;box-shadow:0 8px 32px rgba(249,166,30,.35)">🛡️</div>
-      <div style="font-family:var(--cond);font-size:28px;font-weight:900;line-height:1.05;letter-spacing:-.5px">Cross Connection<br>Inspector</div>
+      <div style="font-family:var(--cond);font-size:28px;font-weight:900;line-height:1.05;letter-spacing:-.5px">Backflow Check Pro</div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:3px;margin-top:8px;text-transform:uppercase">Admin Portal</div>
     </div>
 
@@ -416,7 +416,7 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
   <div class="sb-logo">
     <div class="sb-logo-row">
       <div class="sb-icon">🛡️</div>
-      <div class="sb-name">Cross Connection<br><span>Inspector</span></div>
+      <div class="sb-name">Backflow Check<br><span>Pro</span></div>
     </div>
     <div class="sb-sub">Admin Portal</div>
   </div>
@@ -444,7 +444,7 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
     <button class="nb" onclick="nav('search-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>Search All</button>
     <button class="nb" onclick="nav('import-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></span>Add Report</button>
   </nav>
-  <div class="sb-foot">Cross Connection Inspector<br>Abilene · Taylor County · TX<br><span id="clock-foot"></span></div>
+  <div class="sb-foot">Backflow Check Pro<br>Abilene · Taylor County · TX<br><span id="clock-foot"></span></div>
 </aside>
 
 <!-- MAIN -->
@@ -466,7 +466,7 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
     <div>
       <div style="font-family:var(--cond);font-size:22px;font-weight:700" id="dash-year-label">2026 Program Dashboard</div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px">Cross-Connection Control Program</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px">Backflow Check Pro Program</div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
       <button class="btn btn-gh btn-sm" onclick="openThemePicker()" title="Change theme">🎨 Theme</button>
@@ -864,7 +864,7 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.8">
       📌 <strong style="color:var(--accent)">Dev Phase</strong> — Records saved here persist in your browser.<br>
       🔜 <strong style="color:var(--accent)">Next Phase</strong> — App hits a Supabase API endpoint on Save, dashboard updates in real time. No email needed.<br>
-      📧 <strong style="color:var(--accent)">Right Now</strong> — When you save a report on the app, it emails to crossconnectioninspector@outlook.com. You paste the details here to see them on the dashboard.
+      📧 <strong style="color:var(--accent)">Right Now</strong> — When you save a report on the app, it emails to backflowcheckpro@outlook.com. You paste the details here to see them on the dashboard.
     </div>
   </div>
 </div>
@@ -1273,7 +1273,7 @@ async function saveRecord(rec) {
         check1:rec.check1||'', check2:rec.check2||'', relief:rec.relief||'',
         air_inlet:rec.air_inlet||'', remarks:rec.remarks||'',
         pws_name:rec.pwsName||'Abilene TX', pws_id:rec.pwsId||'',
-        firm:rec.firm||'Cross Connection Inspector',
+        firm:rec.firm||'Backflow Check Pro',
         lat:rec.lat||32.4487, lng:rec.lng||-99.7331 };
     } else if (rec.type === 'csi') {
       table = 'csi_reports';
@@ -1285,7 +1285,7 @@ async function saveRecord(rec) {
         service_lines:rec.serviceLines||rec.service_lines||'',
         solder:rec.solder||'', remarks:rec.remarks||'',
         pws_name:rec.pwsName||'Abilene TX', pws_id:rec.pwsId||'',
-        firm:rec.firm||'Cross Connection Inspector',
+        firm:rec.firm||'Backflow Check Pro',
         lat:rec.lat||32.4487, lng:rec.lng||-99.7331 };
     } else {
       table = 'inspections';
@@ -1342,41 +1342,41 @@ let activeTab = { insp:'all', bf:'all', csi:'all' };
 if (false) {
   DB = [
     { id:'BF001', type:'backflow', date:'2026-05-10', address:'1234 Pine St, Abilene TX 79601',
-      tester:'CCI Tester', certNum:'', assembly:'RPZ', mfr:'Watts', model:'LF009',
+      tester:'BCP Tester', certNum:'', assembly:'RPZ', mfr:'Watts', model:'LF009',
       serial:'SN-48291', size:'3/4"', result:'PASS', repairs:false, repairDetails:'',
       check1:'14.2 psid — Closed Tight', check2:'11.8 psid — Closed Tight', relief:'10.1 psid — Opened At',
       remarks:'Assembly in good condition.', pwsName:'Abilene TX', pwsId:'',
-      firm:'Cross Connection Inspector', lat:32.449, lng:-99.745 },
+      firm:'Backflow Check Pro', lat:32.449, lng:-99.745 },
     { id:'BF002', type:'backflow', date:'2026-05-12', address:'567 Mockingbird Ln, Abilene TX 79603',
-      tester:'CCI Tester', certNum:'', assembly:'DCVA', mfr:'Febco', model:'805Y',
+      tester:'BCP Tester', certNum:'', assembly:'DCVA', mfr:'Febco', model:'805Y',
       serial:'SN-77301', size:'1"', result:'FAIL', repairs:true, repairDetails:'1st check debris removed. 2nd check replaced.',
       check1:'2.1 psid — Leaked', check2:'8.4 psid — Closed Tight', relief:'',
       remarks:'Cleaned and re-tested. PASS after repair.', pwsName:'Abilene TX', pwsId:'',
-      firm:'Cross Connection Inspector', lat:32.435, lng:-99.733 },
+      firm:'Backflow Check Pro', lat:32.435, lng:-99.733 },
     { id:'CSI001', type:'csi', date:'2026-05-08', address:'890 S 1st St, Abilene TX 79601',
-      inspector:'CCI Inspector', licType:'Licensed Inspector', licNum:'',
+      inspector:'BCP Inspector', licType:'Licensed Inspector', licNum:'',
       reason:'New Construction', status:'compliant',
       c1:true,c2:true,c3:true,c4:true,c5:true,c6:true,
       serviceLines:'PVC', solder:'Lead Free', remarks:'All systems compliant.',
-      pwsName:'Abilene TX', pwsId:'', firm:'Cross Connection Inspector',
+      pwsName:'Abilene TX', pwsId:'', firm:'Backflow Check Pro',
       lat:32.455, lng:-99.728 },
     { id:'CSI002', type:'csi', date:'2026-05-14', address:'2200 N Clack St, Abilene TX 79601',
-      inspector:'CCI Inspector', licType:'Licensed Inspector', licNum:'',
+      inspector:'BCP Inspector', licType:'Licensed Inspector', licNum:'',
       reason:'Existing Service — Hazard Suspected', status:'noncompliant',
       c1:false,c2:true,c3:true,c4:true,c5:true,c6:true,
       serviceLines:'Copper', solder:'Lead Free',
       remarks:'Direct connection found. Install RPZ assembly required.',
-      pwsName:'Abilene TX', pwsId:'', firm:'Cross Connection Inspector',
+      pwsName:'Abilene TX', pwsId:'', firm:'Backflow Check Pro',
       lat:32.461, lng:-99.730 },
     { id:'INSP001', type:'inspection', date:'2026-05-11', address:'749 Chanticleers Ln, Abilene TX',
       owner:'SNIDER MATTHEW', bizType:'Residential', hazardRating:2, complianceStatus:'compliant',
-      tester:'CCI Tester', remarks:'Residential — low hazard.', lat:32.4487, lng:-99.7331 },
+      tester:'BCP Tester', remarks:'Residential — low hazard.', lat:32.4487, lng:-99.7331 },
     { id:'INSP002', type:'inspection', date:'2026-05-13', address:'2800 S Clack, Abilene TX',
       owner:'CAR WASH PARTNERS', bizType:'Car Wash', hazardRating:8, complianceStatus:'violation',
-      tester:'CCI Tester', remarks:'Chemical injection system found without RPZ protection.', lat:32.428, lng:-99.750 },
+      tester:'BCP Tester', remarks:'Chemical injection system found without RPZ protection.', lat:32.428, lng:-99.750 },
     { id:'INSP003', type:'inspection', date:'2026-05-09', address:'2200 Medical Dr, Abilene TX',
       owner:'HENDRICK HEALTH', bizType:'Hospital / Medical Center', hazardRating:9, complianceStatus:'partial',
-      tester:'CCI Tester', remarks:'RPZ present but requires annual test. Scheduled.', lat:32.458, lng:-99.746 },
+      tester:'BCP Tester', remarks:'RPZ present but requires annual test. Scheduled.', lat:32.458, lng:-99.746 },
   ];
   saveDB();
 }
@@ -2301,11 +2301,11 @@ function emailCurrentReport() {
   if(r.type==='backflow') {
     body=`TCEQ FORM 20700 — BACKFLOW TEST\n${'='.repeat(40)}\nAddress: ${r.address}\nDate: ${fd(r.date)}\nResult: ${r.result}\n\nAssembly: ${r.assembly} — ${r.mfr} ${r.model}\nSerial #: ${r.serial}\nSize: ${r.size}\n\n1st Check: ${r.check1||'—'}\n2nd Check: ${r.check2||'—'}\nRelief: ${r.relief||'—'}\n\nRepairs: ${r.repairs?'Yes — '+r.repairDetails:'None'}\nTester: ${r.tester} · Cert #: ${r.certNum}\nFirm: ${r.firm}\nPWS: ${r.pwsName} (${r.pwsId})\nRemarks: ${r.remarks||'None'}`;
   } else if(r.type==='csi') {
-    body=`TCEQ FORM 20699 — CSI REPORT\n${'='.repeat(40)}\nAddress: ${r.address}\nDate: ${fd(r.date)}\nStatus: ${r.status?.toUpperCase()}\nReason: ${r.reason}\n\n(1) No contamination connection: ${r.c1?'✓':'✗'}\n(2) No cross-connection: ${r.c2?'✓':'✗'}\n(3) No process return: ${r.c3?'✓':'✗'}\n(4) No >8% lead pipe: ${r.c4?'✓':'✗'}\n(5) Post-2014 labeled: ${r.c5?'✓':'✗'}\n(6) No lead solder: ${r.c6?'✓':'✗'}\n\nService Lines: ${r.serviceLines}\nSolder: ${r.solder}\nInspector: ${r.inspector} · #${r.licNum}\nRemarks: ${r.remarks||'None'}`;
+    body=`TCEQ FORM 20699 — CSI REPORT\n${'='.repeat(40)}\nAddress: ${r.address}\nDate: ${fd(r.date)}\nStatus: ${r.status?.toUpperCase()}\nReason: ${r.reason}\n\n(1) No contamination connection: ${r.c1?'✓':'✗'}\n(2) No backflow prevention: ${r.c2?'✓':'✗'}\n(3) No process return: ${r.c3?'✓':'✗'}\n(4) No >8% lead pipe: ${r.c4?'✓':'✗'}\n(5) Post-2014 labeled: ${r.c5?'✓':'✗'}\n(6) No lead solder: ${r.c6?'✓':'✗'}\n\nService Lines: ${r.serviceLines}\nSolder: ${r.solder}\nInspector: ${r.inspector} · #${r.licNum}\nRemarks: ${r.remarks||'None'}`;
   } else {
     body=`PROPERTY INSPECTION\n${'='.repeat(40)}\nAddress: ${r.address}\nDate: ${fd(r.date)}\nOwner: ${r.owner||'—'}\nBusiness: ${r.bizType||'—'}\nHazard Rating: ${r.hazardRating}/10\nCompliance: ${r.complianceStatus}\nTester: ${sanitize(r.tester)}\nRemarks: ${r.remarks||'None'}`;
   }
-  window.location.href=`mailto:crossconnectioninspector@outlook.com?subject=${sub}&body=${encodeURIComponent(body)}`;
+  window.location.href=`mailto:backflowcheckpro@outlook.com?subject=${sub}&body=${encodeURIComponent(body)}`;
   toast('Email client opened','success');
 }
 
@@ -2403,7 +2403,7 @@ async function importRecord() {
   const tester=el('imp-tester').value||'';
   const notes=el('imp-notes').value;
   let rec={id:t.toUpperCase().slice(0,2)+Date.now(),type:t,date,address:addr,tester,remarks:notes,
-    pwsName:'Abilene TX',pwsId:'',firm:'Cross Connection Inspector',
+    pwsName:'Abilene TX',pwsId:'',firm:'Backflow Check Pro',
     lat:32.4487+(Math.random()-.5)*.1, lng:-99.7331+(Math.random()-.5)*.1};
   if(t==='backflow') {
     const asm=el('imp-assembly').value.split(' ')[0];
@@ -2837,7 +2837,7 @@ async function initModalMap(r) {
     try {
       const addr = encodeURIComponent((r.address || '') + ' Abilene TX');
       const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${addr}&format=json&limit=1&countrycodes=us`, {
-        headers: { 'User-Agent': 'CrossConnectionInspector/1.0' }
+        headers: { 'User-Agent': 'BackflowCheckPro/1.0' }
       });
       if (res.ok) {
         const data = await res.json();
@@ -3465,7 +3465,7 @@ function classifyAndAdd(elements, seen) {
 async function nominatimSearch(term, seen) {
   try {
     const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(term)}&format=json&addressdetails=1&extratags=1&limit=10&viewbox=${VIEWBOX}&bounded=1&countrycodes=us`,
-      { headers:{'User-Agent':'CrossConnectionInspector/1.0'} });
+      { headers:{'User-Agent':'BackflowCheckPro/1.0'} });
     if (!res.ok) return [];
     const data = await res.json();
     const results = [];
@@ -3598,7 +3598,7 @@ async function adminAddrSearch(q) {
   adminAddrTimer = setTimeout(async () => {
     try {
       const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q+' Abilene TX')}&format=json&addressdetails=1&limit=5&countrycodes=us&viewbox=-99.90,32.30,-99.55,32.68&bounded=0`,
-        { headers:{'User-Agent':'CrossConnectionInspector/1.0'} });
+        { headers:{'User-Agent':'BackflowCheckPro/1.0'} });
       if (!res.ok) { dropdown.style.display='none'; return; }
       const data = await res.json();
       if (!data.length) { dropdown.style.display='none'; return; }
@@ -4037,7 +4037,7 @@ function locExportCSV(){
   <div class="ma-topbar">
     <div class="ma-logo">
       <div class="ma-logo-icon">🛡️</div>
-      <div class="ma-logo-text">CCI Admin</div>
+      <div class="ma-logo-text">BCP Admin</div>
     </div>
     <div style="display:flex;align-items:center;gap:8px">
       <div class="ma-admin-pill">ADMIN</div>
