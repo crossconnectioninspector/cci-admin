@@ -1634,12 +1634,18 @@ tick(); setInterval(tick,1000);
 
 // ── NAV ───────────────────────────────────────────────────────────────────────
 function nav(id, btn) {
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  // Reset ALL pages — clear both class and inline display so flex pages don't get stuck
+  document.querySelectorAll('.page').forEach(p => {
+    p.classList.remove('active');
+    p.style.display = 'none';
+  });
   document.querySelectorAll('.nb').forEach(n=>n.classList.remove('active'));
   const _activePg = document.getElementById('page-'+id);
   if (_activePg) {
     _activePg.classList.add('active');
-    if (['locations-page','city-risk-page','contacts-page'].includes(id)) _activePg.style.display='flex';
+    // Flex pages need explicit display:flex; block pages use display:block via CSS
+    const flexPages = ['locations-page','city-risk-page','contacts-page','providers-page','assemblies-page','state-reports-page','users-page','comms-page','notif-page','settings-page','knowledge-page'];
+    _activePg.style.display = flexPages.includes(id) ? 'flex' : 'block';
   }
   if(btn) btn.classList.add('active');
   const titles = {
@@ -1665,6 +1671,12 @@ function nav(id, btn) {
 // Dashboard theme handled below
 
 async function renderDashboard() {
+  // Debounce: don't re-fetch if data was loaded in the last 30 seconds
+  const now = Date.now();
+  if (window._lastDashFetch && (now - window._lastDashFetch) < 30000 && DB.length > 0) {
+    buildDashboard(); return;
+  }
+  window._lastDashFetch = now;
   console.log('renderDashboard called, DB length:', DB.length);
   const w = el('dash-widgets');
   if (w) w.innerHTML = `<div style="padding:60px;text-align:center;color:var(--muted)">
