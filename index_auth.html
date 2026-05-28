@@ -963,6 +963,10 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
             </div>
             <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:8px">
               <div id="locDetailBadge"></div>
+              <button id="locEditBtn" onclick="locToggleEdit()" style="height:26px;padding:0 10px;border-radius:6px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:4px;font-size:11px;font-family:var(--sans);font-weight:600;transition:all .15s" title="Edit location">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Edit
+              </button>
               <button onclick="locCloseDetail()" style="width:26px;height:26px;border-radius:6px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1">&#x2715;</button>
             </div>
           </div>
@@ -4304,11 +4308,18 @@ function locSelectRow(id){
 }
 
 function locCloseDetail(){
-  locDetailOpen=false;locActiveId=null;
+  locDetailOpen=false; locActiveId=null;
   const p=document.getElementById('locDetailPanel');
+  const tw=document.getElementById('locTableWrap');
   if(p){
+    // Fade panel out first
     p.style.opacity='0';
-    setTimeout(()=>{ p.style.width='0'; locRenderTable(); }, 200);
+    // After fade, collapse width - table re-renders after transition fully completes
+    setTimeout(()=>{
+      p.style.width='0';
+      // Wait for width transition (250ms) then re-render table at full width
+      setTimeout(()=>{ locRenderTable(); }, 260);
+    }, 180);
   } else { locRenderTable(); }
 }
 
@@ -4328,6 +4339,32 @@ function _lc(title,html){return`<div style="background:var(--surface);border:1px
 function _lg(pairs){return`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${pairs.map(([l,v])=>`<div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">${l}</div><div style="font-size:13px;color:var(--text);font-weight:500">${v||'&mdash;'}</div></div>`).join('')}</div>`;}
 
 function locRenderDetails(loc){
+  if (locEditMode) {
+    // Editable version
+    const ef = (id,val,type='text',opts=null) => opts
+      ? `<select id="${id}" class="ss" style="font-size:12px;padding:5px 8px;width:100%">${opts.map(o=>`<option${o===val?' selected':''}>${o}</option>`).join('')}</select>`
+      : `<input id="${id}" type="${type}" value="${sanitize(val||'')}" class="si" style="font-size:12px;padding:5px 8px;width:100%">`;
+    return _lc('Property Information — Editing',
+      `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">Business Name</div>${ef('edit-name',loc.name)}</div>
+        <div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">Account Number</div>${ef('edit-account',loc.account)}</div>
+        <div style="grid-column:1/-1"><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">Street Address</div><div style="font-size:12px;color:var(--muted)">${sanitize(loc.address)}</div></div>
+        <div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">ZIP</div>${ef('edit-zip',loc.zip)}</div>
+        <div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">Hazard Type</div>${ef('edit-hazard',loc.hazard,'text',['High','Medium','Low'])}</div>
+        <div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">Service Connections</div>${ef('edit-connections',loc.connections,'number')}</div>
+      </div>`) +
+    _lc('Primary Contact — Editing',
+      `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="grid-column:1/-1"><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">Contact Name</div>${ef('edit-contact',loc.contact)}</div>
+        <div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">Phone</div>${ef('edit-phone',loc.phone)}</div>
+        <div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">Email</div>${ef('edit-email',loc.email)}</div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+        <button onclick="locEditMode=false;locToggleEdit()" class="btn btn-gh btn-sm">Cancel</button>
+        <button onclick="locSaveEdit()" class="btn btn-ac btn-sm">Save Changes</button>
+      </div>`);
+  }
+  // Read-only version
   return _lc('Property Information',_lg([['Business Name',sanitize(loc.name)],['Account Number',sanitize(loc.account)],['Street Address',sanitize(loc.address)],['City / State / ZIP',loc.city+', '+loc.state+' '+loc.zip],['Hazard Type',loc.hazard+' ('+loc.hazardRating+'/10)'],['Service Connections',loc.connections]]))+
     _lc('Primary Contact',_lg([['Contact Name',sanitize(loc.contact)],['Phone',sanitize(loc.phone)],['Email',sanitize(loc.email)],['Overall Compliance','<span style="color:'+(loc.compliance==='Compliant'?'var(--green)':loc.compliance==='Overdue'?'var(--yellow)':'var(--red)')+'">'+loc.compliance+'</span>']]));
 }
@@ -4354,14 +4391,39 @@ function locRenderContacts(loc){
 }
 
 function locRenderComms(loc){
-  const tl=loc.communications.map(c=>`<div style="display:flex;gap:10px;padding-bottom:14px"><div style="display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0"><div style="width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);margin-top:3px"></div><div style="flex:1;width:1px;background:var(--border);margin-top:3px"></div></div><div><div style="font-size:12px;font-weight:600;color:var(--text)">${c.type}</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:1px">${c.date} &bull; ${c.method}</div><div style="margin-top:2px;font-family:var(--mono);font-size:9px;color:var(--green)">&#x2713; ${c.status}</div></div></div>`).join('');
+  const dotColor = c => c.status==='Logged'?'var(--blue)':c.status==='Sent'?'var(--green)':'var(--muted)';
+  const tl=loc.communications.map(c=>`<div style="display:flex;gap:10px;padding-bottom:14px"><div style="display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0"><div style="width:9px;height:9px;border-radius:50%;background:${dotColor(c)};box-shadow:0 0 5px ${dotColor(c)};margin-top:3px"></div><div style="flex:1;width:1px;background:var(--border);margin-top:3px"></div></div><div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--text)">${c.type}</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:1px">${c.date} &bull; ${c.method}</div>${c.notes?`<div style="margin-top:5px;padding:7px 10px;background:var(--elevated);border-radius:5px;font-size:11px;color:var(--muted);line-height:1.5">${sanitize(c.notes)}</div>`:''}<div style="margin-top:2px;font-family:var(--mono);font-size:9px;color:${dotColor(c)}">&#x2713; ${c.status}</div></div></div>`).join('');
   const lastDue=new Date(loc.assemblies.sort((a,b)=>new Date(b.due)-new Date(a.due))[0].due);
   const fmt=d=>d.toISOString().split('T')[0];
   const d60=new Date(lastDue);d60.setDate(d60.getDate()-60);
   const d30=new Date(lastDue);d30.setDate(d30.getDate()-30);
   const d7=new Date(lastDue);d7.setDate(d7.getDate()-7);
   const sched=[['60-Day Notice',fmt(d60),'var(--blue)'],['30-Day Notice',fmt(d30),'var(--yellow)'],['7-Day Urgent',fmt(d7),'var(--red)'],['Due Date',loc.assemblies[0].due,'var(--accent)']].map(([t,d,c])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><div style="font-size:12px;font-weight:600;color:var(--text)">${t}</div><div style="font-family:var(--mono);font-size:10px;color:${c}">${d}</div></div>`).join('');
-  return _lc('Communication History','<div>'+tl+'</div>')+_lc('Predictive Outreach Schedule',sched);
+  const noteForm = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px">
+    <div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Log Communication</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;gap:8px">
+        <select id="comm-note-type" class="ss" style="font-size:12px;padding:7px 10px;flex-shrink:0;width:140px">
+          <option>Phone Call</option>
+          <option>Email Sent</option>
+          <option>In Person</option>
+          <option>Voicemail</option>
+          <option>Text Message</option>
+          <option>Letter</option>
+        </select>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);align-self:center">${new Date().toISOString().split('T')[0]}</div>
+      </div>
+      <textarea id="comm-note-text" class="si" rows="3" placeholder="Enter notes from this communication — what was discussed, follow-up needed, etc..." style="font-size:12px;padding:8px 10px;resize:vertical;line-height:1.5"></textarea>
+      <div style="display:flex;justify-content:flex-end">
+        <button onclick="locAddCommNote(${loc.id})" class="btn btn-ac btn-sm">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Log Entry
+        </button>
+      </div>
+    </div>
+  </div>`;
+
+  return noteForm + _lc('Communication History ('+(loc.communications?.length||0)+')', loc.communications?.length ? '<div>'+tl+'</div>' : '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">No communications logged yet.</div>') + _lc('Predictive Outreach Schedule',sched);
 }
 
 function locRenderSurveys(loc){
@@ -4375,6 +4437,104 @@ function locRenderCompliance(loc){
   const rl=loc.riskScore<30?'LOW RISK':loc.riskScore<60?'MODERATE RISK':'HIGH RISK';
   const rm=loc.riskScore<30?'Excellent compliance. Continue standard monitoring.':loc.riskScore<60?'Moderate risk. Schedule inspection within 30 days.':'High risk. Immediate follow-up required.';
   return _lc('Year-Over-Year Compliance',bars)+_lc('AI Risk Score',`<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px"><div style="width:52px;height:52px;border-radius:50%;background:conic-gradient(${rc} ${loc.riskScore*3.6}deg,var(--elevated) 0deg);display:flex;align-items:center;justify-content:center;flex-shrink:0"><div style="width:40px;height:40px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:15px;color:${rc}">${loc.riskScore}</div></div><div><div style="font-family:var(--cond);font-weight:700;font-size:15px;color:${rc}">${rl}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">Composite score 0-100</div></div></div><div style="font-size:12px;color:var(--muted);line-height:1.6;padding:9px 11px;background:var(--elevated);border-radius:6px">${rm}</div>`);
+}
+
+// ── LOC EDIT MODE ────────────────────────────────────────────────────────────
+let locEditMode = false;
+
+function locToggleEdit() {
+  locEditMode = !locEditMode;
+  const btn = document.getElementById('locEditBtn');
+  if (btn) {
+    if (locEditMode) {
+      btn.style.borderColor = 'var(--accent)';
+      btn.style.color = 'var(--accent)';
+      btn.style.background = 'rgba(249,166,30,.1)';
+      btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Editing';
+    } else {
+      btn.style.borderColor = '';
+      btn.style.color = '';
+      btn.style.background = '';
+      btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit';
+    }
+  }
+  // Re-render current tab with edit mode
+  const loc = LOC_DATA.find(l=>l.id===locActiveId);
+  if (!loc) return;
+  const activeTab = document.querySelector('#locDetailTabs .m-tab.active');
+  const tabName = activeTab?.getAttribute('onclick')?.match(/'(\w+)'/)?.[1] || 'details';
+  const body = document.getElementById('locTabBody');
+  if (body) {
+    if (tabName === 'details') body.innerHTML = locRenderDetails(loc);
+    else if (tabName === 'survey') body.innerHTML = locRenderSurveys(loc);
+  }
+}
+
+function locSaveEdit() {
+  const loc = LOC_DATA.find(l=>l.id===locActiveId);
+  if (!loc) return;
+  // Save editable fields
+  const fields = {
+    contact: 'edit-contact', phone: 'edit-phone', email: 'edit-email',
+    name: 'edit-name', account: 'edit-account', zip: 'edit-zip', connections: 'edit-connections'
+  };
+  let changed = false;
+  Object.entries(fields).forEach(([key, id]) => {
+    const el = document.getElementById(id);
+    if (el && el.value !== undefined) { loc[key] = el.value.trim(); changed = true; }
+  });
+  const hazardEl = document.getElementById('edit-hazard');
+  if (hazardEl) {
+    loc.hazard = hazardEl.value;
+    loc.hazardRating = hazardEl.value==='High'?8:hazardEl.value==='Medium'?5:2;
+  }
+  if (changed) {
+    // Update header
+    const addr = document.getElementById('locDetailAddr');
+    if (addr) addr.textContent = loc.address;
+    const sub = document.getElementById('locDetailSub');
+    if (sub) sub.textContent = loc.name + ' • ' + loc.city + ', ' + loc.state + ' ' + loc.zip;
+    locEditMode = false;
+    locToggleEdit(); // reset button
+    locRenderTable(); // refresh table row
+    // Flash confirmation
+    const btn = document.getElementById('locEditBtn');
+    if (btn) {
+      const orig = btn.innerHTML;
+      btn.innerHTML = '&#x2713; Saved';
+      btn.style.color = 'var(--green)';
+      btn.style.borderColor = 'var(--green)';
+      setTimeout(() => { btn.innerHTML = orig; btn.style.color=''; btn.style.borderColor=''; }, 1500);
+    }
+  }
+}
+
+// ── COMMS NOTES ───────────────────────────────────────────────────────────────
+// Store communication notes per location
+if (!window.LOC_NOTES) window.LOC_NOTES = {};
+
+function locAddCommNote(locId) {
+  const typeEl = document.getElementById('comm-note-type');
+  const textEl = document.getElementById('comm-note-text');
+  if (!typeEl || !textEl) return;
+  const noteText = textEl.value.trim();
+  if (!noteText) { textEl.style.borderColor='var(--red)'; setTimeout(()=>textEl.style.borderColor='',1500); return; }
+  const loc = LOC_DATA.find(l=>l.id===locId);
+  if (!loc) return;
+  const newEntry = {
+    date: new Date().toISOString().split('T')[0],
+    type: typeEl.value,
+    method: 'Manual Entry',
+    status: 'Logged',
+    notes: noteText
+  };
+  if (!loc.communications) loc.communications = [];
+  loc.communications.unshift(newEntry); // add to top
+  textEl.value = '';
+  typeEl.value = 'Phone Call';
+  // Re-render comms tab
+  const body = document.getElementById('locTabBody');
+  if (body) body.innerHTML = locRenderComms(loc);
 }
 
 function locExportCSV(){
