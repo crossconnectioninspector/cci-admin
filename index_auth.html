@@ -872,11 +872,13 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
 
 <!-- LOCATIONS PAGE -->
 <div class="page" id="page-locations-page" style="padding:0;display:none;height:calc(100vh - 56px);flex-direction:column;overflow:hidden">
+
+  <!-- Top bar -->
   <div style="display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0">
-    <div style="flex:1;display:flex;align-items:center;gap:6px;background:var(--elevated);border:1.5px solid var(--border);border-radius:9px;padding:0 12px;height:38px;max-width:700px">
+    <div style="flex:1;display:flex;align-items:center;gap:6px;background:var(--elevated);border:1.5px solid var(--border);border-radius:9px;padding:0 12px;height:38px;max-width:680px" onfocusin="this.style.borderColor='var(--accent)'" onfocusout="this.style.borderColor='var(--border)'">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input id="locMainSearch" type="text" placeholder="Search by address, name, account number…" oninput="locApplyFilters()" style="background:none;border:none;outline:none;color:var(--text);font-family:var(--sans);font-size:13px;width:100%">
-      <div onclick="locToggleAdv()" style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;cursor:pointer;color:var(--muted);flex-shrink:0">
+      <input id="locMainSearch" type="text" placeholder="Search by address, name, account number..." oninput="locApplyFilters()" style="background:none;border:none;outline:none;color:var(--text);font-family:var(--sans);font-size:13px;width:100%">
+      <div onclick="locToggleAdv()" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:5px;cursor:pointer;color:var(--muted);flex-shrink:0" title="Advanced filters">
         <svg id="locAdvArrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transition:transform .2s"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
     </div>
@@ -886,12 +888,15 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
     <button onclick="locExportCSV()" class="btn btn-gh btn-sm" style="height:38px;width:38px;padding:0;justify-content:center" title="Export CSV">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     </button>
-    <button onclick="alert('Add Location')" class="btn btn-ac" style="height:38px;margin-left:auto;white-space:nowrap">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Add Location
-    </button>
+    <div style="margin-left:auto">
+      <button onclick="alert('Add Location')" class="btn btn-ac" style="height:38px;white-space:nowrap">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Location
+      </button>
+    </div>
   </div>
-  <!-- Advanced filter -->
+
+  <!-- Advanced filter panel -->
   <div id="locAdvPanel" style="background:var(--surface);border-bottom:1px solid var(--border);overflow:hidden;max-height:0;transition:max-height .3s ease,opacity .2s;opacity:0;flex-shrink:0">
     <div style="padding:14px 20px">
       <div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Advanced Search Filters</div>
@@ -901,7 +906,7 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
         <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">City</label><input type="text" id="lf-city" class="si" placeholder="Abilene..." style="font-size:12px;padding:5px 8px"></div>
         <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Compliance</label><select id="lf-compliance" class="ss" style="font-size:12px;padding:5px 8px"><option value="">Any</option><option>Compliant</option><option>Non-Compliant</option><option>Overdue</option></select></div>
         <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Hazard</label><select id="lf-hazard" class="ss" style="font-size:12px;padding:5px 8px"><option value="">Any</option><option>High</option><option>Medium</option><option>Low</option></select></div>
-        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Contact Email</label><input type="text" id="lf-email" class="si" placeholder="owner@..." style="font-size:12px;padding:5px 8px"></div>
+        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Email</label><input type="text" id="lf-email" class="si" placeholder="owner@..." style="font-size:12px;padding:5px 8px"></div>
         <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Phone</label><input type="text" id="lf-phone" class="si" placeholder="(325)..." style="font-size:12px;padding:5px 8px"></div>
         <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Primary Contact</label><input type="text" id="lf-contact" class="si" placeholder="Name..." style="font-size:12px;padding:5px 8px"></div>
         <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">ZIP</label><input type="text" id="lf-zip" class="si" placeholder="79601..." style="font-size:12px;padding:5px 8px"></div>
@@ -914,47 +919,51 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
       </div>
     </div>
   </div>
-  <!-- Table + Detail split -->
-  <div style="flex:1;display:flex;overflow:hidden">
-    <!-- LEFT: table -->
-    <div id="locTableWrap" style="display:flex;flex-direction:column;overflow:hidden;min-width:0;flex:1;transition:flex .25s ease">
-      <!-- Headers -->
-      <div style="display:grid;grid-template-columns:120px 1fr 1fr 110px 70px 150px;padding:8px 16px;border-bottom:1px solid var(--border);background:var(--elevated);flex-shrink:0;gap:8px">
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase">Account #</div>
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase">Name</div>
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase">Address</div>
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase">Phone</div>
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;text-align:center">Devices</div>
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase">Primary Contact</div>
+
+  <!-- Content: table + sliding detail panel -->
+  <div style="flex:1;display:flex;overflow:hidden;position:relative">
+
+    <!-- TABLE (full width by default) -->
+    <div id="locTableWrap" style="display:flex;flex-direction:column;overflow:hidden;flex:1;transition:flex .25s ease">
+
+      <!-- Column headers — changes based on detail open/closed -->
+      <div id="locTableHeaders" style="display:grid;padding:8px 16px;border-bottom:1px solid var(--border);background:var(--elevated);flex-shrink:0;gap:0">
       </div>
+
+      <!-- Rows -->
       <div id="locTableBody" style="flex:1;overflow-y:auto"></div>
+
       <!-- Pagination -->
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0">
         <div style="display:flex;align-items:center;gap:8px">
           <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">Rows per page:</span>
-          <select id="locRowsPerPage" onchange="locChangePage(1)" class="ss" style="font-size:11px;padding:3px 6px;width:auto"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select>
+          <select id="locRowsPerPage" onchange="locChangePage(1)" class="ss" style="font-size:11px;padding:3px 6px;width:auto">
+            <option value="10">10</option><option value="25">25</option><option value="50">50</option>
+          </select>
         </div>
         <div style="font-family:var(--mono);font-size:10px;color:var(--muted)" id="locPageInfo"></div>
         <div style="display:flex;gap:4px">
-          <button onclick="locChangePage(1)" class="btn btn-gh btn-sm" style="padding:4px 8px">&#x27E8;&#x27E8;</button>
-          <button onclick="locPrevPage()" class="btn btn-gh btn-sm" style="padding:4px 8px">&#x27E8;</button>
-          <button onclick="locNextPage()" class="btn btn-gh btn-sm" style="padding:4px 8px">&#x27E9;</button>
-          <button onclick="locLastPage()" class="btn btn-gh btn-sm" style="padding:4px 8px">&#x27E9;&#x27E9;</button>
+          <button onclick="locChangePage(1)" class="btn btn-gh btn-sm" style="padding:4px 10px">&#x27E8;&#x27E8;</button>
+          <button onclick="locPrevPage()" class="btn btn-gh btn-sm" style="padding:4px 10px">&#x27E8;</button>
+          <button onclick="locNextPage()" class="btn btn-gh btn-sm" style="padding:4px 10px">&#x27E9;</button>
+          <button onclick="locLastPage()" class="btn btn-gh btn-sm" style="padding:4px 10px">&#x27E9;&#x27E9;</button>
         </div>
       </div>
     </div>
-    <!-- RIGHT: detail panel -->
+
+    <!-- DETAIL PANEL — hidden until row clicked, slides in from right -->
     <div id="locDetailPanel" style="width:0;overflow:hidden;border-left:1px solid var(--border);transition:width .25s ease;flex-shrink:0;display:flex;flex-direction:column;background:var(--bg)">
-      <div style="width:500px;display:flex;flex-direction:column;height:100%;overflow:hidden">
-        <div id="locDetailHeader" style="padding:16px 20px 0;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">
+      <div style="width:480px;display:flex;flex-direction:column;height:100%;overflow:hidden">
+        <!-- Header -->
+        <div style="padding:14px 18px 0;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
             <div style="min-width:0;flex:1">
               <div id="locDetailAddr" style="font-family:var(--cond);font-weight:900;font-size:20px;color:var(--text);line-height:1.1"></div>
               <div id="locDetailSub" style="font-size:12px;color:var(--muted);margin-top:3px"></div>
             </div>
-            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:10px">
+            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:8px">
               <div id="locDetailBadge"></div>
-              <button onclick="locCloseDetail()" style="width:26px;height:26px;border-radius:6px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1">&#x2715;</button>
+              <button onclick="locCloseDetail()" style="width:26px;height:26px;border-radius:6px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1">&#x2715;</button>
             </div>
           </div>
           <div id="locDetailStats" style="display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap"></div>
@@ -967,9 +976,11 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
             <button class="m-tab" onclick="locSwitchTab('compliance',this)">Compliance</button>
           </div>
         </div>
+        <!-- Tab body -->
         <div id="locTabBody" style="flex:1;overflow-y:auto;padding:14px 16px"></div>
       </div>
     </div>
+
   </div>
 </div>
 
@@ -3733,23 +3744,23 @@ function clearRiskSearch() {
 //  LOCATIONS MODULE
 // ═══════════════════════════════════════════════════════
 const LOC_DATA = [
-  {id:1,address:"1423 N 1st St",city:"Abilene",state:"TX",zip:"79601",name:"Circle K #4421",account:"ACC-00142",contact:"Randy Torres",phone:"(325) 555-0182",email:"randy.torres@circlek.com",hazard:"High",compliance:"Compliant",lastSurvey:"Pass",connections:2,riskScore:12,deviceCount:2,
-    assemblies:[{serial:"RP-2291",type:"RPZ",make:"Watts",model:"009",status:"Pass",tested:"2025-11-14",due:"2026-11-14"},{serial:"DC-0044",type:"DCVA",make:"Wilkins",model:"975XL",status:"Pass",tested:"2025-11-14",due:"2026-11-14"}],
+  {id:1,address:"1423 N 1st St",city:"Abilene",state:"TX",zip:"79601",name:"Circle K #4421",account:"ACC-00142",contact:"Randy Torres",phone:"(325) 555-0182",email:"randy.torres@circlek.com",hazard:"High",hazardRating:9,compliance:"Compliant",lastSurvey:"Pass",connections:2,riskScore:12,deviceCount:2,
+    assemblies:[{serial:"RP-2291",type:"RPZ",make:"Watts",model:"009",size:'3/4"',status:"Pass",tested:"2025-11-14",due:"2026-11-14"},{serial:"DC-0044",type:"DCVA",make:"Wilkins",model:"975XL",size:'1"',status:"Pass",tested:"2025-11-14",due:"2026-11-14"}],
     communications:[{date:"2025-09-14",type:"60-Day Notice",method:"Email",status:"Sent"},{date:"2025-10-14",type:"30-Day Notice",method:"Email",status:"Sent"},{date:"2025-11-07",type:"7-Day Notice",method:"Email + SMS",status:"Sent"}],
     surveys:[{date:"2025-11-14",surveyor:"Matt Snider",result:"Pass",notes:"Two RPZ assemblies on east side. Mechanical room accessible via rear entrance."}],
     complianceHistory:[{year:"2026",pct:100,pass:2,fail:0},{year:"2025",pct:100,pass:2,fail:0},{year:"2024",pct:85,pass:1,fail:1},{year:"2023",pct:100,pass:2,fail:0}]},
-  {id:2,address:"3801 S Clack St",city:"Abilene",state:"TX",zip:"79606",name:"Hendrick Medical Center",account:"ACC-00389",contact:"Susan Park",phone:"(325) 555-0244",email:"s.park@hendrickhealth.org",hazard:"High",compliance:"Overdue",lastSurvey:"Pass",connections:3,riskScore:71,deviceCount:3,
-    assemblies:[{serial:"RP-0881",type:"RPZ",make:"Febco",model:"860",status:"Overdue",tested:"2024-10-02",due:"2025-10-02"},{serial:"RP-0882",type:"RPZ",make:"Febco",model:"860",status:"Pass",tested:"2025-03-15",due:"2026-03-15"},{serial:"DC-0199",type:"DCVA",make:"Watts",model:"007",status:"Overdue",tested:"2024-10-02",due:"2025-10-02"}],
+  {id:2,address:"3801 S Clack St",city:"Abilene",state:"TX",zip:"79606",name:"Hendrick Medical Center",account:"ACC-00389",contact:"Susan Park",phone:"(325) 555-0244",email:"s.park@hendrickhealth.org",hazard:"High",hazardRating:10,compliance:"Overdue",lastSurvey:"Pass",connections:3,riskScore:71,deviceCount:3,
+    assemblies:[{serial:"RP-0881",type:"RPZ",make:"Febco",model:"860",size:'1"',status:"Overdue",tested:"2024-10-02",due:"2025-10-02"},{serial:"RP-0882",type:"RPZ",make:"Febco",model:"860",size:'1"',status:"Pass",tested:"2025-03-15",due:"2026-03-15"},{serial:"DC-0199",type:"DCVA",make:"Watts",model:"007",size:'3/4"',status:"Overdue",tested:"2024-10-02",due:"2025-10-02"}],
     communications:[{date:"2025-07-02",type:"60-Day Notice",method:"Email",status:"Sent"},{date:"2025-09-30",type:"Overdue Notice",method:"Email",status:"Sent"}],
     surveys:[{date:"2024-10-02",surveyor:"Matt Snider",result:"Pass",notes:"3 assemblies total. RP-0881 and DC-0199 now OVERDUE."}],
     complianceHistory:[{year:"2026",pct:33,pass:1,fail:2},{year:"2025",pct:100,pass:3,fail:0},{year:"2024",pct:100,pass:3,fail:0},{year:"2023",pct:67,pass:2,fail:1}]},
-  {id:3,address:"4150 Buffalo Gap Rd",city:"Abilene",state:"TX",zip:"79605",name:"Walmart Supercenter",account:"ACC-00217",contact:"Luis Garza",phone:"(325) 555-0311",email:"l.garza@walmart.com",hazard:"Medium",compliance:"Compliant",lastSurvey:"Pass",connections:1,riskScore:8,deviceCount:1,
-    assemblies:[{serial:"PV-0034",type:"PVB",make:"Ames",model:"4000SS",status:"Pass",tested:"2026-01-22",due:"2027-01-22"}],
+  {id:3,address:"4150 Buffalo Gap Rd",city:"Abilene",state:"TX",zip:"79605",name:"Walmart Supercenter",account:"ACC-00217",contact:"Luis Garza",phone:"(325) 555-0311",email:"l.garza@walmart.com",hazard:"Medium",hazardRating:5,compliance:"Compliant",lastSurvey:"Pass",connections:1,riskScore:8,deviceCount:1,
+    assemblies:[{serial:"PV-0034",type:"PVB",make:"Ames",model:"4000SS",size:'1/2"',status:"Pass",tested:"2026-01-22",due:"2027-01-22"}],
     communications:[{date:"2025-11-22",type:"60-Day Notice",method:"Email",status:"Sent"}],
     surveys:[{date:"2026-01-22",surveyor:"Matt Snider",result:"Pass",notes:"Single PVB on irrigation system at garden center."}],
     complianceHistory:[{year:"2026",pct:100,pass:1,fail:0},{year:"2025",pct:100,pass:1,fail:0},{year:"2024",pct:100,pass:1,fail:0},{year:"2023",pct:100,pass:1,fail:0}]},
-  {id:4,address:"2018 Grape St",city:"Abilene",state:"TX",zip:"79601",name:"Abilene High School",account:"ACC-00504",contact:"Dr. Maria Okonkwo",phone:"(325) 555-0099",email:"m.okonkwo@aisd.org",hazard:"Medium",compliance:"Non-Compliant",lastSurvey:"Fail",connections:2,riskScore:58,deviceCount:2,
-    assemblies:[{serial:"RP-1145",type:"RPZ",make:"Watts",model:"009M3",status:"Fail",tested:"2025-08-10",due:"2026-08-10"},{serial:"DC-0288",type:"DCVA",make:"Watts",model:"007M1",status:"Pass",tested:"2025-08-10",due:"2026-08-10"}],
+  {id:4,address:"2018 Grape St",city:"Abilene",state:"TX",zip:"79601",name:"Abilene High School",account:"ACC-00504",contact:"Dr. Maria Okonkwo",phone:"(325) 555-0099",email:"m.okonkwo@aisd.org",hazard:"Medium",hazardRating:6,compliance:"Non-Compliant",lastSurvey:"Fail",connections:2,riskScore:58,deviceCount:2,
+    assemblies:[{serial:"RP-1145",type:"RPZ",make:"Watts",model:"009M3",size:'1"',status:"Fail",tested:"2025-08-10",due:"2026-08-10"},{serial:"DC-0288",type:"DCVA",make:"Watts",model:"007M1",size:'3/4"',status:"Pass",tested:"2025-08-10",due:"2026-08-10"}],
     communications:[{date:"2025-06-10",type:"60-Day Notice",method:"Email",status:"Sent"},{date:"2025-08-10",type:"Fail Notice",method:"Email + SMS",status:"Sent"}],
     surveys:[{date:"2025-08-10",surveyor:"Matt Snider",result:"Fail",notes:"RP-1145 failed: relief valve discharged continuously. Awaiting retest."}],
     complianceHistory:[{year:"2026",pct:50,pass:1,fail:1},{year:"2025",pct:100,pass:2,fail:0},{year:"2024",pct:50,pass:1,fail:1},{year:"2023",pct:100,pass:2,fail:0}]}
@@ -3758,7 +3769,29 @@ const LOC_DATA = [
 let locFiltered=[...LOC_DATA],locActiveId=null,locCurrentPage=1,locAdvOpen=false,locDetailOpen=false;
 let locSavedFilters=JSON.parse(localStorage.getItem('cci_loc_filters')||'[]');
 
-function locInit(){locFiltered=[...LOC_DATA];locCurrentPage=1;locRenderTable();locRenderSavedChips();}
+// Columns when detail is CLOSED (full width — more columns)
+const LOC_COLS_FULL = '180px 1fr 140px 80px 110px 110px 90px';
+const LOC_HEADS_FULL = ['Address','Name / Business','Device Types','Size','Serial Numbers','Account #','Hazard'];
+
+// Columns when detail is OPEN (narrower — fewer columns)
+const LOC_COLS_SLIM = '160px 1fr 100px 90px 80px';
+const LOC_HEADS_SLIM = ['Address','Name','Device Type','Account #','Hazard'];
+
+function locInit(){
+  locFiltered=[...LOC_DATA];locCurrentPage=1;
+  locDetailOpen=false;
+  const panel=document.getElementById('locDetailPanel');
+  if(panel)panel.style.width='0';
+  locRenderHeaders();locRenderTable();locRenderSavedChips();
+}
+
+function locRenderHeaders(){
+  const h=document.getElementById('locTableHeaders');if(!h)return;
+  const cols=locDetailOpen?LOC_COLS_SLIM:LOC_COLS_FULL;
+  const heads=locDetailOpen?LOC_HEADS_SLIM:LOC_HEADS_FULL;
+  h.style.gridTemplateColumns=cols;
+  h.innerHTML=heads.map(t=>`<div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:0 8px">${t}</div>`).join('');
+}
 
 function locToggleAdv(){
   locAdvOpen=!locAdvOpen;
@@ -3806,6 +3839,12 @@ function locRenderSavedChips(){
 function locLoadFilter(i){const s=locSavedFilters[i].state;Object.entries(s).forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.value=v;});locApplyFilters();}
 function locDelFilter(i){locSavedFilters.splice(i,1);localStorage.setItem('cci_loc_filters',JSON.stringify(locSavedFilters));locRenderSavedChips();}
 
+function locHazardStyle(h,rating){
+  if(h==='High')return{bg:'rgba(224,82,82,.15)',color:'var(--red)',border:'rgba(224,82,82,.3)'};
+  if(h==='Medium')return{bg:'rgba(240,192,64,.15)',color:'var(--yellow)',border:'rgba(240,192,64,.3)'};
+  return{bg:'rgba(76,175,121,.15)',color:'var(--green)',border:'rgba(76,175,121,.3)'};
+}
+
 function locRenderTable(){
   const body=document.getElementById('locTableBody');
   const rpp=parseInt(document.getElementById('locRowsPerPage')?.value||'10');
@@ -3816,33 +3855,77 @@ function locRenderTable(){
   const page=locFiltered.slice(start,start+rpp);
   const info=document.getElementById('locPageInfo');
   if(info)info.textContent=total===0?'No results':`${start+1}-${Math.min(start+rpp,total)} of ${total} items`;
-  const tw=document.getElementById('locTableWrap');
-  if(tw)tw.style.minWidth=locDetailOpen?'0':'100%';
+  locRenderHeaders();
   if(!body)return;
-  if(!page.length){body.innerHTML=`<div style="text-align:center;padding:48px;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px;opacity:.3">&#x1F4CD;</div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">No locations found</div><div style="font-size:12px">Adjust your search or filters</div></div>`;return;}
+  if(!page.length){
+    body.innerHTML=`<div style="text-align:center;padding:48px;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px;opacity:.3">&#x1F4CD;</div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">No locations found</div><div style="font-size:12px">Adjust your search or filters</div></div>`;
+    return;
+  }
+
+  const cols=locDetailOpen?LOC_COLS_SLIM:LOC_COLS_FULL;
+
   body.innerHTML=page.map(loc=>{
     const isActive=locActiveId===loc.id;
     const cc=loc.compliance==='Compliant'?'var(--green)':loc.compliance==='Overdue'?'var(--yellow)':'var(--red)';
-    return `<div onclick="locSelectRow(${loc.id})" style="display:grid;grid-template-columns:120px 1fr 1fr 110px 70px 150px;padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;align-items:center;background:${isActive?'rgba(249,166,30,.06)':'transparent'};border-left:3px solid ${isActive?'var(--accent)':'transparent'};gap:8px" onmouseover="if(!${isActive})this.style.background='var(--elevated)'" onmouseout="if(!${isActive})this.style.background='${isActive?'rgba(249,166,30,.06)':'transparent'}'">
-      <div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${sanitize(loc.account)||'&mdash;'}</div>
-      <div><div style="font-size:13px;font-weight:600;color:var(--text)">${sanitize(loc.name)}</div><div style="display:flex;align-items:center;gap:4px;margin-top:2px"><div style="width:6px;height:6px;border-radius:50%;background:${cc};box-shadow:0 0 4px ${cc}"></div><span style="font-family:var(--mono);font-size:9px;color:${cc}">${loc.compliance}</span></div></div>
-      <div style="font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(loc.address)}, ${loc.city} ${loc.zip}</div>
-      <div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${sanitize(loc.phone)||'&mdash;'}</div>
-      <div style="text-align:center;font-family:var(--cond);font-weight:700;font-size:16px;color:var(--text)">${loc.deviceCount}</div>
-      <div style="font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(loc.contact)||'&mdash;'}</div>
+    const hs=locHazardStyle(loc.hazard,loc.hazardRating);
+    const hazardChip=`<span style="font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 8px;border-radius:3px;background:${hs.bg};color:${hs.color};border:1px solid ${hs.border};white-space:nowrap">${loc.hazard.toUpperCase()} ${loc.hazardRating}/10</span>`;
+
+    // Summarize assemblies for full view
+    const asmTypes=[...new Set(loc.assemblies.map(a=>a.type))].join(', ');
+    const asmSizes=[...new Set(loc.assemblies.map(a=>a.size))].join(', ');
+    const asmSerials=loc.assemblies.map(a=>a.serial).join(', ');
+
+    let cells;
+    if(!locDetailOpen){
+      cells=[
+        // Address + compliance dot
+        `<div style="min-width:0"><div style="font-size:13px;font-weight:600;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(loc.address)}</div><div style="display:flex;align-items:center;gap:4px;margin-top:2px"><div style="width:6px;height:6px;border-radius:50%;background:${cc};box-shadow:0 0 4px ${cc}"></div><span style="font-family:var(--mono);font-size:9px;color:${cc}">${loc.compliance}</span></div></div>`,
+        // Name
+        `<div style="min-width:0"><div style="font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(loc.name)}</div><div style="font-size:11px;color:var(--muted);margin-top:1px">${sanitize(loc.contact)}</div></div>`,
+        // Device types
+        `<div style="font-family:var(--mono);font-size:11px;color:var(--text)">${asmTypes}</div>`,
+        // Size
+        `<div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${asmSizes}</div>`,
+        // Serials
+        `<div style="font-family:var(--mono);font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${sanitize(asmSerials)}">${sanitize(asmSerials)}</div>`,
+        // Account
+        `<div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${sanitize(loc.account)||'&mdash;'}</div>`,
+        // Hazard
+        hazardChip,
+      ];
+    } else {
+      cells=[
+        `<div style="min-width:0"><div style="font-size:12px;font-weight:600;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(loc.address)}</div><div style="display:flex;align-items:center;gap:4px;margin-top:2px"><div style="width:6px;height:6px;border-radius:50%;background:${cc};box-shadow:0 0 4px ${cc}"></div><span style="font-family:var(--mono);font-size:9px;color:${cc}">${loc.compliance}</span></div></div>`,
+        `<div style="font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(loc.name)}</div>`,
+        `<div style="font-family:var(--mono);font-size:11px;color:var(--text)">${asmTypes}</div>`,
+        `<div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${sanitize(loc.account)||'&mdash;'}</div>`,
+        hazardChip,
+      ];
+    }
+
+    return `<div onclick="locSelectRow(${loc.id})" style="display:grid;grid-template-columns:${cols};padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;align-items:center;background:${isActive?'rgba(249,166,30,.06)':'transparent'};border-left:3px solid ${isActive?'var(--accent)':'transparent'};gap:0"
+      onmouseover="if(${!isActive})this.style.background='var(--elevated)'" onmouseout="this.style.background='${isActive?'rgba(249,166,30,.06)':'transparent'}'">
+      ${cells.map(c=>`<div style="padding:0 8px;overflow:hidden">${c}</div>`).join('')}
     </div>`;
   }).join('');
 }
 
 function locChangePage(p){locCurrentPage=p;locRenderTable();}
 function locPrevPage(){if(locCurrentPage>1){locCurrentPage--;locRenderTable();}}
-function locNextPage(){const rpp=parseInt(document.getElementById('locRowsPerPage')?.value||'10');if(locCurrentPage<Math.ceil(locFiltered.length/rpp)){locCurrentPage++;locRenderTable();}}
-function locLastPage(){const rpp=parseInt(document.getElementById('locRowsPerPage')?.value||'10');locCurrentPage=Math.ceil(locFiltered.length/rpp)||1;locRenderTable();}
+function locNextPage(){
+  const rpp=parseInt(document.getElementById('locRowsPerPage')?.value||'10');
+  if(locCurrentPage<Math.ceil(locFiltered.length/rpp)){locCurrentPage++;locRenderTable();}
+}
+function locLastPage(){
+  const rpp=parseInt(document.getElementById('locRowsPerPage')?.value||'10');
+  locCurrentPage=Math.ceil(locFiltered.length/rpp)||1;locRenderTable();
+}
 
 function locSelectRow(id){
   locActiveId=id;locDetailOpen=true;
   const loc=LOC_DATA.find(l=>l.id===id);if(!loc)return;
-  const panel=document.getElementById('locDetailPanel');if(panel)panel.style.width='500px';
+  const panel=document.getElementById('locDetailPanel');if(panel)panel.style.width='480px';
+  // Header
   const addr=document.getElementById('locDetailAddr');if(addr)addr.textContent=loc.address;
   const sub=document.getElementById('locDetailSub');if(sub)sub.textContent=loc.name+' \u2022 '+loc.city+', '+loc.state+' '+loc.zip;
   const cc=loc.compliance==='Compliant'?'var(--green)':loc.compliance==='Overdue'?'var(--yellow)':'var(--red)';
@@ -3851,7 +3934,15 @@ function locSelectRow(id){
   const badge=document.getElementById('locDetailBadge');
   if(badge){badge.textContent=loc.compliance.toUpperCase();badge.style.cssText=`font-family:var(--cond);font-weight:700;font-size:12px;padding:4px 10px;border-radius:5px;background:${cbg};color:${cc};border:1px solid ${cbr}`;}
   const stats=document.getElementById('locDetailStats');
-  if(stats)stats.innerHTML=[['Account',sanitize(loc.account)],['Hazard',loc.hazard],['Devices',loc.deviceCount],['Connections',loc.connections],['Risk','<span style="color:'+(loc.riskScore<30?'var(--green)':loc.riskScore<60?'var(--yellow)':'var(--red)')+'">'+loc.riskScore+'/100</span>']].map(([l,v])=>`<div><div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase">${l}</div><div style="font-family:var(--cond);font-weight:700;font-size:14px;color:var(--text)">${v}</div></div>`).join('');
+  const hs=locHazardStyle(loc.hazard);
+  if(stats)stats.innerHTML=[
+    ['Account',sanitize(loc.account)],
+    ['Assemblies',loc.deviceCount],
+    ['Connections',loc.connections],
+    ['Hazard','<span style="color:'+hs.color+'">'+loc.hazard+' '+loc.hazardRating+'/10</span>'],
+    ['Risk','<span style="color:'+(loc.riskScore<30?'var(--green)':loc.riskScore<60?'var(--yellow)':'var(--red)')+'">'+loc.riskScore+'/100</span>'],
+  ].map(([l,v])=>`<div><div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase">${l}</div><div style="font-family:var(--cond);font-weight:700;font-size:13px;color:var(--text)">${v}</div></div>`).join('');
+  // Reset to details tab
   document.querySelectorAll('#locDetailTabs .m-tab').forEach((b,i)=>b.classList.toggle('active',i===0));
   const body=document.getElementById('locTabBody');if(body)body.innerHTML=locRenderDetails(loc);
   locRenderTable();
@@ -3878,17 +3969,31 @@ function locSwitchTab(tab,btn){
 function _lc(title,html){return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px"><div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">${title}</div>${html}</div>`;}
 function _lg(pairs){return`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${pairs.map(([l,v])=>`<div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">${l}</div><div style="font-size:13px;color:var(--text);font-weight:500">${v||'&mdash;'}</div></div>`).join('')}</div>`;}
 
-function locRenderDetails(loc){return _lc('Property Information',_lg([['Business Name',sanitize(loc.name)],['Account Number',sanitize(loc.account)],['Street Address',sanitize(loc.address)],['City / State / ZIP',loc.city+', '+loc.state+' '+loc.zip],['Hazard Type',loc.hazard+' Hazard'],['Service Connections',loc.connections]]))+_lc('Primary Contact',_lg([['Contact Name',sanitize(loc.contact)],['Phone',sanitize(loc.phone)],['Email',sanitize(loc.email)],['Overall Compliance','<span style="color:'+(loc.compliance==='Compliant'?'var(--green)':loc.compliance==='Overdue'?'var(--yellow)':'var(--red)')+'">'+loc.compliance+'</span>']]));}
+function locRenderDetails(loc){
+  return _lc('Property Information',_lg([['Business Name',sanitize(loc.name)],['Account Number',sanitize(loc.account)],['Street Address',sanitize(loc.address)],['City / State / ZIP',loc.city+', '+loc.state+' '+loc.zip],['Hazard Type',loc.hazard+' ('+loc.hazardRating+'/10)'],['Service Connections',loc.connections]]))+
+    _lc('Primary Contact',_lg([['Contact Name',sanitize(loc.contact)],['Phone',sanitize(loc.phone)],['Email',sanitize(loc.email)],['Overall Compliance','<span style="color:'+(loc.compliance==='Compliant'?'var(--green)':loc.compliance==='Overdue'?'var(--yellow)':'var(--red)')+'">'+loc.compliance+'</span>']]));
+}
 
 function locRenderAssemblies(loc){
   const sc=s=>s==='Pass'?'var(--green)':s==='Fail'?'var(--red)':'var(--yellow)';
   const sbg=s=>s==='Pass'?'rgba(76,175,121,.12)':s==='Fail'?'rgba(224,82,82,.12)':'rgba(240,192,64,.12)';
   const sbr=s=>s==='Pass'?'rgba(76,175,121,.3)':s==='Fail'?'rgba(224,82,82,.3)':'rgba(240,192,64,.3)';
-  const rows=loc.assemblies.map(a=>`<tr style="border-bottom:1px solid var(--border)"><td style="padding:9px 10px;font-size:12px;font-weight:600">${a.type}</td><td style="padding:9px 10px;font-size:12px;color:var(--muted)">${a.make}</td><td style="padding:9px 10px;font-size:12px;color:var(--muted)">${a.model}</td><td style="padding:9px 10px;font-family:var(--mono);font-size:11px;color:var(--muted)">${sanitize(a.serial)}</td><td style="padding:9px 10px"><span style="font-family:var(--mono);font-size:9px;font-weight:700;color:${sc(a.status)};background:${sbg(a.status)};border:1px solid ${sbr(a.status)};padding:2px 8px;border-radius:3px">${a.status.toUpperCase()}</span></td><td style="padding:9px 10px;font-family:var(--mono);font-size:10px;color:var(--muted)">${a.due}</td></tr>`).join('');
-  return _lc('Assemblies ('+loc.assemblies.length+')','<table style="width:100%;border-collapse:collapse"><thead><tr style="border-bottom:1px solid var(--border)">'+['Type','Make','Model','Serial #','Status','Due'].map(h=>`<th style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;text-align:left;padding:5px 10px">${h}</th>`).join('')+'</tr></thead><tbody>'+rows+'</tbody></table>')+'<button onclick="alert(\'Add Assembly\')" class="btn btn-ac" style="width:100%;justify-content:center;margin-top:8px">+ Add Assembly</button>';
+  const rows=loc.assemblies.map(a=>`<tr style="border-bottom:1px solid var(--border)">
+    <td style="padding:9px 8px;font-size:12px;font-weight:600">${a.type}</td>
+    <td style="padding:9px 8px;font-size:12px;color:var(--muted)">${a.make}</td>
+    <td style="padding:9px 8px;font-size:12px;color:var(--muted)">${a.model}</td>
+    <td style="padding:9px 8px;font-family:var(--mono);font-size:10px;color:var(--muted)">${a.size}</td>
+    <td style="padding:9px 8px;font-family:var(--mono);font-size:10px;color:var(--muted)">${sanitize(a.serial)}</td>
+    <td style="padding:9px 8px"><span style="font-family:var(--mono);font-size:9px;font-weight:700;color:${sc(a.status)};background:${sbg(a.status)};border:1px solid ${sbr(a.status)};padding:2px 7px;border-radius:3px">${a.status.toUpperCase()}</span></td>
+    <td style="padding:9px 8px;font-family:var(--mono);font-size:10px;color:var(--muted)">${a.due}</td>
+  </tr>`).join('');
+  return _lc('Assemblies ('+loc.assemblies.length+')','<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:480px"><thead><tr style="border-bottom:1px solid var(--border)">'+['Type','Make','Model','Size','Serial #','Status','Due'].map(h=>`<th style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;text-align:left;padding:5px 8px">${h}</th>`).join('')+'</tr></thead><tbody>'+rows+'</tbody></table></div>')+'<button onclick="alert(\'Add Assembly\')" class="btn btn-ac" style="width:100%;justify-content:center;margin-top:8px">+ Add Assembly</button>';
 }
 
-function locRenderContacts(loc){return _lc('Primary Contact',_lg([['Name',sanitize(loc.contact)],['Phone',sanitize(loc.phone)],['Email',sanitize(loc.email)],['Role','Property Manager']]))+_lc('Account',_lg([['Account #',sanitize(loc.account)],['Address',sanitize(loc.address)],['City',loc.city],['ZIP',loc.zip]]));}
+function locRenderContacts(loc){
+  return _lc('Primary Contact',_lg([['Name',sanitize(loc.contact)],['Phone',sanitize(loc.phone)],['Email',sanitize(loc.email)],['Role','Property Manager']]))+
+    _lc('Account',_lg([['Account #',sanitize(loc.account)],['Address',sanitize(loc.address)],['City',loc.city],['ZIP',loc.zip]]));
+}
 
 function locRenderComms(loc){
   const tl=loc.communications.map(c=>`<div style="display:flex;gap:10px;padding-bottom:14px"><div style="display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0"><div style="width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);margin-top:3px"></div><div style="flex:1;width:1px;background:var(--border);margin-top:3px"></div></div><div><div style="font-size:12px;font-weight:600;color:var(--text)">${c.type}</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:1px">${c.date} &bull; ${c.method}</div><div style="margin-top:2px;font-family:var(--mono);font-size:9px;color:var(--green)">&#x2713; ${c.status}</div></div></div>`).join('');
@@ -3903,7 +4008,7 @@ function locRenderComms(loc){
 
 function locRenderSurveys(loc){
   const s=loc.surveys[0];const rc=s.result==='Pass'?'var(--green)':s.result==='Fail'?'var(--red)':'var(--yellow)';
-  return _lc('Customer Service Inspection',_lg([['Date',s.date],['Surveyor',s.surveyor],['Result','<span style="color:'+rc+'">'+s.result+'</span>'],['','&#x200B;']])+`<div style="margin-top:10px;padding:10px 12px;background:var(--elevated);border-radius:6px;font-size:12px;color:var(--muted);line-height:1.6">${sanitize(s.notes)}</div>`)+'<button onclick="alert(\'New Survey\')" class="btn btn-gh" style="width:100%;justify-content:center;margin-top:8px">+ New Survey</button>';
+  return _lc('Customer Service Inspection',_lg([['Date',s.date],['Surveyor',s.surveyor],['Result','<span style="color:'+rc+'">'+s.result+'</span>'],['Status','CSI Report']])+`<div style="margin-top:10px;padding:10px 12px;background:var(--elevated);border-radius:6px;font-size:12px;color:var(--muted);line-height:1.6">${sanitize(s.notes)}</div>`)+'<button onclick="alert(\'New Survey\')" class="btn btn-gh" style="width:100%;justify-content:center;margin-top:8px">+ New Survey</button>';
 }
 
 function locRenderCompliance(loc){
@@ -3915,8 +4020,8 @@ function locRenderCompliance(loc){
 }
 
 function locExportCSV(){
-  const h=['Account','Name','Address','City','ZIP','Phone','Contact','Email','Hazard','Compliance','Devices'];
-  const rows=locFiltered.map(l=>[l.account,l.name,l.address,l.city,l.zip,l.phone,l.contact,l.email,l.hazard,l.compliance,l.deviceCount]);
+  const h=['Account','Name','Address','City','ZIP','Phone','Contact','Email','Hazard','Hazard Rating','Compliance','Devices'];
+  const rows=locFiltered.map(l=>[l.account,l.name,l.address,l.city,l.zip,l.phone,l.contact,l.email,l.hazard,l.hazardRating,l.compliance,l.deviceCount]);
   const csv=[h,...rows].map(r=>r.map(v=>'"'+(v||'').toString().replace(/"/g,'""')+'"').join(',')).join('\n');
   const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='cci-locations.csv';a.click();
 }
