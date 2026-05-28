@@ -985,7 +985,154 @@ tbody td{padding:11px 14px;font-size:13px;font-weight:600;vertical-align:middle}
 </div>
 
 <!-- PLACEHOLDER PAGES -->
-<div class="page" id="page-contacts-page"><div class="es"><div class="es-icon">&#x1F464;</div><div class="es-title">Contacts</div><div class="es-sub">Contact management coming soon.</div></div></div>
+<div class="page" id="page-contacts-page" style="padding:0;display:none;height:calc(100vh - 56px);flex-direction:column;overflow:hidden">
+
+  <!-- Top bar -->
+  <div style="display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0">
+    <div style="flex:1;display:flex;align-items:center;gap:6px;background:var(--elevated);border:1.5px solid var(--border);border-radius:9px;padding:0 12px;height:38px;max-width:680px" onfocusin="this.style.borderColor='var(--accent)'" onfocusout="this.style.borderColor='var(--border)'">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="conMainSearch" type="text" placeholder="Search by name, phone, email, address..." oninput="conApplyFilters()" style="background:none;border:none;outline:none;color:var(--text);font-family:var(--sans);font-size:13px;width:100%">
+      <div onclick="conToggleAdv()" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:5px;cursor:pointer;color:var(--muted);flex-shrink:0">
+        <svg id="conAdvArrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transition:transform .2s"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+    </div>
+    <button onclick="conToggleAdv()" class="btn btn-gh btn-sm" style="height:38px;width:38px;padding:0;justify-content:center" title="Filter">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    </button>
+    <button onclick="conExportCSV()" class="btn btn-gh btn-sm" style="height:38px;width:38px;padding:0;justify-content:center" title="Export CSV">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    </button>
+    <div style="margin-left:auto">
+      <button onclick="conOpenAdd()" class="btn btn-ac" style="height:38px;white-space:nowrap">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Contact
+      </button>
+    </div>
+  </div>
+
+  <!-- Advanced filter panel -->
+  <div id="conAdvPanel" style="background:var(--surface);border-bottom:1px solid var(--border);overflow:hidden;max-height:0;transition:max-height .3s ease,opacity .2s;opacity:0;flex-shrink:0">
+    <div style="padding:14px 20px">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Advanced Search Filters</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:10px">
+        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Name</label><input type="text" id="cf-name" class="si" placeholder="Contact name..." style="font-size:12px;padding:5px 8px"></div>
+        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Phone</label><input type="text" id="cf-phone" class="si" placeholder="(325)..." style="font-size:12px;padding:5px 8px"></div>
+        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Email</label><input type="text" id="cf-email" class="si" placeholder="email@..." style="font-size:12px;padding:5px 8px"></div>
+        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Address</label><input type="text" id="cf-address" class="si" placeholder="Street..." style="font-size:12px;padding:5px 8px"></div>
+        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">City</label><input type="text" id="cf-city" class="si" placeholder="Abilene..." style="font-size:12px;padding:5px 8px"></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-gh btn-sm" onclick="conClearFilters()">Clear All</button>
+        <button class="btn btn-primary btn-sm" onclick="conApplyFilters()">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table + detail split -->
+  <div style="flex:1;display:flex;overflow:hidden">
+
+    <!-- LEFT: table -->
+    <div id="conTableWrap" style="display:flex;flex-direction:column;overflow:hidden;flex:1">
+      <!-- Headers -->
+      <div id="conTableHeaders" style="display:grid;grid-template-columns:1fr 130px 1fr 1fr 120px;padding:8px 16px;border-bottom:1px solid var(--border);background:var(--elevated);flex-shrink:0;gap:0">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:0 8px">Name</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:0 8px">Phone</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:0 8px">Email</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:0 8px">Address</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:0 8px">City</div>
+      </div>
+      <div id="conTableBody" style="flex:1;overflow-y:auto"></div>
+      <!-- Pagination -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">Rows per page:</span>
+          <select id="conRowsPerPage" onchange="conChangePage(1)" class="ss" style="font-size:11px;padding:3px 6px;width:auto"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select>
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted)" id="conPageInfo"></div>
+        <div style="display:flex;gap:4px">
+          <button onclick="conChangePage(1)" class="btn btn-gh btn-sm" style="padding:4px 10px">&#x27E8;&#x27E8;</button>
+          <button onclick="conPrevPage()" class="btn btn-gh btn-sm" style="padding:4px 10px">&#x27E8;</button>
+          <button onclick="conNextPage()" class="btn btn-gh btn-sm" style="padding:4px 10px">&#x27E9;</button>
+          <button onclick="conLastPage()" class="btn btn-gh btn-sm" style="padding:4px 10px">&#x27E9;&#x27E9;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: detail panel -->
+    <div id="conDetailPanel" style="width:0;overflow:hidden;border-left:1px solid var(--border);transition:width .25s ease;flex-shrink:0;display:flex;flex-direction:column;background:var(--bg)">
+      <div style="width:420px;display:flex;flex-direction:column;height:100%;overflow:hidden">
+        <div style="padding:14px 18px 0;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">
+            <div>
+              <div id="conDetailName" style="font-family:var(--cond);font-weight:900;font-size:22px;color:var(--text);line-height:1.1"></div>
+              <div id="conDetailRole" style="font-size:12px;color:var(--muted);margin-top:3px"></div>
+            </div>
+            <button onclick="conCloseDetail()" style="width:26px;height:26px;border-radius:6px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;flex-shrink:0">&#x2715;</button>
+          </div>
+          <div style="display:flex;overflow-x:auto" id="conDetailTabs">
+            <button class="m-tab active" onclick="conSwitchTab('info',this)">Contact Info</button>
+            <button class="m-tab" onclick="conSwitchTab('locations',this)">Locations</button>
+            <button class="m-tab" onclick="conSwitchTab('devices',this)">Devices</button>
+          </div>
+        </div>
+        <div id="conTabBody" style="flex:1;overflow-y:auto;padding:14px 16px"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Add Contact Modal -->
+<div id="conAddModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:480px;max-width:90vw;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-family:var(--cond);font-weight:900;font-size:22px;color:var(--text)">Add Contact</div>
+      <button onclick="conCloseAdd()" style="width:28px;height:28px;border-radius:6px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px">&#x2715;</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1">
+        <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Full Name *</label>
+        <input type="text" id="con-add-name" class="si" placeholder="First and last name" style="font-size:13px;padding:8px 10px">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Phone</label>
+        <input type="text" id="con-add-phone" class="si" placeholder="(325) 555-0000" style="font-size:13px;padding:8px 10px">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Email</label>
+        <input type="text" id="con-add-email" class="si" placeholder="email@domain.com" style="font-size:13px;padding:8px 10px">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1">
+        <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Address</label>
+        <input type="text" id="con-add-address" class="si" placeholder="Street address" style="font-size:13px;padding:8px 10px">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">City</label>
+        <input type="text" id="con-add-city" class="si" placeholder="Abilene" style="font-size:13px;padding:8px 10px">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">ZIP</label>
+        <input type="text" id="con-add-zip" class="si" placeholder="79601" style="font-size:13px;padding:8px 10px">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1">
+        <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Role / Title</label>
+        <input type="text" id="con-add-role" class="si" placeholder="Property Manager, Owner, Facility Director..." style="font-size:13px;padding:8px 10px">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1">
+        <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Linked Location (Account #)</label>
+        <input type="text" id="con-add-account" class="si" placeholder="ACC-00142" style="font-size:13px;padding:8px 10px">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1">
+        <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Notes</label>
+        <textarea id="con-add-notes" class="si" rows="3" placeholder="Any additional notes..." style="font-size:13px;padding:8px 10px;resize:vertical"></textarea>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:20px">
+      <button onclick="conCloseAdd()" class="btn btn-gh">Cancel</button>
+      <button onclick="conSaveAdd()" class="btn btn-ac">Save Contact</button>
+    </div>
+  </div>
+</div>
 <div class="page" id="page-providers-page"><div class="es"><div class="es-icon">&#x1F527;</div><div class="es-title">Service Providers</div><div class="es-sub">Certified tester directory coming soon.</div></div></div>
 <div class="page" id="page-assemblies-page"><div class="es"><div class="es-icon">&#x2699;&#xFE0F;</div><div class="es-title">Assemblies</div><div class="es-sub">Assembly inventory coming soon.</div></div></div>
 <div class="page" id="page-state-reports-page"><div class="es"><div class="es-icon">&#x1F4CB;</div><div class="es-title">State Reports</div><div class="es-sub">One-click TCEQ annual report export coming soon.</div></div></div>
@@ -1400,7 +1547,7 @@ function nav(id, btn) {
   const _activePg = document.getElementById('page-'+id);
   if (_activePg) {
     _activePg.classList.add('active');
-    if (['locations-page','city-risk-page'].includes(id)) _activePg.style.display='flex';
+    if (['locations-page','city-risk-page','contacts-page'].includes(id)) _activePg.style.display='flex';
   }
   if(btn) btn.classList.add('active');
   const titles = {
@@ -1420,6 +1567,7 @@ function nav(id, btn) {
   if(id==='backflow-page') renderBF();
   if(id==='csi-page') renderCSI();
   if(id==='locations-page') locInit();
+  if(id==='contacts-page') conInit();
 }
 
 // Dashboard theme handled below
@@ -4024,6 +4172,242 @@ function locExportCSV(){
   const rows=locFiltered.map(l=>[l.account,l.name,l.address,l.city,l.zip,l.phone,l.contact,l.email,l.hazard,l.hazardRating,l.compliance,l.deviceCount]);
   const csv=[h,...rows].map(r=>r.map(v=>'"'+(v||'').toString().replace(/"/g,'""')+'"').join(',')).join('\n');
   const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='cci-locations.csv';a.click();
+}
+
+
+// ═══════════════════════════════════════════════════════
+//  CONTACTS MODULE
+// ═══════════════════════════════════════════════════════
+const CON_DATA = [
+  {id:1,name:"Randy Torres",phone:"(325) 555-0182",email:"randy.torres@circlek.com",address:"1423 N 1st St",city:"Abilene",state:"TX",zip:"79601",role:"Property Manager",account:"ACC-00142",notes:"Available M-F 8-5. Prefers email contact.",
+    locations:[{address:"1423 N 1st St",account:"ACC-00142",compliance:"Compliant",devices:2}],
+    devices:[{serial:"RP-2291",type:"RPZ",model:"Watts 009",status:"Pass",due:"2026-11-14"},{serial:"DC-0044",type:"DCVA",model:"Wilkins 975XL",status:"Pass",due:"2026-11-14"}]},
+  {id:2,name:"Susan Park",phone:"(325) 555-0244",email:"s.park@hendrickhealth.org",address:"3801 S Clack St",city:"Abilene",state:"TX",zip:"79606",role:"Facilities Director",account:"ACC-00389",notes:"Large medical facility. Multiple contacts on site.",
+    locations:[{address:"3801 S Clack St",account:"ACC-00389",compliance:"Overdue",devices:3}],
+    devices:[{serial:"RP-0881",type:"RPZ",model:"Febco 860",status:"Overdue",due:"2025-10-02"},{serial:"RP-0882",type:"RPZ",model:"Febco 860",status:"Pass",due:"2026-03-15"},{serial:"DC-0199",type:"DCVA",model:"Watts 007",status:"Overdue",due:"2025-10-02"}]},
+  {id:3,name:"Luis Garza",phone:"(325) 555-0311",email:"l.garza@walmart.com",address:"4150 Buffalo Gap Rd",city:"Abilene",state:"TX",zip:"79605",role:"Store Manager",account:"ACC-00217",notes:"Contact via email first. Store hours 6AM-11PM.",
+    locations:[{address:"4150 Buffalo Gap Rd",account:"ACC-00217",compliance:"Compliant",devices:1}],
+    devices:[{serial:"PV-0034",type:"PVB",model:"Ames 4000SS",status:"Pass",due:"2027-01-22"}]},
+  {id:4,name:"Dr. Maria Okonkwo",phone:"(325) 555-0099",email:"m.okonkwo@aisd.org",address:"2018 Grape St",city:"Abilene",state:"TX",zip:"79601",role:"Principal",account:"ACC-00504",notes:"School schedule — contact during summer for best access.",
+    locations:[{address:"2018 Grape St",account:"ACC-00504",compliance:"Non-Compliant",devices:2}],
+    devices:[{serial:"RP-1145",type:"RPZ",model:"Watts 009M3",status:"Fail",due:"2026-08-10"},{serial:"DC-0288",type:"DCVA",model:"Watts 007M1",status:"Pass",due:"2026-08-10"}]},
+  {id:5,name:"James Whitfield",phone:"(325) 555-0421",email:"j.whitfield@ttu.edu",address:"1801 University Blvd",city:"Abilene",state:"TX",zip:"79602",role:"Facilities Manager",account:"ACC-00621",notes:"Large campus with multiple buildings.",
+    locations:[{address:"1801 University Blvd",account:"ACC-00621",compliance:"Compliant",devices:4}],
+    devices:[{serial:"RP-3301",type:"RPZ",model:"Watts 009",status:"Pass",due:"2026-09-01"},{serial:"RP-3302",type:"RPZ",model:"Watts 009",status:"Pass",due:"2026-09-01"}]},
+  {id:6,name:"Angela Morrison",phone:"(325) 555-0588",email:"a.morrison@heb.com",address:"3210 S 14th St",city:"Abilene",state:"TX",zip:"79605",role:"Store Director",account:"ACC-00733",notes:"Best contact is store email. Very responsive.",
+    locations:[{address:"3210 S 14th St",account:"ACC-00733",compliance:"Compliant",devices:2}],
+    devices:[{serial:"DC-0511",type:"DCVA",model:"Febco 805Y",status:"Pass",due:"2026-12-15"},{serial:"PV-0088",type:"PVB",model:"Ames 4000",status:"Pass",due:"2026-12-15"}]},
+];
+
+let conFiltered=[...CON_DATA],conActiveId=null,conCurrentPage=1,conAdvOpen=false,conDetailOpen=false;
+
+function conInit(){
+  conFiltered=[...CON_DATA];conCurrentPage=1;conDetailOpen=false;
+  const p=document.getElementById('conDetailPanel');if(p)p.style.width='0';
+  conRenderTable();
+}
+
+function conToggleAdv(){
+  conAdvOpen=!conAdvOpen;
+  const p=document.getElementById('conAdvPanel'),a=document.getElementById('conAdvArrow');
+  if(conAdvOpen){p.style.maxHeight='160px';p.style.opacity='1';if(a)a.style.transform='rotate(180deg)';}
+  else{p.style.maxHeight='0';p.style.opacity='0';if(a)a.style.transform='';}
+}
+
+function conClearFilters(){
+  ['cf-name','cf-phone','cf-email','cf-address','cf-city'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  const ms=document.getElementById('conMainSearch');if(ms)ms.value='';
+  conFiltered=[...CON_DATA];conCurrentPage=1;conRenderTable();
+}
+
+function conApplyFilters(){
+  const qv=id=>{const e=document.getElementById(id);return e?e.value.trim().toLowerCase():'';};
+  const ms=qv('conMainSearch');
+  conFiltered=CON_DATA.filter(c=>
+    (!ms||c.name.toLowerCase().includes(ms)||c.email.toLowerCase().includes(ms)||c.phone.includes(ms)||c.address.toLowerCase().includes(ms))&&
+    (!qv('cf-name')||c.name.toLowerCase().includes(qv('cf-name')))&&
+    (!qv('cf-phone')||c.phone.includes(qv('cf-phone')))&&
+    (!qv('cf-email')||c.email.toLowerCase().includes(qv('cf-email')))&&
+    (!qv('cf-address')||c.address.toLowerCase().includes(qv('cf-address')))&&
+    (!qv('cf-city')||c.city.toLowerCase().includes(qv('cf-city')))
+  );
+  conCurrentPage=1;conRenderTable();
+}
+
+function conRenderTable(){
+  const body=document.getElementById('conTableBody');
+  const rpp=parseInt(document.getElementById('conRowsPerPage')?.value||'10');
+  const total=conFiltered.length;
+  const totalPages=Math.max(1,Math.ceil(total/rpp));
+  if(conCurrentPage>totalPages)conCurrentPage=totalPages;
+  const start=(conCurrentPage-1)*rpp;
+  const page=conFiltered.slice(start,start+rpp);
+  const info=document.getElementById('conPageInfo');
+  if(info)info.textContent=total===0?'No results':`${start+1}-${Math.min(start+rpp,total)} of ${total} items`;
+
+  // Update header columns based on detail open
+  const hdrs=document.getElementById('conTableHeaders');
+  if(hdrs){
+    if(conDetailOpen){
+      hdrs.style.gridTemplateColumns='1fr 120px 1fr 100px';
+      hdrs.innerHTML=['Name','Phone','Email','City'].map(h=>`<div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:0 8px">${h}</div>`).join('');
+    } else {
+      hdrs.style.gridTemplateColumns='1fr 130px 1fr 1fr 120px';
+      hdrs.innerHTML=['Name','Phone','Email','Address','City'].map(h=>`<div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:0 8px">${h}</div>`).join('');
+    }
+  }
+
+  if(!body)return;
+  if(!page.length){
+    body.innerHTML=`<div style="text-align:center;padding:48px;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px;opacity:.3">&#x1F464;</div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">No contacts found</div><div style="font-size:12px">Adjust your search or add a new contact</div></div>`;
+    return;
+  }
+
+  const cols=conDetailOpen?'1fr 120px 1fr 100px':'1fr 130px 1fr 1fr 120px';
+
+  body.innerHTML=page.map(c=>{
+    const isActive=conActiveId===c.id;
+    const initials=c.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    const avatarColor=c.id%4===0?'var(--blue)':c.id%3===0?'var(--green)':c.id%2===0?'var(--accent)':'var(--red)';
+
+    let cells;
+    if(!conDetailOpen){
+      cells=[
+        `<div style="display:flex;align-items:center;gap:10px;min-width:0"><div style="width:30px;height:30px;border-radius:50%;background:${avatarColor};display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:12px;color:#000;flex-shrink:0">${initials}</div><div style="min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text)">${sanitize(c.name)}</div><div style="font-size:11px;color:var(--muted);margin-top:1px">${sanitize(c.role)}</div></div></div>`,
+        `<div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${sanitize(c.phone)||'&mdash;'}</div>`,
+        `<div style="font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(c.email)||'&mdash;'}</div>`,
+        `<div style="font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(c.address)||'&mdash;'}</div>`,
+        `<div style="font-size:12px;color:var(--muted)">${sanitize(c.city)||'&mdash;'}</div>`,
+      ];
+    } else {
+      cells=[
+        `<div style="display:flex;align-items:center;gap:8px;min-width:0"><div style="width:26px;height:26px;border-radius:50%;background:${avatarColor};display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:11px;color:#000;flex-shrink:0">${initials}</div><div style="font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(c.name)}</div></div>`,
+        `<div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${sanitize(c.phone)||'&mdash;'}</div>`,
+        `<div style="font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(c.email)||'&mdash;'}</div>`,
+        `<div style="font-size:11px;color:var(--muted)">${sanitize(c.city)||'&mdash;'}</div>`,
+      ];
+    }
+
+    return `<div onclick="conSelectRow(${c.id})" style="display:grid;grid-template-columns:${cols};padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;align-items:center;background:${isActive?'rgba(249,166,30,.06)':'transparent'};border-left:3px solid ${isActive?'var(--accent)':'transparent'};gap:0"
+      onmouseover="if(!${isActive})this.style.background='var(--elevated)'" onmouseout="this.style.background='${isActive?'rgba(249,166,30,.06)':'transparent'}'">
+      ${cells.map(cl=>`<div style="padding:0 8px;overflow:hidden">${cl}</div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+function conChangePage(p){conCurrentPage=p;conRenderTable();}
+function conPrevPage(){if(conCurrentPage>1){conCurrentPage--;conRenderTable();}}
+function conNextPage(){const rpp=parseInt(document.getElementById('conRowsPerPage')?.value||'10');if(conCurrentPage<Math.ceil(conFiltered.length/rpp)){conCurrentPage++;conRenderTable();}}
+function conLastPage(){const rpp=parseInt(document.getElementById('conRowsPerPage')?.value||'10');conCurrentPage=Math.ceil(conFiltered.length/rpp)||1;conRenderTable();}
+
+function conSelectRow(id){
+  conActiveId=id;conDetailOpen=true;
+  const c=CON_DATA.find(x=>x.id===id);if(!c)return;
+  const panel=document.getElementById('conDetailPanel');if(panel)panel.style.width='420px';
+  const nm=document.getElementById('conDetailName');if(nm)nm.textContent=c.name;
+  const rl=document.getElementById('conDetailRole');if(rl)rl.textContent=c.role+' \u2022 '+c.city+', '+c.state;
+  document.querySelectorAll('#conDetailTabs .m-tab').forEach((b,i)=>b.classList.toggle('active',i===0));
+  const body=document.getElementById('conTabBody');if(body)body.innerHTML=conRenderInfo(c);
+  conRenderTable();
+}
+
+function conCloseDetail(){
+  conDetailOpen=false;conActiveId=null;
+  const p=document.getElementById('conDetailPanel');if(p)p.style.width='0';
+  conRenderTable();
+}
+
+function conSwitchTab(tab,btn){
+  document.querySelectorAll('#conDetailTabs .m-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  const c=CON_DATA.find(x=>x.id===conActiveId);
+  const body=document.getElementById('conTabBody');if(!body||!c)return;
+  if(tab==='info')body.innerHTML=conRenderInfo(c);
+  else if(tab==='locations')body.innerHTML=conRenderLocations(c);
+  else if(tab==='devices')body.innerHTML=conRenderDevices(c);
+}
+
+function _cc(title,html){return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px"><div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">${title}</div>${html}</div>`;}
+
+function conRenderInfo(c){
+  const initials=c.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+  const avatarColor=c.id%4===0?'var(--blue)':c.id%3===0?'var(--green)':c.id%2===0?'var(--accent)':'var(--red)';
+  return `<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px">
+    <div style="width:52px;height:52px;border-radius:50%;background:${avatarColor};display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:20px;color:#000;flex-shrink:0">${initials}</div>
+    <div><div style="font-family:var(--cond);font-weight:900;font-size:18px;color:var(--text)">${sanitize(c.name)}</div><div style="font-size:12px;color:var(--muted);margin-top:2px">${sanitize(c.role)}</div><div style="font-family:var(--mono);font-size:10px;color:var(--accent);margin-top:2px">${sanitize(c.account)}</div></div>
+  </div>`+
+  _cc('Contact Information',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    ${[['Phone',c.phone],['Email',c.email],['Address',c.address],['City / ZIP',c.city+', '+c.state+' '+c.zip],['Role',c.role],['Linked Account',c.account]].map(([l,v])=>`<div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">${l}</div><div style="font-size:13px;color:var(--text);font-weight:500">${sanitize(v)||'&mdash;'}</div></div>`).join('')}
+  </div>`)+
+  (c.notes?_cc('Notes',`<div style="font-size:12px;color:var(--muted);line-height:1.6;padding:9px 11px;background:var(--elevated);border-radius:6px">${sanitize(c.notes)}</div>`):'');
+}
+
+function conRenderLocations(c){
+  const rows=c.locations.map(l=>{
+    const cc=l.compliance==='Compliant'?'var(--green)':l.compliance==='Overdue'?'var(--yellow)':'var(--red)';
+    return `<div style="padding:12px;background:var(--elevated);border-radius:8px;margin-bottom:8px;cursor:pointer" onclick="nav('locations-page',document.querySelector('.nb:nth-child(3)'))">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="font-size:13px;font-weight:600;color:var(--accent)">${sanitize(l.address)}</div>
+        <span style="font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 8px;border-radius:3px;background:${cc==='var(--green)'?'rgba(76,175,121,.14)':cc==='var(--yellow)'?'rgba(240,192,64,.14)':'rgba(224,82,82,.14)'};color:${cc};border:1px solid ${cc==='var(--green)'?'rgba(76,175,121,.3)':cc==='var(--yellow)'?'rgba(240,192,64,.3)':'rgba(224,82,82,.3)'}">${l.compliance.toUpperCase()}</span>
+      </div>
+      <div style="display:flex;gap:14px">
+        <div><div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Account</div><div style="font-size:12px;color:var(--text);font-weight:500">${sanitize(l.account)}</div></div>
+        <div><div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Devices</div><div style="font-size:12px;color:var(--text);font-weight:500">${l.devices}</div></div>
+      </div>
+    </div>`;
+  }).join('');
+  return _cc('Linked Locations ('+c.locations.length+')', rows);
+}
+
+function conRenderDevices(c){
+  const sc=s=>s==='Pass'?'var(--green)':s==='Fail'?'var(--red)':'var(--yellow)';
+  const sbg=s=>s==='Pass'?'rgba(76,175,121,.12)':s==='Fail'?'rgba(224,82,82,.12)':'rgba(240,192,64,.12)';
+  const sbr=s=>s==='Pass'?'rgba(76,175,121,.3)':s==='Fail'?'rgba(224,82,82,.3)':'rgba(240,192,64,.3)';
+  const rows=c.devices.map(d=>`<tr style="border-bottom:1px solid var(--border)">
+    <td style="padding:8px;font-size:12px;font-weight:600">${d.type}</td>
+    <td style="padding:8px;font-size:12px;color:var(--muted)">${sanitize(d.model)}</td>
+    <td style="padding:8px;font-family:var(--mono);font-size:10px;color:var(--muted)">${sanitize(d.serial)}</td>
+    <td style="padding:8px"><span style="font-family:var(--mono);font-size:9px;font-weight:700;color:${sc(d.status)};background:${sbg(d.status)};border:1px solid ${sbr(d.status)};padding:2px 7px;border-radius:3px">${d.status.toUpperCase()}</span></td>
+    <td style="padding:8px;font-family:var(--mono);font-size:10px;color:var(--muted)">${d.due}</td>
+  </tr>`).join('');
+  return _cc('Backflow Devices ('+c.devices.length+')','<table style="width:100%;border-collapse:collapse"><thead><tr style="border-bottom:1px solid var(--border)">'+['Type','Model','Serial #','Status','Due'].map(h=>`<th style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;text-align:left;padding:5px 8px">${h}</th>`).join('')+'</tr></thead><tbody>'+rows+'</tbody></table>');
+}
+
+function conOpenAdd(){
+  const m=document.getElementById('conAddModal');if(m)m.style.display='flex';
+}
+function conCloseAdd(){
+  const m=document.getElementById('conAddModal');if(m)m.style.display='none';
+  ['con-add-name','con-add-phone','con-add-email','con-add-address','con-add-city','con-add-zip','con-add-role','con-add-account','con-add-notes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+}
+function conSaveAdd(){
+  const name=document.getElementById('con-add-name')?.value.trim();
+  if(!name){alert('Name is required.');return;}
+  const newContact={
+    id:CON_DATA.length+1,
+    name,
+    phone:document.getElementById('con-add-phone')?.value.trim()||'',
+    email:document.getElementById('con-add-email')?.value.trim()||'',
+    address:document.getElementById('con-add-address')?.value.trim()||'',
+    city:document.getElementById('con-add-city')?.value.trim()||'Abilene',
+    state:'TX',
+    zip:document.getElementById('con-add-zip')?.value.trim()||'',
+    role:document.getElementById('con-add-role')?.value.trim()||'Contact',
+    account:document.getElementById('con-add-account')?.value.trim()||'',
+    notes:document.getElementById('con-add-notes')?.value.trim()||'',
+    locations:[],devices:[]
+  };
+  CON_DATA.push(newContact);
+  conFiltered=[...CON_DATA];
+  conCloseAdd();
+  conRenderTable();
+  // TODO: save to Supabase
+}
+
+function conExportCSV(){
+  const h=['Name','Phone','Email','Address','City','State','ZIP','Role','Account'];
+  const rows=conFiltered.map(c=>[c.name,c.phone,c.email,c.address,c.city,c.state,c.zip,c.role,c.account]);
+  const csv=[h,...rows].map(r=>r.map(v=>'"'+(v||'').toString().replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='bcp-contacts.csv';a.click();
 }
 
 </script>
