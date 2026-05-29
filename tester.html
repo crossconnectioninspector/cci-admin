@@ -2384,13 +2384,7 @@ async function processAIPhoto(input) {
             },
             {
               type: 'text',
-              text: 'This is a photo of a backflow prevention assembly nameplate or device. Extract the following information and respond ONLY with valid JSON, no other text:
-{
-  "manufacturer": "brand name (Watts, Febco, Wilkins, Ames, Apollo, Conbraco, etc)",
-  "model": "model number",
-  "serial": "serial number"
-}
-If you cannot read a field clearly, use null for that field.'
+              text: 'Extract info from this backflow assembly nameplate image. Respond ONLY with valid JSON: {"manufacturer":"brand name","model":"model number","serial":"serial number"}. Use null for unreadable fields.'
             }
           ]
         }]
