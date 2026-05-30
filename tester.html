@@ -967,6 +967,49 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 
 const supaClient = supabase.createClient(SUPA_URL, SUPA_KEY);
 
+  // Handle email confirmation tokens from Supabase redirect
+  (async function handleAuthRedirect() {
+    const hash = window.location.hash;
+    if (!hash) return;
+    const params = new URLSearchParams(hash.substring(1));
+    const type = params.get('type');
+    const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
+    const errorDesc = params.get('error_description');
+
+    if (errorDesc) {
+      console.error('Auth error:', errorDesc);
+      return;
+    }
+
+    if (type === 'signup' || type === 'recovery' || accessToken) {
+      try {
+        // Set the session from the URL tokens
+        const { data, error } = await supaClient.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken
+        });
+        if (error) {
+          console.error('Session error:', error);
+          return;
+        }
+        // Clear the hash from URL so it looks clean
+        history.replaceState(null, '', window.location.pathname);
+        // Show success message on the login screen
+        const succEl = document.getElementById('su-success');
+        const loginCard = document.querySelector('.login-card');
+        if (succEl) {
+          succEl.innerHTML = '<strong>Email confirmed!</strong><br>You are now signed in. Loading your portal...';
+          succEl.style.display = 'block';
+        }
+        // Small delay then trigger login flow
+        setTimeout(() => { window.location.reload(); }, 1500);
+      } catch(e) {
+        console.error('Token handling error:', e);
+      }
+    }
+  })();
+
 let currentUser = null;
 let currentAsm = 'RPZ';
 let repairsOn = false;
