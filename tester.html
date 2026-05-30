@@ -990,64 +990,183 @@ select.field-input option{background:var(--elevated)}
   </div>
 
   <!-- ── PROFILE ── -->
-  <div class="page-content" id="page-profile" style="display:none">
+  <div class="page-content" id="page-profile" style="display:none;padding:0;background:var(--bg)">
 
-    <div class="profile-header">
-      <div class="profile-avatar" id="profile-avatar">?</div>
-      <div>
-        <div class="profile-name" id="profile-name-display">—</div>
-        <div class="profile-email" id="profile-email-display">—</div>
+  <!-- HERO HEADER -->
+  <div style="background:linear-gradient(160deg,#1a1f27 0%,#111417 100%);padding:24px 20px;border-bottom:1px solid var(--border);position:relative;overflow:hidden">
+    <div style="position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(249,166,30,.1) 0%,transparent 70%);pointer-events:none"></div>
+
+    <!-- Avatar + camera -->
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="position:relative;flex-shrink:0">
+        <div id="profile-avatar" style="width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,var(--accent),#e8920a);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:30px;font-weight:900;color:#000;box-shadow:0 6px 20px rgba(249,166,30,.35);overflow:hidden">?</div>
+        <!-- Camera button overlay -->
+        <button onclick="document.getElementById('avatar-input').click()" style="position:absolute;bottom:-6px;right:-6px;width:26px;height:26px;border-radius:8px;background:var(--accent);border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </button>
+        <!-- Hidden file input for avatar - both camera and library -->
+        <input type="file" id="avatar-input" accept="image/*" capture="user" style="display:none" onchange="handleAvatarUpload(this)">
+      </div>
+      <div style="flex:1;min-width:0">
+        <div id="profile-name-display" style="font-family:var(--cond);font-size:24px;font-weight:900;color:var(--text);line-height:1.1">—</div>
+        <div id="profile-email-display" style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</div>
+        <!-- Avatar upload options -->
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button onclick="avatarTakePhoto()" style="display:flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(249,166,30,.12);border:1px solid rgba(249,166,30,.3);border-radius:8px;color:var(--accent);font-family:var(--mono);font-size:10px;cursor:pointer;letter-spacing:.5px">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            TAKE PHOTO
+          </button>
+          <button onclick="avatarChooseFile()" style="display:flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:var(--muted);font-family:var(--mono);font-size:10px;cursor:pointer;letter-spacing:.5px">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            UPLOAD IMAGE
+          </button>
+        </div>
       </div>
     </div>
-
-    <div class="card">
-      <div class="card-title">TESTER CREDENTIALS</div>
-      <div class="form-row">
-        <div class="form-field"><span class="field-label">Full Name</span><input type="text" class="field-input" id="prof-name" placeholder="Matt Snider"></div>
-        <div class="form-field"><span class="field-label">Company</span><input type="text" class="field-input" id="prof-company" placeholder="Your Firm"></div>
-      </div>
-      <div class="form-row">
-        <div class="form-field"><span class="field-label">Backflow Cert #</span><input type="text" class="field-input" id="prof-cert" placeholder="TX-BPAT-12345"></div>
-        <div class="form-field"><span class="field-label">Cert Expiration</span><input type="date" class="field-input" id="prof-cert-exp"></div>
-      </div>
-      <div class="form-row">
-        <div class="form-field"><span class="field-label">License #</span><input type="text" class="field-input" id="prof-license" placeholder="TX-LIC-00000"></div>
-        <div class="form-field"><span class="field-label">License Expiration</span><input type="date" class="field-input" id="prof-license-exp"></div>
-      </div>
-      <div class="form-row full" style="margin-top:4px">
-        <div class="form-field"><span class="field-label">Gauge Serial #</span><input type="text" class="field-input" id="prof-gauge-serial" placeholder="Gauge SN-00000"></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">GAUGE CALIBRATION CERTIFICATE</div>
-      <div id="gauge-cal-status"></div>
-      <div class="form-row">
-        <div class="form-field"><span class="field-label">Calibration Date</span><input type="date" class="field-input" id="prof-gauge-date"></div>
-        <div class="form-field"><span class="field-label">Next Cal Due</span><input type="date" class="field-input" id="prof-gauge-due"></div>
-      </div>
-      <div class="doc-upload-zone" id="gauge-upload-zone">
-        <input type="file" accept="image/jpeg,image/png,application/pdf" id="gauge-cert-input" onchange="handleDocUpload(this,'gauge')">
-        <div class="photo-zone-icon">📄</div>
-        <div class="photo-zone-text">TAP TO UPLOAD GAUGE CAL CERT (PDF OR IMAGE)</div>
-      </div>
-      <div id="gauge-doc-status" class="doc-status" style="display:none"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">BACKFLOW LICENSE DOCUMENT</div>
-      <div id="license-doc-status-display"></div>
-      <div class="doc-upload-zone" id="license-upload-zone">
-        <input type="file" accept="image/jpeg,image/png,application/pdf" id="license-cert-input" onchange="handleDocUpload(this,'license')">
-        <div class="photo-zone-icon">🪪</div>
-        <div class="photo-zone-text">TAP TO UPLOAD BACKFLOW LICENSE (PDF OR IMAGE)</div>
-      </div>
-      <div id="license-doc-status" class="doc-status" style="display:none"></div>
-    </div>
-
-    <button class="btn btn-accent" onclick="saveProfile()" id="save-profile-btn" style="margin-bottom:8px">💾 Save Profile</button>
-    <button class="btn btn-danger" onclick="doLogout()" style="margin-bottom:24px">↩ Sign Out</button>
   </div>
+
+  <!-- SCROLLABLE CONTENT -->
+  <div style="overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px">
+
+    <!-- TESTER CREDENTIALS -->
+    <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:14px;overflow:hidden">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;border-radius:8px;background:rgba(249,166,30,.12);display:flex;align-items:center;justify-content:center">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase">Tester Credentials</div>
+      </div>
+      <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Full Name</div>
+            <input type="text" class="field-input" id="prof-name" placeholder="Matt Snider" style="font-size:15px;padding:11px 13px;width:100%;box-sizing:border-box">
+          </div>
+          <div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Company</div>
+            <input type="text" class="field-input" id="prof-company" placeholder="Your Firm" style="font-size:15px;padding:11px 13px;width:100%;box-sizing:border-box">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Backflow Cert #</div>
+            <input type="text" class="field-input" id="prof-cert" placeholder="TX-BPAT-12345" style="font-size:15px;padding:11px 13px;width:100%;box-sizing:border-box">
+          </div>
+          <div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Cert Expiration</div>
+            <input type="date" class="field-input" id="prof-cert-exp" style="font-size:15px;padding:11px 13px;width:100%;box-sizing:border-box">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">License #</div>
+            <input type="text" class="field-input" id="prof-license" placeholder="TX-LIC-00000" style="font-size:15px;padding:11px 13px;width:100%;box-sizing:border-box">
+          </div>
+          <div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">License Expiration</div>
+            <input type="date" class="field-input" id="prof-license-exp" style="font-size:15px;padding:11px 13px;width:100%;box-sizing:border-box">
+          </div>
+        </div>
+        <div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Gauge Serial #</div>
+          <input type="text" class="field-input" id="prof-gauge-serial" placeholder="SN-00000" style="font-size:15px;padding:11px 13px;width:100%;box-sizing:border-box">
+        </div>
+      </div>
+    </div>
+
+    <!-- GAUGE CALIBRATION -->
+    <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:14px;overflow:hidden">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:28px;height:28px;border-radius:8px;background:rgba(100,149,237,.12);display:flex;align-items:center;justify-content:center">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6495ed" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+          </div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase">Gauge Calibration</div>
+        </div>
+        <div id="gauge-cal-status"></div>
+      </div>
+      <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Calibration Date</div>
+            <input type="date" class="field-input" id="prof-gauge-date" style="font-size:15px;padding:11px 13px;width:100%;box-sizing:border-box">
+          </div>
+          <div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Next Cal Due</div>
+            <input type="date" class="field-input" id="prof-gauge-due" style="font-size:15px;padding:11px 13px;width:100%;box-sizing:border-box">
+          </div>
+        </div>
+        <!-- Upload zone -->
+        <div style="position:relative">
+          <div id="gauge-upload-zone" onclick="document.getElementById('gauge-cert-input').click()" style="border:2px dashed var(--border);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:all .2s;background:var(--elevated)"
+            onmouseover="this.style.borderColor='var(--accent)';this.style.background='rgba(249,166,30,.05)'"
+            onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--elevated)'">
+            <input type="file" accept="image/jpeg,image/png,application/pdf" id="gauge-cert-input" style="display:none" onchange="handleDocUpload(this,'gauge')">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" style="margin:0 auto 10px;display:block"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="12" x2="12" y2="18"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.5px">TAP TO UPLOAD GAUGE CAL CERT</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted);opacity:.6;margin-top:4px">PDF or Image</div>
+          </div>
+          <!-- Camera option -->
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button onclick="gaugeCapture()" style="flex:1;padding:10px;background:rgba(100,149,237,.1);border:1.5px solid rgba(100,149,237,.3);border-radius:10px;color:#6495ed;font-family:var(--mono);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;letter-spacing:.5px">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              TAKE PHOTO
+            </button>
+            <button onclick="document.getElementById('gauge-cert-input').click()" style="flex:1;padding:10px;background:var(--elevated);border:1.5px solid var(--border);border-radius:10px;color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;letter-spacing:.5px">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              CHOOSE FILE
+            </button>
+          </div>
+        </div>
+        <div id="gauge-doc-status" class="doc-status" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- BACKFLOW LICENSE -->
+    <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:14px;overflow:hidden">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;border-radius:8px;background:rgba(61,184,112,.12);display:flex;align-items:center;justify-content:center">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase">Backflow License Document</div>
+      </div>
+      <div style="padding:16px;display:flex;flex-direction:column;gap:8px">
+        <div id="license-doc-status-display"></div>
+        <div onclick="document.getElementById('license-cert-input').click()" style="border:2px dashed var(--border);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:all .2s;background:var(--elevated)"
+          onmouseover="this.style.borderColor='var(--green)';this.style.background='rgba(61,184,112,.05)'"
+          onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--elevated)'">
+          <input type="file" accept="image/jpeg,image/png,application/pdf" id="license-cert-input" style="display:none" onchange="handleDocUpload(this,'license')">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" style="margin:0 auto 10px;display:block"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.5px">TAP TO UPLOAD LICENSE</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);opacity:.6;margin-top:4px">PDF or Image</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button onclick="licenseCapture()" style="flex:1;padding:10px;background:rgba(61,184,112,.1);border:1.5px solid rgba(61,184,112,.3);border-radius:10px;color:var(--green);font-family:var(--mono);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;letter-spacing:.5px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            TAKE PHOTO
+          </button>
+          <button onclick="document.getElementById('license-cert-input').click()" style="flex:1;padding:10px;background:var(--elevated);border:1.5px solid var(--border);border-radius:10px;color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;letter-spacing:.5px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            CHOOSE FILE
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SAVE BUTTON -->
+    <button class="btn btn-accent" onclick="saveProfile()" id="save-profile-btn" style="width:100%;padding:16px;font-size:16px;border-radius:14px;font-weight:700;margin-top:4px">
+      Save Profile
+    </button>
+
+    <!-- SIGN OUT -->
+    <button onclick="doLogout()" style="width:100%;padding:14px;background:transparent;border:1.5px solid var(--border);border-radius:14px;color:var(--muted);font-family:var(--sans);font-size:15px;font-weight:600;cursor:pointer;transition:all .15s;margin-bottom:24px"
+      onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
+      onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+      Sign Out
+    </button>
+
+  </div>
+</div>
 
   <!-- BOTTOM NAV -->
   <div class="bottom-nav">
@@ -2850,6 +2969,63 @@ function dismissAIResult() {
   document.getElementById('ai-result-card').style.display = 'none';
   document.getElementById('wiz-serial').focus();
 }
+
+
+// ── AVATAR & DOCUMENT CAPTURE ─────────────────────────────────────────────────
+function avatarTakePhoto(){
+  const inp = document.getElementById('avatar-input');
+  if(inp){ inp.setAttribute('capture','user'); inp.click(); }
+}
+function avatarChooseFile(){
+  const inp = document.getElementById('avatar-input');
+  if(inp){ inp.removeAttribute('capture'); inp.click(); }
+}
+function gaugeCapture(){
+  const inp = document.getElementById('gauge-cert-input');
+  if(inp){ inp.setAttribute('capture','environment'); inp.click(); }
+}
+function licenseCapture(){
+  const inp = document.getElementById('license-cert-input');
+  if(inp){ inp.setAttribute('capture','environment'); inp.click(); }
+}
+function handleAvatarUpload(input){
+  if(!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const av = document.getElementById('profile-avatar');
+    const homeAv = document.getElementById('home-avatar');
+    if(av){
+      av.style.backgroundImage = 'url(' + e.target.result + ')';
+      av.style.backgroundSize = 'cover';
+      av.style.backgroundPosition = 'center';
+      av.textContent = '';
+    }
+    if(homeAv){
+      homeAv.style.backgroundImage = 'url(' + e.target.result + ')';
+      homeAv.style.backgroundSize = 'cover';
+      homeAv.style.backgroundPosition = 'center';
+      homeAv.textContent = '';
+    }
+    // Save to localStorage for persistence
+    try { localStorage.setItem('bcp_avatar', e.target.result); } catch(e2){}
+    toast('Profile photo updated','success');
+  };
+  reader.readAsDataURL(file);
+}
+
+// Load saved avatar on init
+(function loadSavedAvatar(){
+  try {
+    const saved = localStorage.getItem('bcp_avatar');
+    if(saved){
+      ['profile-avatar','home-avatar'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el){ el.style.backgroundImage='url('+saved+')'; el.style.backgroundSize='cover'; el.style.backgroundPosition='center'; el.textContent=''; }
+      });
+    }
+  } catch(e){}
+})();
 
 </script>
 
