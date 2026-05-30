@@ -571,7 +571,7 @@ select.field-input option{background:var(--elevated)}
 .ac-wrap { position: relative; width: 100%; z-index: 10; }
 .ac-wrap:focus-within { z-index: 300; }
 .ac-dropdown {
-  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 200;
+  position: fixed; z-index: 9999;
   background: var(--elevated); border: 1.5px solid var(--accent);
   border-radius: 12px; overflow: hidden;
   box-shadow: 0 8px 32px rgba(0,0,0,.5); max-height: 220px; overflow-y: auto;
@@ -2311,26 +2311,62 @@ const BACKFLOW_DEVICES = {
 
 const BRAND_LIST = Object.keys(BACKFLOW_DEVICES);
 
+function positionDropdown(input, dropdown) {
+  const rect = input.getBoundingClientRect();
+  dropdown.style.position = 'fixed';
+  dropdown.style.left = rect.left + 'px';
+  dropdown.style.width = rect.width + 'px';
+  dropdown.style.zIndex = '9999';
+  // Show above or below depending on available space
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const spaceAbove = rect.top;
+  const dropH = Math.min(dropdown.scrollHeight, 220);
+  if (spaceBelow >= dropH || spaceBelow >= spaceAbove) {
+    dropdown.style.top = (rect.bottom + 4) + 'px';
+    dropdown.style.bottom = 'auto';
+  } else {
+    dropdown.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
+    dropdown.style.top = 'auto';
+  }
+}
+
 function initMfrAutocomplete(inputId, dropdownId, modelInputId, modelDropdownId) {
   const input = document.getElementById(inputId);
   const dropdown = document.getElementById(dropdownId);
   if (!input || !dropdown) return;
+
+  // Move dropdown to body so it escapes all overflow:hidden parents
+  document.body.appendChild(dropdown);
+  dropdown.style.position = 'fixed';
+  dropdown.style.zIndex = '9999';
 
   input.addEventListener('input', () => {
     const q = input.value.trim().toLowerCase();
     if (!q) { dropdown.style.display = 'none'; return; }
     const matches = BRAND_LIST.filter(b => b.toLowerCase().includes(q));
     if (!matches.length) { dropdown.style.display = 'none'; return; }
-    dropdown.style.display = 'block';
     dropdown.innerHTML = matches.map(b => `
       <div class="ac-item" onclick="selectMfr('${b}','${inputId}','${dropdownId}','${modelInputId}','${modelDropdownId}')">
         <div class="ac-item-main">${b}</div>
         <div class="ac-item-sub">${Object.keys(BACKFLOW_DEVICES[b].models).length} MODELS AVAILABLE</div>
       </div>`).join('');
+    dropdown.style.display = 'block';
+    positionDropdown(input, dropdown);
   });
 
+  input.addEventListener('focus', () => {
+    if (dropdown.style.display === 'block') positionDropdown(input, dropdown);
+  });
+
+  // Reposition on scroll
+  window.addEventListener('scroll', () => {
+    if (dropdown.style.display === 'block') positionDropdown(input, dropdown);
+  }, true);
+
   document.addEventListener('click', (e) => {
-    if (!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.style.display = 'none';
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.style.display = 'none';
+    }
   });
 }
 
@@ -2344,33 +2380,43 @@ function selectMfr(brand, inputId, dropdownId, modelInputId, modelDropdownId) {
 
 function initModelAutocomplete(brand, inputId, dropdownId) {
   const input = document.getElementById(inputId);
-  const dropdown = document.getElementById(dropdownId);
+  let dropdown = document.getElementById(dropdownId);
   if (!input || !dropdown) return;
+
+  // Move to body so it escapes overflow clipping
+  if (dropdown.parentElement !== document.body) {
+    document.body.appendChild(dropdown);
+  }
+  dropdown.style.position = 'fixed';
+  dropdown.style.zIndex = '9999';
+
   const models = brand ? BACKFLOW_DEVICES[brand]?.models || {} : {};
 
-  // Remove old listener
   input.oninput = () => {
     const q = input.value.trim().toLowerCase();
-    const allModels = Object.entries(models);
-    const matches = q ? allModels.filter(([k]) => k.toLowerCase().includes(q)) : allModels;
-    if (!matches.length) { dropdown.style.display = 'none'; checkLeadFree(brand, input.value.trim()); return; }
-    dropdown.style.display = 'block';
-    dropdown.innerHTML = matches.map(([model, info]) => {
-      const lfLabel = info.leadFree ? '✓ LF' : '✗ NOT LF';
-      const lfColor = info.leadFree ? 'var(--green)' : 'var(--red)';
-      return `<div class="ac-item" onclick="selectModel('${brand}','${model}','${inputId}','${dropdownId}')">
-        <div class="ac-item-main" style="display:flex;align-items:center;gap:8px">
-          ${model}
-          <span style="font-family:var(--mono);font-size:9px;color:${lfColor};background:${info.leadFree ? 'rgba(61,184,112,.1)' : 'rgba(224,82,82,.1)'};padding:2px 7px;border-radius:5px;border:1px solid ${lfColor}">${lfLabel}</span>
-        </div>
-        <div class="ac-item-sub">${info.types.join('/')} · Sizes: ${info.sizes.join(', ')}</div>
+    const allModels = Object.keys(models);
+    const matches = q ? allModels.filter(k => k.toLowerCase().includes(q)) : allModels;
+    if (!matches.length) { dropdown.style.display = 'none'; return; }
+    dropdown.innerHTML = matches.slice(0, 8).map(k => {
+      const info = models[k];
+      const types = info?.types?.join(', ') || '';
+      const lf = info?.leadFree ? ' · Lead Free' : '';
+      return `<div class="ac-item" onclick="selectModel('${k}','${inputId}','${dropdownId}')">
+        <div class="ac-item-main">${k}</div>
+        <div class="ac-item-sub">${types}${lf}</div>
       </div>`;
     }).join('');
-    checkLeadFree(brand, input.value.trim());
+    dropdown.style.display = 'block';
+    positionDropdown(input, dropdown);
   };
 
+  // Trigger immediately to show all models
+  input.oninput();
+
   document.addEventListener('click', (e) => {
-    if (!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.style.display = 'none';
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.style.display = 'none';
+    }
   });
 }
 
