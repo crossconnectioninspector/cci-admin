@@ -82,6 +82,23 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
   width: 100% !important;
 }
 
+/* Tester fullscreen mode */
+#spDetailPanel.fullscreen {
+  position: fixed !important;
+  top: 56px !important;
+  left: 170px !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: auto !important;
+  opacity: 1 !important;
+  z-index: 100;
+  border-left: 1px solid var(--border);
+  transition: none !important;
+}
+#spDetailPanel.fullscreen > div {
+  width: 100% !important;
+}
+
 .rpt-opt{display:flex;align-items:center;gap:10px;width:100%;padding:10px 13px;border-radius:10px;background:transparent;border:none;color:var(--text);font-family:var(--sans);font-size:15px;font-weight:500;cursor:pointer;text-align:left;transition:all .15s;position:relative}
 .rpt-opt:hover{background:rgba(255,255,255,.05);transform:translateX(2px)}
 .rpt-opt.active{background:rgba(249,166,30,.12);color:var(--accent);box-shadow:inset 0 0 0 1px rgba(249,166,30,.2)}
@@ -556,7 +573,7 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
     <button class="nb active" onclick="nav('dashboard',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>Dashboard</button>
     <button class="nb" onclick="nav('locations-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg></span>Locations</button>
     <button class="nb" onclick="nav('contacts-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>Contacts</button>
-    <button class="nb" onclick="nav('providers-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>Service Providers</button>
+    <button class="nb" onclick="nav('providers-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>Testers</button>
     <button class="nb" onclick="nav('assemblies-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M17.66 17.66l1.41 1.41M4.93 4.93l1.41 1.41"/></svg></span>Assemblies</button>
     <div class="sb-sec">Reports</div>
     <button class="nb" onclick="nav('backflow-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="9" y1="13" x2="15" y2="13"/></svg></span>Test Reports</button>
@@ -894,9 +911,9 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
 
           <div style="height:1px;background:var(--border);margin:4px 12px;opacity:.6"></div>
 
-          <!-- Service Providers group -->
+          <!-- Testers group -->
           <div style="padding:4px 8px 8px">
-            <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;padding:8px 13px 4px;opacity:.8">🔧 Service Providers</div>
+            <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;padding:8px 13px 4px;opacity:.8">🔧 Testers</div>
             <button class="rpt-opt" onclick="rptPickReport('sp-gauges','🔧','Test Kit Calibrations')">
               <span class="rpt-opt-dot" style="background:var(--accent)"></span>Test Kit Calibrations List
               <span class="rpt-opt-tag">gauges</span>
@@ -1345,12 +1362,27 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
         <div style="display:flex;gap:4px"><button onclick="spChangePage(1)" class="btn btn-gh btn-sm" style="padding:4px 10px">&#x27E8;&#x27E8;</button><button onclick="spPrevPage()" class="btn btn-gh btn-sm" style="padding:4px 10px">&#x27E8;</button><button onclick="spNextPage()" class="btn btn-gh btn-sm" style="padding:4px 10px">&#x27E9;</button><button onclick="spLastPage()" class="btn btn-gh btn-sm" style="padding:4px 10px">&#x27E9;&#x27E9;</button></div>
       </div>
     </div>
-    <div id="spDetailPanel" style="width:0;overflow:hidden;border-left:1px solid var(--border);transition:width .25s ease,opacity .2s ease;opacity:0;flex-shrink:0;display:flex;flex-direction:column;background:var(--bg)">
+    <div id="spDetailPanel" style="width:0;overflow:hidden;border-left:1px solid var(--border);transition:width .25s ease,opacity .2s ease;opacity:0;flex-shrink:0;display:flex;flex-direction:column;background:var(--bg)" onclick="if(this.classList.contains('fullscreen')&&event.target===this)spExitFullscreen()" onclick="if(this.classList.contains('fullscreen')&&event.target===this)spExitFullscreen()">
       <div style="width:440px;display:flex;flex-direction:column;height:100%;overflow:hidden">
+        <!-- Back bar (fullscreen mode only) -->
+        <div id="spBackBar" style="display:none;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0">
+          <button onclick="spExitFullscreen()" style="display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--muted);cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.5px;padding:0">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            BACK TO TESTERS
+          </button>
+          <div style="flex:1;font-family:var(--cond);font-size:15px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="spFSBreadcrumb"></div>
+        </div>
         <div style="padding:14px 18px 0;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
             <div><div id="spDetailName" style="font-family:var(--cond);font-weight:900;font-size:24px;color:var(--text);line-height:1.1"></div><div id="spDetailSub" style="font-size:13px;color:var(--muted);margin-top:3px"></div></div>
-            <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;margin-left:8px"><div id="spDetailStatusBadge"></div><button onclick="spCloseDetail()" style="width:26px;height:26px;border-radius:6px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px">&#x2715;</button></div>
+            <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;margin-left:8px">
+              <div id="spDetailStatusBadge"></div>
+              <button id="spEditBtn" onclick="spStartEdit()" style="height:28px;padding:0 12px;border-radius:6px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Edit
+              </button>
+              <button onclick="spExitFullscreen()" style="width:26px;height:26px;border-radius:6px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px">&#x2715;</button>
+            </div>
           </div>
           <div id="spApprovalActions" style="display:none;margin-bottom:10px;padding:10px;background:rgba(240,192,64,.08);border:1px solid rgba(240,192,64,.25);border-radius:8px">
             <div style="font-family:var(--mono);font-size:10px;color:var(--yellow);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">&#x26A0; Pending Admin Approval</div>
@@ -2183,13 +2215,13 @@ function nav(id, btn) {
     dashboard:'Dashboard','device-map-page':'Device Map','city-risk-page':'City Risk',
     'inspections-page':'Reporting','backflow-page':'Test Reports',
     'csi-page':'Surveys','search-page':'Search All','import-page':'Add Report',
-    'locations-page':'Locations','contacts-page':'Contacts','providers-page':'Service Providers',
+    'locations-page':'Locations','contacts-page':'Contacts','providers-page':'Testers',
     'assemblies-page':'Assemblies','state-reports-page':'State Reports','users-page':'Users',
     'comms-page':'Communications','notif-page':'Notifications','settings-page':'Settings',
     'knowledge-page':'Knowledge Base'
   };
   document.getElementById('pageTitle').textContent = titles[id]||id;
-  conExitFullscreen();
+  conExitFullscreen();spExitFullscreen();
   if(id==='dashboard') renderDashboard();
   if(id==='device-map-page') { setTimeout(()=>{ initDeviceMap(); }, 100); setTimeout(()=>{ if(deviceMap) deviceMap.invalidateSize(); },600); }
   if(id==='city-risk-page') { setTimeout(()=>{ initRiskMap(); }, 100); setTimeout(()=>{ if(riskMap) riskMap.invalidateSize(); },600); }
@@ -2198,7 +2230,7 @@ function nav(id, btn) {
   if(id==='csi-page') renderCSI();
   if(id==='locations-page') locInit();
   if(id==='contacts-page'){ conExitFullscreen(); conInit(); }
-  if(id==='providers-page') spInit();
+  if(id==='providers-page'){ spExitFullscreen(); spInit(); }
   if(id==='comms-page') commsInit();
   if(id==='assemblies-page') asmInit();
 }
@@ -4796,8 +4828,70 @@ function spMissingFields(t){return SP_REQUIRED.filter(f=>!t[f]||t[f].toString().
 function spCalStatus(dateStr){if(!dateStr)return{label:'Missing',color:'var(--red)'};const d=new Date(dateStr),now=new Date();const days=Math.floor((d-now)/(1000*60*60*24));if(days<0)return{label:'EXPIRED',color:'var(--red)'};if(days<60)return{label:days+'d left',color:'var(--yellow)'};return{label:dateStr,color:'var(--green)'};}
 function spRenderTable(){const body=document.getElementById('spTableBody');const rpp=parseInt(document.getElementById('spRowsPerPage')?.value||'10');const total=spFiltered.length;const totalPages=Math.max(1,Math.ceil(total/rpp));if(spCurrentPage>totalPages)spCurrentPage=totalPages;const start=(spCurrentPage-1)*rpp;const page=spFiltered.slice(start,start+rpp);const info=document.getElementById('spPageInfo');if(info)info.textContent=total===0?'No results':`${start+1}-${Math.min(start+rpp,total)} of ${total} items`;const isPending=spCurrentTab==='pending';const cols=spDetailOpen?'1fr 110px 100px 80px':isPending?'1fr 120px 130px 110px 1fr':'1fr 120px 130px 110px 130px 100px';const hdrs=document.getElementById('spTableHeaders');if(hdrs){hdrs.style.gridTemplateColumns=cols;const headLabels=spDetailOpen?['Name','Cert #','Phone','Tests']:isPending?['Name / Company','Cert #','Phone','Submitted','Missing Fields']:['Name / Company','Cert #','Phone','Tests Run','Gauge Cal Expiry','Status'];hdrs.innerHTML=headLabels.map(h=>`<div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;padding:0 8px">${h}</div>`).join('');}if(!body)return;if(!page.length){body.innerHTML=`<div style="text-align:center;padding:48px;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px;opacity:.3">&#x1F527;</div><div style="font-size:16px;font-weight:600;color:var(--text)">${isPending?'No pending submissions.':'No active testers.'}</div></div>`;return;}body.innerHTML=page.map(t=>{const isActive=spActiveId===t.id;const initials=t.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();const missing=spMissingFields(t);const cal=spCalStatus(t.gauge_cal_date);const sc=t.status==='active'?'var(--green)':t.status==='pending'?'var(--yellow)':'var(--red)';const sbg=t.status==='active'?'rgba(76,175,121,.12)':t.status==='pending'?'rgba(240,192,64,.12)':'rgba(224,82,82,.12)';const sbr=t.status==='active'?'rgba(76,175,121,.3)':t.status==='pending'?'rgba(240,192,64,.3)':'rgba(224,82,82,.3)';let cells;if(spDetailOpen){cells=[`<div style="display:flex;align-items:center;gap:8px"><div style="width:26px;height:26px;border-radius:50%;background:${t.status==='pending'?'var(--yellow)':'var(--accent)'};display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:12px;color:#000;flex-shrink:0">${initials}</div><div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(t.name)}</div></div>`,`<div style="font-family:var(--mono);font-size:12px;color:var(--text)">${sanitize(t.cert_number)||'&mdash;'}</div>`,`<div style="font-family:var(--mono);font-size:12px;color:var(--muted)">${sanitize(t.phone)||'&mdash;'}</div>`,`<div style="font-family:var(--cond);font-weight:700;font-size:17px;color:var(--text)">${t.testsRun}</div>`];}else if(isPending){const mc=missing.length===0?`<span style="font-family:var(--mono);font-size:10px;color:var(--green)">&#x2713; All fields present</span>`:missing.map(f=>`<span style="font-family:var(--mono);font-size:10px;padding:1px 6px;background:rgba(224,82,82,.12);color:var(--red);border:1px solid rgba(224,82,82,.25);border-radius:3px;margin-right:3px">${SP_REQUIRED_LABELS[f]}</span>`).join('');cells=[`<div style="display:flex;align-items:center;gap:10px"><div style="width:30px;height:30px;border-radius:50%;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:13px;color:#000;flex-shrink:0">${initials}</div><div><div style="font-size:15px;font-weight:600;color:var(--text)">${sanitize(t.name)}</div><div style="font-size:12px;color:var(--muted);margin-top:1px">${sanitize(t.company)||'No company'}</div></div></div>`,`<div style="font-family:var(--mono);font-size:12px;color:${t.cert_number?'var(--text)':'var(--red)'}">${sanitize(t.cert_number)||'MISSING'}</div>`,`<div style="font-family:var(--mono);font-size:12px;color:var(--muted)">${sanitize(t.phone)||'&mdash;'}</div>`,`<div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${t.submitted_at||'&mdash;'}</div>`,`<div style="display:flex;flex-wrap:wrap;gap:3px;align-items:center">${mc}</div>`];}else{cells=[`<div style="display:flex;align-items:center;gap:10px"><div style="width:30px;height:30px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:13px;color:#000;flex-shrink:0">${initials}</div><div><div style="font-size:15px;font-weight:600;color:var(--text)">${sanitize(t.name)}</div><div style="font-size:12px;color:var(--muted);margin-top:1px">${sanitize(t.company)}</div></div></div>`,`<div style="font-family:var(--mono);font-size:12px;color:var(--text)">${sanitize(t.cert_number)}</div>`,`<div style="font-family:var(--mono);font-size:12px;color:var(--muted)">${sanitize(t.phone)}</div>`,`<div style="font-family:var(--cond);font-weight:700;font-size:18px;color:var(--text);text-align:center">${t.testsRun}</div>`,`<div style="font-family:var(--mono);font-size:12px;color:${cal.color}">${cal.label}</div>`,`<span style="font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;background:${sbg};color:${sc};border:1px solid ${sbr}">${t.status.toUpperCase()}</span>`];}return`<div onclick="spSelectRow(${t.id})" style="display:grid;grid-template-columns:${cols};padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;align-items:center;background:${isActive?'rgba(249,166,30,.06)':'transparent'};border-left:3px solid ${isActive?'var(--accent)':'transparent'}" onmouseover="if(!${isActive})this.style.background='var(--elevated)'" onmouseout="this.style.background='${isActive?'rgba(249,166,30,.06)':'transparent'}'"> ${cells.map(c=>`<div style="padding:0 8px;overflow:hidden">${c}</div>`).join('')}</div>`;}).join('');}
 function spChangePage(p){spCurrentPage=p;spRenderTable();}function spPrevPage(){if(spCurrentPage>1){spCurrentPage--;spRenderTable();}}function spNextPage(){const rpp=parseInt(document.getElementById('spRowsPerPage')?.value||'10');if(spCurrentPage<Math.ceil(spFiltered.length/rpp)){spCurrentPage++;spRenderTable();}}function spLastPage(){const rpp=parseInt(document.getElementById('spRowsPerPage')?.value||'10');spCurrentPage=Math.ceil(spFiltered.length/rpp)||1;spRenderTable();}
-function spSelectRow(id){spActiveId=id;spDetailOpen=true;const t=SP_DATA.find(x=>x.id===id);if(!t)return;const panel=document.getElementById('spDetailPanel');if(panel){panel.style.width='440px';panel.style.opacity='1';}const nm=document.getElementById('spDetailName');if(nm)nm.textContent=t.name;const sb=document.getElementById('spDetailSub');if(sb)sb.textContent=(t.company||'No company')+' \u2022 '+t.email;const badge=document.getElementById('spDetailStatusBadge');if(badge){const sc=t.status==='active'?'var(--green)':t.status==='pending'?'var(--yellow)':'var(--red)';const sbg=t.status==='active'?'rgba(76,175,121,.14)':t.status==='pending'?'rgba(240,192,64,.14)':'rgba(224,82,82,.14)';const sbr=t.status==='active'?'rgba(76,175,121,.3)':t.status==='pending'?'rgba(240,192,64,.3)':'rgba(224,82,82,.3)';badge.style.cssText=`font-family:var(--cond);font-weight:700;font-size:13px;padding:4px 10px;border-radius:5px;background:${sbg};color:${sc};border:1px solid ${sbr}`;badge.textContent=t.status.toUpperCase();}const actions=document.getElementById('spApprovalActions');if(actions){if(t.status==='pending'){actions.style.display='block';const missing=spMissingFields(t);const mf=document.getElementById('spMissingFields');if(mf){if(missing.length===0){mf.innerHTML=`<div style="font-family:var(--mono);font-size:11px;color:var(--green)">&#x2713; All required fields present</div>`;}else{mf.innerHTML=`<div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:5px">Missing required fields:</div>`+missing.map(f=>`<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px"><div style="width:5px;height:5px;border-radius:50%;background:var(--red);flex-shrink:0"></div><span style="font-size:13px;color:var(--text)">${SP_REQUIRED_LABELS[f]}</span></div>`).join('');}}}else{actions.style.display='none';}}document.querySelectorAll('#spDetailTabs .m-tab').forEach((b,i)=>b.classList.toggle('active',i===0));const body=document.getElementById('spTabBody');if(body)body.innerHTML=spRenderInfo(t);spRenderTable();}
+function spSelectRow(id){spActiveId=id;spDetailOpen=true;const t=SP_DATA.find(x=>x.id===id);if(!t)return;const panel=document.getElementById('spDetailPanel');if(panel){panel.classList.add('fullscreen');panel.style.opacity='1';}const backBar=document.getElementById('spBackBar');if(backBar)backBar.style.display='flex';const bc=document.getElementById('spFSBreadcrumb');if(bc)bc.textContent=t.name;const nm=document.getElementById('spDetailName');if(nm)nm.textContent=t.name;const sb=document.getElementById('spDetailSub');if(sb)sb.textContent=(t.company||'No company')+' \u2022 '+t.email;const badge=document.getElementById('spDetailStatusBadge');if(badge){const sc=t.status==='active'?'var(--green)':t.status==='pending'?'var(--yellow)':'var(--red)';const sbg=t.status==='active'?'rgba(76,175,121,.14)':t.status==='pending'?'rgba(240,192,64,.14)':'rgba(224,82,82,.14)';const sbr=t.status==='active'?'rgba(76,175,121,.3)':t.status==='pending'?'rgba(240,192,64,.3)':'rgba(224,82,82,.3)';badge.style.cssText=`font-family:var(--cond);font-weight:700;font-size:13px;padding:4px 10px;border-radius:5px;background:${sbg};color:${sc};border:1px solid ${sbr}`;badge.textContent=t.status.toUpperCase();}const actions=document.getElementById('spApprovalActions');if(actions){if(t.status==='pending'){actions.style.display='block';const missing=spMissingFields(t);const mf=document.getElementById('spMissingFields');if(mf){if(missing.length===0){mf.innerHTML=`<div style="font-family:var(--mono);font-size:11px;color:var(--green)">&#x2713; All required fields present</div>`;}else{mf.innerHTML=`<div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:5px">Missing required fields:</div>`+missing.map(f=>`<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px"><div style="width:5px;height:5px;border-radius:50%;background:var(--red);flex-shrink:0"></div><span style="font-size:13px;color:var(--text)">${SP_REQUIRED_LABELS[f]}</span></div>`).join('');}}}else{actions.style.display='none';}}document.querySelectorAll('#spDetailTabs .m-tab').forEach((b,i)=>b.classList.toggle('active',i===0));const body=document.getElementById('spTabBody');if(body)body.innerHTML=spRenderInfo(t);spRenderTable();}
 function spCloseDetail(){spDetailOpen=false;spActiveId=null;const p=document.getElementById('spDetailPanel');if(p){p.style.opacity='0';setTimeout(()=>{p.style.width='0';setTimeout(()=>{spRenderTable();},260);},180);}else{spRenderTable();}}
+
+function spExitFullscreen(){
+  const panel=document.getElementById('spDetailPanel');
+  if(panel){panel.classList.remove('fullscreen');panel.style.width='0';panel.style.opacity='0';}
+  const backBar=document.getElementById('spBackBar');
+  if(backBar)backBar.style.display='none';
+  spDetailOpen=false;spActiveId=null;spRenderTable();
+}
+
+function spStartEdit(){
+  const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return;
+  const body=document.getElementById('spTabBody');if(!body)return;
+  document.querySelectorAll('#spDetailTabs .m-tab').forEach((b,i)=>b.classList.toggle('active',i===0));
+  body.innerHTML=`<div style="display:flex;flex-direction:column;gap:14px;padding:4px 0">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:5px">FULL NAME</div><input id="se-name" class="si" value="${sanitize(t.name)}" style="width:100%;box-sizing:border-box"></div>
+      <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:5px">COMPANY</div><input id="se-company" class="si" value="${sanitize(t.company||'')}" style="width:100%;box-sizing:border-box"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:5px">EMAIL</div><input id="se-email" class="si" value="${sanitize(t.email||'')}" style="width:100%;box-sizing:border-box"></div>
+      <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:5px">PHONE</div><input id="se-phone" class="si" value="${sanitize(t.phone||'')}" style="width:100%;box-sizing:border-box"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:5px">CERT #</div><input id="se-cert" class="si" value="${sanitize(t.cert||'')}" style="width:100%;box-sizing:border-box"></div>
+      <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:5px">CERT EXPIRATION</div><input id="se-certexp" class="si" type="date" value="${t.certExp||''}" style="width:100%;box-sizing:border-box"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:5px">LICENSE #</div><input id="se-license" class="si" value="${sanitize(t.license||'')}" style="width:100%;box-sizing:border-box"></div>
+      <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:5px">GAUGE CAL DATE</div><input id="se-gaugecal" class="si" type="date" value="${t.gaugeCal||''}" style="width:100%;box-sizing:border-box"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:5px">STATUS</div>
+        <select id="se-status" class="ss" style="width:100%;box-sizing:border-box">
+          <option value="active" ${t.status==='active'?'selected':''}>Active</option>
+          <option value="pending" ${t.status==='pending'?'selected':''}>Pending</option>
+          <option value="inactive" ${t.status==='inactive'?'selected':''}>Inactive</option>
+        </select>
+      </div>
+      <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:5px">CITY</div><input id="se-city" class="si" value="${sanitize(t.city||'')}" style="width:100%;box-sizing:border-box"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button onclick="spSaveEdit()" class="btn btn-ac" style="flex:1">Save Changes</button>
+      <button onclick="spSwitchTab('info',document.querySelector('#spDetailTabs .m-tab'))" class="btn btn-gh" style="flex:1">Cancel</button>
+    </div>
+  </div>`;
+}
+
+function spSaveEdit(){
+  const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return;
+  const get=id=>(document.getElementById(id)||{}).value||'';
+  t.name=get('se-name');t.company=get('se-company');t.email=get('se-email');
+  t.phone=get('se-phone');t.cert=get('se-cert');t.certExp=get('se-certexp');
+  t.license=get('se-license');t.gaugeCal=get('se-gaugecal');t.status=get('se-status');
+  t.city=get('se-city');
+  const nm=document.getElementById('spDetailName');if(nm)nm.textContent=t.name;
+  const sb=document.getElementById('spDetailSub');if(sb)sb.textContent=(t.company||'No company')+' • '+t.email;
+  const bc=document.getElementById('spFSBreadcrumb');if(bc)bc.textContent=t.name;
+  const firstTab=document.querySelector('#spDetailTabs .m-tab');
+  spSwitchTab('info',firstTab);
+  spRenderTable();
+  toast('Tester updated','success');
+}
 function spSwitchTab(tab,btn){document.querySelectorAll('#spDetailTabs .m-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');const t=SP_DATA.find(x=>x.id===spActiveId);const body=document.getElementById('spTabBody');if(!body||!t)return;if(tab==='info')body.innerHTML=spRenderInfo(t);else if(tab==='tests')body.innerHTML=spRenderTests(t);else if(tab==='credentials')body.innerHTML=spRenderCredentials(t);}
 function spApprove(){const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return;const missing=spMissingFields(t);if(missing.length>0&&!confirm('Missing fields:\n\n'+missing.map(f=>'\u2022 '+SP_REQUIRED_LABELS[f]).join('\n')+'\n\nApprove anyway?'))return;t.status='active';t.approved_at=new Date().toISOString().split('T')[0];spUpdatePendingBadge();spSelectRow(t.id);}
 function spRequestInfo(){const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return;const missing=spMissingFields(t);alert('Notification sent to '+t.email+':\n\nPlease complete your profile.\n\nMissing:\n'+missing.map(f=>'\u2022 '+SP_REQUIRED_LABELS[f]).join('\n'));}
@@ -4841,7 +4935,7 @@ document.addEventListener('click', function(e) {
   if(!panel.contains(e.target)&&!e.target.closest('[onclick^="conSelectRow"]')&&!e.target.closest('#page-contacts-page > div:first-child')&&!e.target.closest('#conAddModal'))conCloseDetail();
 },true);
 
-// Service Providers: click outside detail panel
+// Testers: click outside detail panel
 document.addEventListener('click', function(e) {
   if(!spDetailOpen)return;
   const panel=document.getElementById('spDetailPanel'); if(!panel)return;
@@ -5587,7 +5681,7 @@ const RPT_DEFINITIONS = {
     ]
   },
   'sp-all': {
-    title: 'All Service Providers',
+    title: 'All Testers',
     subtitle: 'Complete list of registered testers and service providers',
     headers: ['Name','Company','Cert #','Phone','Email','Tests Run','Gauge Cal Expiry','Status'],
     data_source: 'testers',
