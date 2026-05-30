@@ -1728,18 +1728,18 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
 
 <div class="page" id="page-notif-page" style="height:calc(100vh - 56px);overflow-y:auto;padding:0">
 
-  <!-- Header -->
-  <div style="padding:24px 28px 0">
+  <!-- Header + Compliance card (rebuilt by JS) -->
+  <div style="padding:24px 28px 20px" id="notif-header-area">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
       <div style="font-family:var(--cond);font-size:26px;font-weight:900;color:var(--text)">Notifications</div>
       <div id="notif-total-badge" style="display:none;background:var(--accent);color:#000;font-family:var(--mono);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px"></div>
     </div>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.5px;margin-bottom:20px">Items requiring your attention across the system</div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.5px">Items requiring your attention · Updated now</div>
   </div>
 
-  <!-- Notification cards -->
-  <div style="padding:0 28px 28px;display:flex;flex-direction:column;gap:10px" id="notif-list">
+  <!-- Notification sections -->
+  <div style="padding:0 28px 28px;display:flex;flex-direction:column;gap:6px" id="notif-list">
     <div style="color:var(--muted);font-size:13px">Loading...</div>
   </div>
 
@@ -5337,66 +5337,152 @@ function notifInit() {
   const today = new Date();
   const in30 = new Date(today); in30.setDate(today.getDate()+30);
   const in60 = new Date(today); in60.setDate(today.getDate()+60);
+  const thisYear = today.getFullYear();
   function pd(s){ if(!s)return null; const d=new Date(s); return isNaN(d)?null:d; }
 
-  const locNonCompliant=(LOC_DATA||[]).filter(l=>l.compliance==='Non-Compliant'||l.compliance==='Overdue').length;
-  const asmOverdue=(ASM_DATA||[]).filter(a=>{const d=pd(a.nextDue);return d&&d<today;}).length;
-  const asmDueSoon=(ASM_DATA||[]).filter(a=>{const d=pd(a.nextDue);return d&&d>=today&&d<=in30;}).length;
-  const testersPending=(SP_DATA||[]).filter(t=>t.status==='pending').length;
-  const reportsRecent=(DB||[]).filter(r=>r.type==='backflow').filter(r=>{const d=pd(r.date);return d&&d>=new Date(today.getTime()-30*86400000);}).length;
-  const gaugeExpiring=(SP_DATA||[]).filter(t=>{const d=pd(t.gaugeCal);return d&&d>=today&&d<=in30;}).length;
-  const certExpiring=(SP_DATA||[]).filter(t=>{const d=pd(t.certExp);return d&&d>=today&&d<=in60;}).length;
+  // ── COUNTS ────────────────────────────────────────────────────────────────
+  const locs = LOC_DATA||[];
+  const asms = ASM_DATA||[];
+  const testers = SP_DATA||[];
+  const reports = (DB||[]).filter(r=>r.type==='backflow');
 
-  const items=[
-    {label:'Locations Non-Compliant',count:locNonCompliant,color:'var(--red)',page:'locations-page',
+  const locNonCompliant = locs.filter(l=>l.compliance==='Non-Compliant'||l.compliance==='Overdue').length;
+  const locNoTests = locs.filter(l=>!l.lastTested||l.lastTested==='—'||l.lastTested==='').length;
+  const asmOverdue = asms.filter(a=>{const d=pd(a.nextDue);return d&&d<today;}).length;
+  const asmDueSoon = asms.filter(a=>{const d=pd(a.nextDue);return d&&d>=today&&d<=in30;}).length;
+  const testersPending = testers.filter(t=>t.status==='pending').length;
+  const reportsRecent = reports.filter(r=>{const d=pd(r.date);return d&&d>=new Date(today.getTime()-30*86400000);}).length;
+  const reportsUnlinked = reports.filter(r=>!r.locationId&&!r.location_id&&!r.account).length;
+  const gaugeExpiring = testers.filter(t=>{const d=pd(t.gaugeCal);return d&&d>=today&&d<=in30;}).length;
+  const certExpiring = testers.filter(t=>{const d=pd(t.certExp);return d&&d>=today&&d<=in60;}).length;
+
+  // Compliance rate
+  const totalLocs = locs.length;
+  const compliantLocs = locs.filter(l=>l.compliance==='Compliant').length;
+  const complianceRate = totalLocs>0 ? Math.round(compliantLocs/totalLocs*100) : 0;
+  const compColor = complianceRate>=90?'var(--green)':complianceRate>=70?'var(--yellow)':'var(--red)';
+
+  // ── UPDATE NOTIF PAGE HTML (compliance card + notification list) ──────────
+  const notifPage = document.getElementById('page-notif-page');
+  if(notifPage) {
+    // Rebuild header with compliance meter
+    const hdr = notifPage.querySelector('#notif-header-area');
+    if(hdr) {
+      hdr.innerHTML =
+        '<div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap">' +
+          // Left: title + badge
+          '<div style="flex:1;min-width:200px">' +
+            '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">' +
+              '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>' +
+              '<div style="font-family:var(--cond);font-size:26px;font-weight:900;color:var(--text)">Notifications</div>' +
+              '<div id="notif-total-badge" style="display:none;background:var(--accent);color:#000;font-family:var(--mono);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px"></div>' +
+            '</div>' +
+            '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.5px">Items requiring your attention · Updated now</div>' +
+          '</div>' +
+          // Right: compliance rate card
+          '<div style="background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:16px 20px;min-width:220px;flex-shrink:0">' +
+            '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px">Program Compliance Rate</div>' +
+            '<div style="display:flex;align-items:center;gap:12px">' +
+              '<div style="font-family:var(--cond);font-size:42px;font-weight:900;color:'+compColor+';line-height:1">'+complianceRate+'%</div>' +
+              '<div style="flex:1">' +
+                '<div style="height:8px;background:var(--elevated);border-radius:4px;overflow:hidden;margin-bottom:5px">' +
+                  '<div style="height:100%;width:'+complianceRate+'%;background:'+compColor+';border-radius:4px;transition:width 1s ease"></div>' +
+                '</div>' +
+                '<div style="font-family:var(--mono);font-size:10px;color:var(--muted)">'+compliantLocs+' of '+totalLocs+' locations compliant</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+    }
+  }
+
+  // ── SECTION BUILDER ───────────────────────────────────────────────────────
+  function section(title, color, items) {
+    const dot = color==='red'?'var(--red)':color==='yellow'?'var(--yellow)':color==='blue'?'var(--blue)':'var(--accent)';
+    const sectionCount = items.reduce(function(s,i){return s+i.count;},0);
+    return '<div style="margin-bottom:6px">'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'+
+        '<div style="width:8px;height:8px;border-radius:50%;background:'+dot+';flex-shrink:0"></div>'+
+        '<div style="font-family:var(--mono);font-size:10px;font-weight:700;color:'+dot+';letter-spacing:1.5px;text-transform:uppercase">'+title+'</div>'+
+        (sectionCount>0?'<div style="background:'+dot+';color:#000;font-family:var(--mono);font-size:10px;font-weight:700;padding:1px 8px;border-radius:10px">'+sectionCount+'</div>':'<div style="background:var(--elevated);color:var(--muted);font-family:var(--mono);font-size:10px;padding:1px 8px;border-radius:10px">0</div>')+
+      '</div>'+
+      '<div style="display:flex;flex-direction:column;gap:8px">'+
+      items.map(function(item){
+        const has=item.count>0;
+        const cc=has?dot:'var(--muted)';
+        const bg=color==='red'?'rgba(224,82,82,.12)':color==='yellow'?'rgba(240,192,64,.12)':color==='blue'?'rgba(100,149,237,.12)':'rgba(249,166,30,.12)';
+        const bc=has?(color==='red'?'rgba(224,82,82,.3)':color==='yellow'?'rgba(240,192,64,.3)':color==='blue'?'rgba(100,149,237,.3)':'rgba(249,166,30,.3)'):'var(--border)';
+        const chev=has?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>':'';
+        const dp=has?('data-page="'+item.page+'"'):'';
+        return '<div '+dp+' style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface);border:1.5px solid '+bc+';border-radius:10px;transition:background .15s">'+
+          '<div style="width:38px;height:38px;border-radius:10px;background:'+(has?bg:'var(--elevated)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'+
+            '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="'+(has?dot:'var(--muted)')+'\" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+item.icon+'</svg>'+
+          '</div>'+
+          '<div style="flex:1;min-width:0">'+
+            '<div style="font-size:13px;font-weight:700;color:'+(has?'var(--text)':'var(--muted)')+';margin-bottom:1px">'+item.label+'</div>'+
+            '<div style="font-family:var(--mono);font-size:10px;color:var(--muted)">'+item.desc+'</div>'+
+          '</div>'+
+          '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'+
+            '<div style="font-family:var(--cond);font-size:26px;font-weight:900;color:'+cc+';min-width:30px;text-align:right">'+item.count+'</div>'+
+            chev+
+          '</div>'+
+        '</div>';
+      }).join('')+
+      '</div></div>';
+  }
+
+  // ── ITEM DEFINITIONS ─────────────────────────────────────────────────────
+  const urgentItems=[
+    {label:'Locations Non-Compliant',count:locNonCompliant,page:'locations-page',
      icon:'<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/>',
-     desc:'Locations flagged as non-compliant or overdue'},
-    {label:'Assemblies Overdue',count:asmOverdue,color:'var(--red)',page:'assemblies-page',
+     desc:'Locations flagged as non-compliant or overdue for testing'},
+    {label:'Assemblies Overdue',count:asmOverdue,page:'assemblies-page',
      icon:'<circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4"/>',
-     desc:'Assemblies past their required test due date'},
-    {label:'Assemblies Due Within 30 Days',count:asmDueSoon,color:'var(--yellow)',page:'assemblies-page',
-     icon:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 3.5"/>',
-     desc:'Assemblies approaching their test due date'},
-    {label:'Testers Pending Approval',count:testersPending,color:'var(--yellow)',page:'providers-page',
-     icon:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
-     desc:'Tester applications awaiting admin review'},
-    {label:'Test Reports To Review',count:reportsRecent,color:'var(--accent)',page:'backflow-page',
-     icon:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/>',
-     desc:'Test reports submitted in the last 30 days'},
-    {label:'Gauge Calibrations Expiring (30 days)',count:gaugeExpiring,color:'var(--yellow)',page:'providers-page',
-     icon:'<circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83"/>',
-     desc:'Tester gauge calibrations expiring within 30 days'},
-    {label:'Tester Certs Expiring (60 days)',count:certExpiring,color:'var(--yellow)',page:'providers-page',
-     icon:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
-     desc:'Tester certifications expiring within 60 days'},
+     desc:'Assemblies past their required annual test due date'},
+    {label:'Unlinked Test Reports',count:reportsUnlinked,page:'backflow-page',
+     icon:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>',
+     desc:'Submitted reports that could not be matched to a known device or location'},
   ];
 
-  const total=items.reduce((s,i)=>s+i.count,0);
-  if(totalBadge){totalBadge.textContent=total+' item'+(total!==1?'s':'')+' need attention';totalBadge.style.display=total===0?'none':'inline-block';}
+  const upcomingItems=[
+    {label:'Assemblies Due Within 30 Days',count:asmDueSoon,page:'assemblies-page',
+     icon:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 3.5"/>',
+     desc:'Assemblies approaching their next required test date'},
+    {label:'Gauge Calibrations Expiring (30 days)',count:gaugeExpiring,page:'providers-page',
+     icon:'<circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83"/>',
+     desc:'Tester gauge calibrations expiring within the next 30 days'},
+    {label:'Tester Certs Expiring (60 days)',count:certExpiring,page:'providers-page',
+     icon:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+     desc:'Tester certifications expiring within the next 60 days'},
+  ];
 
-  list.innerHTML=items.map(function(item){
-    const has=item.count>0;
-    const cc=has?item.color:'var(--muted)';
-    const bg=item.color==='var(--red)'?'rgba(224,82,82,.12)':item.color==='var(--yellow)'?'rgba(240,192,64,.12)':item.color==='var(--accent)'?'rgba(249,166,30,.12)':'rgba(168,179,196,.08)';
-    const bc=has?(item.color==='var(--red)'?'rgba(224,82,82,.3)':item.color==='var(--yellow)'?'rgba(240,192,64,.3)':item.color==='var(--accent)'?'rgba(249,166,30,.3)':'var(--border)'):'var(--border)';
-    const chev=has?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>':'';
-    const dataPage=has?('data-page="'+item.page+'"'):'';
-    return '<div '+dataPage+' style="display:flex;align-items:center;gap:16px;padding:16px 20px;background:var(--surface);border:1.5px solid '+bc+';border-radius:12px;transition:background .15s">'+
-      '<div style="width:44px;height:44px;border-radius:12px;background:'+(has?bg:'var(--elevated)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'+
-        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="'+(has?item.color:'var(--muted)')+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+item.icon+'</svg>'+
-      '</div>'+
-      '<div style="flex:1;min-width:0">'+
-        '<div style="font-size:14px;font-weight:700;color:'+(has?'var(--text)':'var(--muted)')+'">'+item.label+'</div>'+
-        '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px">'+item.desc+'</div>'+
-      '</div>'+
-      '<div style="display:flex;align-items:center;gap:10px;flex-shrink:0">'+
-        '<div style="font-family:var(--cond);font-size:28px;font-weight:900;color:'+cc+';min-width:36px;text-align:right">'+item.count+'</div>'+
-        chev+
-      '</div>'+
-    '</div>';
-  }).join('');
+  const reviewItems=[
+    {label:'Testers Pending Approval',count:testersPending,page:'providers-page',
+     icon:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+     desc:'New tester applications awaiting admin review and approval'},
+    {label:'Recent Test Submissions (30 days)',count:reportsRecent,page:'backflow-page',
+     icon:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/>',
+     desc:'Test reports submitted in the last 30 days — review for accuracy'},
+    {label:'Locations With No Tests On Record',count:locNoTests,page:'locations-page',
+     icon:'<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/>',
+     desc:'Locations in the system that have never had a test submitted'},
+  ];
 
-  // Click handlers via delegation
+  // ── RENDER ────────────────────────────────────────────────────────────────
+  const allItems=[...urgentItems,...upcomingItems,...reviewItems];
+  const total=allItems.reduce(function(s,i){return s+i.count;},0);
+
+  const tb=document.getElementById('notif-total-badge');
+  if(tb){tb.textContent=total+' item'+(total!==1?'s':'')+' need attention';tb.style.display=total===0?'none':'inline-block';}
+
+  list.innerHTML=
+    section('Urgent — Action Required','red',urgentItems)+
+    '<div style="height:8px"></div>'+
+    section('Upcoming — Due Soon','yellow',upcomingItems)+
+    '<div style="height:8px"></div>'+
+    section('Review Queue','blue',reviewItems);
+
+  // Click delegation
   list.querySelectorAll('[data-page]').forEach(function(row){
     row.style.cursor='pointer';
     row.addEventListener('mouseover',function(){this.style.background='var(--elevated)';});
