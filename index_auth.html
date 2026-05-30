@@ -1726,7 +1726,7 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
   </div>
 </div>
 
-<div class="page" id="page-notif-page" style="overflow-y:auto">
+<div class="page" id="page-notif-page" style="height:calc(100vh - 56px);overflow-y:auto;padding:0">
 
   <!-- Header -->
   <div style="padding:24px 28px 0">
@@ -2276,7 +2276,7 @@ function nav(id, btn) {
   if(id==='contacts-page'){ conExitFullscreen(); conInit(); }
   if(id==='providers-page'){ spExitFullscreen(); spInit(); }
   if(id==='comms-page') commsInit();
-  if(id==='notif-page') notifInit();
+  if(id==='notif-page') setTimeout(notifInit, 100);
   if(id==='assemblies-page'){ asmExitFullscreen(); asmInit(); }
 }
 
@@ -5343,7 +5343,7 @@ function notifInit() {
   const asmOverdue=(ASM_DATA||[]).filter(a=>{const d=pd(a.nextDue);return d&&d<today;}).length;
   const asmDueSoon=(ASM_DATA||[]).filter(a=>{const d=pd(a.nextDue);return d&&d>=today&&d<=in30;}).length;
   const testersPending=(SP_DATA||[]).filter(t=>t.status==='pending').length;
-  const reportsRecent=(BF_DATA||[]).filter(r=>{const d=pd(r.date);return d&&d>=new Date(today-30*86400000);}).length;
+  const reportsRecent=(DB||[]).filter(r=>r.type==='backflow').filter(r=>{const d=pd(r.date);return d&&d>=new Date(today.getTime()-30*86400000);}).length;
   const gaugeExpiring=(SP_DATA||[]).filter(t=>{const d=pd(t.gaugeCal);return d&&d>=today&&d<=in30;}).length;
   const certExpiring=(SP_DATA||[]).filter(t=>{const d=pd(t.certExp);return d&&d>=today&&d<=in60;}).length;
 
