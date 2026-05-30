@@ -44,6 +44,23 @@ function sanitize(str) {
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;display:flex;font-weight:400;font-size:15px;line-height:var(--lh)}
 ::-webkit-scrollbar{width:5px;height:5px}
+/* Location fullscreen mode */
+#locDetailPanel.fullscreen {
+  position: fixed !important;
+  top: 56px !important;
+  left: 170px !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: auto !important;
+  opacity: 1 !important;
+  z-index: 100;
+  border-left: 1px solid var(--border);
+  transition: none !important;
+}
+#locDetailPanel.fullscreen > div {
+  width: 100% !important;
+}
+
 .rpt-opt{display:flex;align-items:center;gap:10px;width:100%;padding:10px 13px;border-radius:10px;background:transparent;border:none;color:var(--text);font-family:var(--sans);font-size:15px;font-weight:500;cursor:pointer;text-align:left;transition:all .15s;position:relative}
 .rpt-opt:hover{background:rgba(255,255,255,.05);transform:translateX(2px)}
 .rpt-opt.active{background:rgba(249,166,30,.12);color:var(--accent);box-shadow:inset 0 0 0 1px rgba(249,166,30,.2)}
@@ -1183,6 +1200,19 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
     </div>
     <div id="locDetailPanel" style="width:0;overflow:hidden;border-left:1px solid var(--border);transition:width .25s ease,opacity .2s ease;opacity:0;flex-shrink:0;display:flex;flex-direction:column;background:var(--bg)">
       <div style="width:480px;display:flex;flex-direction:column;height:100%;overflow:hidden">
+        <!-- Back bar (only visible in fullscreen mode) -->
+        <div id="locBackBar" style="display:none;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0">
+          <button onclick="locExitFullscreen()" style="display:flex;align-items:center;gap:8px;padding:7px 14px;background:var(--elevated);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            Back to Locations
+          </button>
+          <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)">
+            <span>Locations</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            <span id="locFSBreadcrumb" style="color:var(--text);font-weight:600"></span>
+          </div>
+          <div id="locFSBadge" style="margin-left:auto"></div>
+        </div>
         <div style="padding:14px 18px 0;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
             <div style="min-width:0;flex:1"><div id="locDetailAddr" style="font-family:var(--cond);font-weight:900;font-size:22px;color:var(--text);line-height:1.1"></div><div id="locDetailSub" style="font-size:13px;color:var(--muted);margin-top:3px"></div></div>
@@ -4345,9 +4375,50 @@ function locPrevPage(){if(locCurrentPage>1){locCurrentPage--;locRenderTable();}}
 function locNextPage(){const rpp=parseInt(document.getElementById('locRowsPerPage')?.value||'10');if(locCurrentPage<Math.ceil(locFiltered.length/rpp)){locCurrentPage++;locRenderTable();}}
 function locLastPage(){const rpp=parseInt(document.getElementById('locRowsPerPage')?.value||'10');locCurrentPage=Math.ceil(locFiltered.length/rpp)||1;locRenderTable();}
 
-function locSelectRow(id){locActiveId=id;locDetailOpen=true;locEditMode=false;const loc=LOC_DATA.find(l=>l.id===id);if(!loc)return;const panel=document.getElementById('locDetailPanel');if(panel){panel.style.width='480px';panel.style.opacity='1';}const addr=document.getElementById('locDetailAddr');if(addr)addr.textContent=loc.address;const sub=document.getElementById('locDetailSub');if(sub)sub.textContent=loc.name+' \u2022 '+loc.city+', '+loc.state+' '+loc.zip;const cc=loc.compliance==='Compliant'?'var(--green)':loc.compliance==='Overdue'?'var(--yellow)':'var(--red)';const cbg=loc.compliance==='Compliant'?'rgba(76,175,121,.14)':loc.compliance==='Overdue'?'rgba(240,192,64,.14)':'rgba(224,82,82,.14)';const cbr=loc.compliance==='Compliant'?'rgba(76,175,121,.3)':loc.compliance==='Overdue'?'rgba(240,192,64,.3)':'rgba(224,82,82,.3)';const badge=document.getElementById('locDetailBadge');if(badge){badge.textContent=loc.compliance.toUpperCase();badge.style.cssText=`font-family:var(--cond);font-weight:700;font-size:13px;padding:4px 10px;border-radius:5px;background:${cbg};color:${cc};border:1px solid ${cbr}`;}const stats=document.getElementById('locDetailStats');if(stats)stats.innerHTML=[['Account',sanitize(loc.account)],['Hazard',loc.hazard],['Devices',loc.deviceCount],['Connections',loc.connections],['Risk','<span style="color:'+(loc.riskScore<30?'var(--green)':loc.riskScore<60?'var(--yellow)':'var(--red)')+'">'+loc.riskScore+'/100</span>']].map(([l,v])=>`<div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">${l}</div><div style="font-family:var(--cond);font-weight:700;font-size:15px;color:var(--text)">${v}</div></div>`).join('');const editBtn=document.getElementById('locEditBtn');if(editBtn){editBtn.style.cssText='height:26px;padding:0 10px;border-radius:6px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;transition:all .15s';editBtn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit';}document.querySelectorAll('#locDetailTabs .m-tab').forEach((b,i)=>b.classList.toggle('active',i===0));const body=document.getElementById('locTabBody');if(body)body.innerHTML=locRenderDetails(loc);locRenderTable();}
+function locSelectRow(id){
+  locActiveId=id;locDetailOpen=true;locEditMode=false;
+  const loc=LOC_DATA.find(l=>l.id===id);if(!loc)return;
+  const panel=document.getElementById('locDetailPanel');
+  if(panel){
+    // Go fullscreen
+    panel.classList.add('fullscreen');
+    panel.style.opacity='1';
+    // Show back bar
+    const backBar=document.getElementById('locBackBar');
+    if(backBar)backBar.style.display='flex';
+    // Update breadcrumb
+    const bc=document.getElementById('locFSBreadcrumb');
+    if(bc)bc.textContent=loc.address;
+    // Update badge
+    const badge=document.getElementById('locFSBadge');
+    if(badge){
+      const cc=loc.compliance==='Compliant'?'var(--green)':loc.compliance==='Overdue'?'var(--yellow)':'var(--red)';
+      const cbg=loc.compliance==='Compliant'?'rgba(76,175,121,.14)':loc.compliance==='Overdue'?'rgba(240,192,64,.14)':'rgba(224,82,82,.14)';
+      const cbr=loc.compliance==='Compliant'?'rgba(76,175,121,.3)':loc.compliance==='Overdue'?'rgba(240,192,64,.3)':'rgba(224,82,82,.3)';
+      badge.style.cssText='font-family:var(--mono);font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;background:'+cbg+';color:'+cc+';border:1px solid '+cbr;
+      badge.textContent=loc.compliance.toUpperCase();
+    }
+  }const addr=document.getElementById('locDetailAddr');if(addr)addr.textContent=loc.address;const sub=document.getElementById('locDetailSub');if(sub)sub.textContent=loc.name+' \u2022 '+loc.city+', '+loc.state+' '+loc.zip;const cc=loc.compliance==='Compliant'?'var(--green)':loc.compliance==='Overdue'?'var(--yellow)':'var(--red)';const cbg=loc.compliance==='Compliant'?'rgba(76,175,121,.14)':loc.compliance==='Overdue'?'rgba(240,192,64,.14)':'rgba(224,82,82,.14)';const cbr=loc.compliance==='Compliant'?'rgba(76,175,121,.3)':loc.compliance==='Overdue'?'rgba(240,192,64,.3)':'rgba(224,82,82,.3)';const badge=document.getElementById('locDetailBadge');if(badge){badge.textContent=loc.compliance.toUpperCase();badge.style.cssText=`font-family:var(--cond);font-weight:700;font-size:13px;padding:4px 10px;border-radius:5px;background:${cbg};color:${cc};border:1px solid ${cbr}`;}const stats=document.getElementById('locDetailStats');if(stats)stats.innerHTML=[['Account',sanitize(loc.account)],['Hazard',loc.hazard],['Devices',loc.deviceCount],['Connections',loc.connections],['Risk','<span style="color:'+(loc.riskScore<30?'var(--green)':loc.riskScore<60?'var(--yellow)':'var(--red)')+'">'+loc.riskScore+'/100</span>']].map(([l,v])=>`<div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">${l}</div><div style="font-family:var(--cond);font-weight:700;font-size:15px;color:var(--text)">${v}</div></div>`).join('');const editBtn=document.getElementById('locEditBtn');if(editBtn){editBtn.style.cssText='height:26px;padding:0 10px;border-radius:6px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;transition:all .15s';editBtn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit';}document.querySelectorAll('#locDetailTabs .m-tab').forEach((b,i)=>b.classList.toggle('active',i===0));const body=document.getElementById('locTabBody');if(body)body.innerHTML=locRenderDetails(loc);locRenderTable();}
 
-function locCloseDetail(){locDetailOpen=false;locActiveId=null;locEditMode=false;const p=document.getElementById('locDetailPanel');if(p){p.style.opacity='0';setTimeout(()=>{p.style.width='0';setTimeout(()=>{locRenderTable();},260);},180);}else{locRenderTable();}}
+function locExitFullscreen(){
+  const panel=document.getElementById('locDetailPanel');
+  if(panel){panel.classList.remove('fullscreen');}
+  const backBar=document.getElementById('locBackBar');
+  if(backBar)backBar.style.display='none';
+  locCloseDetail();
+}
+
+function locCloseDetail(){
+  locDetailOpen=false;locActiveId=null;locEditMode=false;
+  const panel=document.getElementById('locDetailPanel');
+  if(panel){
+    panel.classList.remove('fullscreen');
+    panel.style.opacity='0';
+    setTimeout(()=>{panel.style.width='0';setTimeout(()=>{locRenderTable();},260);},180);
+  } else {locRenderTable();}
+  const backBar=document.getElementById('locBackBar');
+  if(backBar)backBar.style.display='none';
+}
 
 function locSwitchTab(tab,btn){document.querySelectorAll('#locDetailTabs .m-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');locEditMode=false;const editBtn=document.getElementById('locEditBtn');if(editBtn){editBtn.style.borderColor='';editBtn.style.color='';editBtn.style.background='';editBtn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit';editBtn.style.display=['details','assemblies','contacts'].includes(tab)?'flex':'none';}const loc=LOC_DATA.find(l=>l.id===locActiveId);const body=document.getElementById('locTabBody');if(!body||!loc)return;if(tab==='details')body.innerHTML=locRenderDetails(loc);else if(tab==='assemblies')body.innerHTML=locRenderAssemblies(loc);else if(tab==='contacts')body.innerHTML=locRenderContacts(loc);else if(tab==='communications')body.innerHTML=locRenderComms(loc);else if(tab==='surveys')body.innerHTML=locRenderSurveys(loc);else if(tab==='compliance')body.innerHTML=locRenderCompliance(loc);}
 
