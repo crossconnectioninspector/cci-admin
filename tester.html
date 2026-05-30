@@ -1324,10 +1324,10 @@ async function enterApp() {
   document.getElementById('sub-date').valueAsDate = new Date();
   await loadProfile();
   applyProfileToForm();
-  renderTesterInfo();
+  try { renderTesterInfo(); } catch(e) {}
   selectAsm('RPZ');
   switchPage('home');
-  await loadHomeStats();
+  try { await loadHomeStats(); } catch(e) { console.warn('loadHomeStats:', e); }
   await loadAllDevices();
   setTimeout(initPortalAutocompletes, 300);
 }
@@ -1635,12 +1635,13 @@ function alertHTML(type, icon, text, sub) {
 
 function renderTesterInfo() {
   const el = document.getElementById('tester-info-card');
-  el.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-    <div><span style="color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:1px">NAME</span><br><strong>${testerProfile.name||'—'}</strong></div>
-    <div><span style="color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:1px">CERT #</span><br><strong>${testerProfile.cert||'—'}</strong></div>
-    <div><span style="color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:1px">COMPANY</span><br><strong>${testerProfile.company||'—'}</strong></div>
-    <div><span style="color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:1px">GAUGE CAL</span><br><strong>${testerProfile.gaugeDate?fmtDate(testerProfile.gaugeDate):'—'}</strong></div>
-  </div>`;
+  if (!el) return; // element removed in new profile design
+  el.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
+    '<div><span style="color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:1px">NAME</span><br><strong>' + (testerProfile.name||'—') + '</strong></div>' +
+    '<div><span style="color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:1px">CERT #</span><br><strong>' + (testerProfile.cert||'—') + '</strong></div>' +
+    '<div><span style="color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:1px">COMPANY</span><br><strong>' + (testerProfile.company||'—') + '</strong></div>' +
+    '<div><span style="color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:1px">GAUGE CAL</span><br><strong>' + (testerProfile.gaugeDate ? fmtDate(testerProfile.gaugeDate) : '—') + '</strong></div>' +
+  '</div>';
 }
 
 // ── SEARCH ────────────────────────────────────────────
