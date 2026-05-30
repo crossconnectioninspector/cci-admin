@@ -105,7 +105,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 <div id="screen-login" style="min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(ellipse at 50% 0%,rgba(249,166,30,.08) 0%,transparent 60%),var(--bg)">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:24px;width:100%;max-width:400px;padding:40px 32px;box-shadow:0 8px 32px rgba(0,0,0,.5)">
     <div style="text-align:center;margin-bottom:36px">
-      <div style="width:64px;height:64px;background:var(--accent);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px;box-shadow:0 8px 32px rgba(249,166,30,.35)">🏠</div>
+      <div style="width:64px;height:64px;background:var(--accent);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px;box-shadow:0 8px 32px rgba(249,166,30,.35)"><svg width="34" height="34" viewBox="0 0 24 24" fill="#000" stroke="none"><path d="M12 3L2 11v1h2v9h6v-6h4v6h6v-9h2v-1L12 3z"/></svg></div>
       <div style="font-family:var(--cond);font-size:28px;font-weight:900;line-height:1.05;letter-spacing:-.5px">Backflow Check Pro</div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:3px;margin-top:8px;text-transform:uppercase">PROPERTY OWNER PORTAL</div>
     </div>
@@ -139,7 +139,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 <!-- ═══════════ REGISTER ═══════════ -->
 <div id="screen-register">
   <div class="login-card">
-    <div class="login-icon">📋</div>
+    <div class="login-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></div>
     <div class="login-title">Create Account</div>
     <div class="login-sub">Property Owner Registration</div>
 
@@ -163,7 +163,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 <div id="screen-app">
   <div class="topbar">
     <div class="topbar-left">
-      <div class="topbar-icon">🏠</div>
+      <div class="topbar-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-9.5z"/><path d="M9 21V13h6v8"/></svg></div>
       <div class="topbar-title">My Devices</div>
     </div>
     <div style="display:flex;align-items:center;gap:8px">
@@ -349,7 +349,7 @@ async function loadDevices() {
     if (myDevices.length === 0) {
       heroWrap.innerHTML = heroHTML('warn', '❓', 'No Devices Found', 'We don\'t have any devices registered to your account yet. Contact Backflow Check Pro to register your device.');
       container.innerHTML = `<div class="empty">
-        <span class="empty-icon">🔧</span>
+        <span class="empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
         <div class="empty-title">No Devices Registered</div>
         <div class="empty-sub">CONTACT BACKFLOW CHECK PRO<br>YOUR BACKFLOW PREVENTION ASSEMBLY</div>
       </div>`;
@@ -376,7 +376,7 @@ async function loadDevices() {
 
   } catch(e) {
     console.error(e);
-    container.innerHTML = '<div class="empty"><span class="empty-icon">⚠️</span><div class="empty-title">Could not load devices</div><div class="empty-sub">Check your connection and try again</div></div>';
+    container.innerHTML = '<div class="empty"><span class="empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span><div class="empty-title">Could not load devices</div><div class="empty-sub">Check your connection and try again</div></div>';
   }
 }
 
@@ -405,7 +405,7 @@ function deviceCardHTML(r, oneYearAgo) {
     const dueType = daysLeft <= 30 ? 'warn' : 'good';
     nextDueHTML = `<div class="device-next-due ${dueType}">📅 Next test due: ${dueFmt} (${daysLeft} days)</div>`;
   } else {
-    nextDueHTML = `<div class="device-next-due bad">⚠ OVERDUE — Annual test required immediately per TCEQ §290.47(f)</div>`;
+    nextDueHTML = `<div class="device-next-due bad">⚠ OVERDUE — Annual test required immediately</div>`;
   }
 
   const badgeClass = fail ? 'badge-fail' : isOverdue ? 'badge-overdue' : pass ? 'badge-pass' : 'badge-pending';
