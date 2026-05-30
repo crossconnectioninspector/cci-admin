@@ -1432,7 +1432,7 @@ function buildPsidFields(asm) {
   if (asm==='RPZ') {
     c.innerHTML = psidField('psid-c1','1ST CHECK VALVE','min 5.0 PSID to pass') +
                   psidField('psid-c2','2ND CHECK VALVE','min 1.0 PSID to pass') +
-                  psidField('psid-rv','RELIEF VALVE','must open ≤ (1st check − 2.0)');
+                  psidField('psid-rv','RELIEF VALVE','must open <= (1st check minus 2.0)');
   } else if (asm==='DCVA') {
     c.innerHTML = psidField('psid-c1','1ST CHECK VALVE','min 1.0 PSID to pass') +
                   psidField('psid-c2','2ND CHECK VALVE','min 1.0 PSID to pass');
@@ -1440,10 +1440,60 @@ function buildPsidFields(asm) {
     c.innerHTML = psidField('psid-c1','CHECK VALVE','min 1.0 PSID to pass') +
                   psidField('psid-rv','AIR INLET','min 1.0 PSID to pass');
   }
-  ['psid-c1','psid-c2','psid-rv'].forEach(id => {
+  ['psid-c1','psid-c2','psid-rv'].forEach(function(id) {
     const el = document.getElementById(id);
     if (el) el.addEventListener('input', updateResultBanner);
   });
+  // Also rebuild repair checklist for this asm type
+  buildRepairChecklist(asm);
+}
+
+// Repair options per valve/check
+const REPAIR_OPTS = [
+  'Cleaned debris',
+  'Check valve replaced',
+  'Springs replaced',
+  'Seats / seals replaced',
+  'Disc replaced',
+  'O-ring replaced',
+  'Relief valve repaired',
+  'Relief valve replaced',
+];
+
+function repairGroup(groupId, title) {
+  return '<div style="margin-bottom:12px">' +
+    '<div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">' + title + '</div>' +
+    REPAIR_OPTS.map(function(opt) {
+      const id = 'rep-' + groupId + '-' + opt.replace(/[^a-z]/gi,'').toLowerCase();
+      return '<label style="display:flex;align-items:center;gap:9px;padding:8px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:9px;cursor:pointer;font-size:13px;color:var(--text);margin-bottom:4px">' +
+        '<input type="checkbox" id="' + id + '" style="width:16px;height:16px;accent-color:var(--accent)"> ' + opt + '</label>';
+    }).join('') +
+  '</div>';
+}
+
+function buildRepairChecklist(asm) {
+  const wrap = document.getElementById('repair-checklist');
+  if (!wrap) return;
+  if (asm === 'RPZ') {
+    wrap.innerHTML =
+      repairGroup('c1', '1st Check Valve') +
+      repairGroup('c2', '2nd Check Valve') +
+      repairGroup('rv', 'Relief Valve');
+  } else if (asm === 'DCVA') {
+    wrap.innerHTML =
+      repairGroup('c1', '1st Check Valve') +
+      repairGroup('c2', '2nd Check Valve');
+  } else if (asm === 'PVB') {
+    wrap.innerHTML =
+      repairGroup('c1', 'Check Valve') +
+      repairGroup('rv', 'Air Inlet');
+  } else if (asm === 'SVB') {
+    wrap.innerHTML =
+      repairGroup('c1', 'Check Valve') +
+      repairGroup('rv', 'Air Inlet');
+  } else {
+    wrap.innerHTML = repairGroup('c1', 'Check Valve');
+  }
 }
 
 function psidField(id, label, hint) {
@@ -1617,18 +1667,15 @@ async function submitReport() {
     fail_reasons: fails.join('; '),
     repairs: repairsOn,
     repair_details: (function(){
-      const boxes=[
-        ['rep-cleaned','Cleaned debris from check valve'],
-        ['rep-replaced-cv','Check valve replaced'],
-        ['rep-springs','Springs replaced'],
-        ['rep-seats','Seats/seals replaced'],
-        ['rep-disc','Disc replaced'],
-        ['rep-rv','Relief valve repaired/replaced'],
-        ['rep-other','Other'],
-      ];
-      const checked=boxes.filter(function(b){return document.getElementById(b[0])&&document.getElementById(b[0]).checked;}).map(function(b){return b[1];});
-      const notes=(document.getElementById('sub-repair-details')||{}).value||'';
-      return checked.concat(notes?[notes]:[]).join('; ');
+      // Collect all dynamically generated repair checkboxes
+      const allChecked = [];
+      const checkboxes = document.querySelectorAll('#repair-checklist input[type=checkbox]:checked');
+      checkboxes.forEach(function(cb) {
+        const label = cb.parentElement ? cb.parentElement.textContent.trim() : '';
+        if (label) allChecked.push(label);
+      });
+      const notes = (document.getElementById('sub-repair-details') || {}).value || '';
+      return allChecked.concat(notes ? [notes] : []).join('; ');
     })(),
     notes: document.getElementById('sub-remarks').value,
     remarks: document.getElementById('sub-remarks').value,
@@ -2474,15 +2521,20 @@ function initModelAutocomplete(brand, inputId, dropdownId) {
     const allModels = Object.keys(models);
     const matches = q ? allModels.filter(k => k.toLowerCase().includes(q)) : allModels;
     if (!matches.length) { dropdown.style.display = 'none'; return; }
-    dropdown.innerHTML = matches.slice(0, 8).map(k => {
+    // Build using DOM to avoid quote issues in onclick
+    const frag = document.createDocumentFragment();
+    matches.slice(0, 8).forEach(k => {
       const info = models[k];
       const types = info?.types?.join(', ') || '';
       const lf = info?.leadFree ? ' · Lead Free' : '';
-      return `<div class="ac-item" onclick="selectModel('${k}','${inputId}','${dropdownId}')">
-        <div class="ac-item-main">${k}</div>
-        <div class="ac-item-sub">${types}${lf}</div>
-      </div>`;
-    }).join('');
+      const div = document.createElement('div');
+      div.className = 'ac-item';
+      div.innerHTML = `<div class="ac-item-main">${k}</div><div class="ac-item-sub">${types}${lf}</div>`;
+      div.addEventListener('click', () => selectModel(brand || '', k, inputId, dropdownId));
+      frag.appendChild(div);
+    });
+    dropdown.innerHTML = '';
+    dropdown.appendChild(frag);
     dropdown.style.display = 'block';
     positionDropdown(input, dropdown);
   };
