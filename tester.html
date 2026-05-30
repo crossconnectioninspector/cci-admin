@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Cross Connection Inspector — Tester Portal</title>
+<title>Backflow Check Pro — Tester Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600;700;900&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -630,22 +630,52 @@ select.field-input option{background:var(--elevated)}
   <div class="login-card">
     <div class="login-logo">
       <div class="login-icon">🛡️</div>
-      <div class="login-title">Cross Connection<br>Inspector</div>
+      <div class="login-title">Backflow Check Pro</div>
       <div class="login-sub">TESTER PORTAL</div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Email</label>
-      <input type="email" class="form-input" id="login-email" placeholder="you@example.com" autocomplete="email">
+    <div style="display:flex;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:20px;gap:4px">
+      <button id="tab-signin" onclick="authTab('signin')" style="flex:1;padding:9px;border-radius:7px;border:none;background:var(--accent);color:#000;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer">Sign In</button>
+      <button id="tab-signup" onclick="authTab('signup')" style="flex:1;padding:9px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer">Create Account</button>
     </div>
-    <div class="form-group">
-      <label class="form-label">Password</label>
-      <input type="password" class="form-input" id="login-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <div id="pane-signin">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="login-email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-input" id="login-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div id="login-error" class="err-msg"></div>
+      <div style="margin-top:18px">
+        <button class="btn btn-accent" onclick="doLogin()" id="login-btn">Sign In</button>
+      </div>
+      <div style="text-align:center;margin-top:14px;font-size:12px;color:var(--muted)">No account? <button onclick="authTab('signup')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;font-weight:700">Create one free</button></div>
     </div>
-    <div id="login-error" class="err-msg"></div>
-    <div style="margin-top:18px">
-      <button class="btn btn-accent" onclick="doLogin()" id="login-btn">Sign In</button>
+    <div id="pane-signup" style="display:none">
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input type="text" class="form-input" id="su-name" placeholder="First and last name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="su-email" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-input" id="su-pass" placeholder="Minimum 8 characters" onkeydown="if(event.key==='Enter')doSignUp()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirm Password</label>
+        <input type="password" class="form-input" id="su-confirm" placeholder="Re-enter password" onkeydown="if(event.key==='Enter')doSignUp()">
+      </div>
+      <div id="su-error" class="err-msg"></div>
+      <div id="su-success" style="display:none;background:rgba(61,184,112,.14);border:1px solid rgba(61,184,112,.3);border-radius:8px;padding:12px;font-size:13px;color:#3db870;text-align:center;line-height:1.6;margin-bottom:12px"></div>
+      <div style="margin-top:18px">
+        <button class="btn btn-accent" onclick="doSignUp()" id="su-btn">Create Account</button>
+      </div>
+      <div style="text-align:center;margin-top:14px;font-size:12px;color:var(--muted)">Have an account? <button onclick="authTab('signin')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;font-weight:700">Sign in</button></div>
     </div>
-    <div style="text-align:center;margin-top:14px;font-family:var(--mono);font-size:10px;color:var(--muted)">Need access? Contact your administrator.</div>
   </div>
 </div>
 
@@ -947,6 +977,39 @@ let testerProfile = {};
 
 // ── AUTH ────────────────────────────────────────────
 
+function authTab(tab) {
+  document.getElementById('pane-signin').style.display=tab==='signin'?'block':'none';
+  document.getElementById('pane-signup').style.display=tab==='signup'?'block':'none';
+  const bi=document.getElementById('tab-signin'),bo=document.getElementById('tab-signup');
+  if(tab==='signin'){bi.style.background='var(--accent)';bi.style.color='#000';bo.style.background='transparent';bo.style.color='var(--muted)';}
+  else{bo.style.background='var(--accent)';bo.style.color='#000';bi.style.background='transparent';bi.style.color='var(--muted)';}
+  const e1=document.getElementById('login-error');if(e1)e1.textContent='';
+  const e2=document.getElementById('su-error');if(e2)e2.textContent='';
+  const s=document.getElementById('su-success');if(s)s.style.display='none';
+}
+async function doSignUp(){
+  const name=document.getElementById('su-name').value.trim();
+  const email=document.getElementById('su-email').value.trim();
+  const pass=document.getElementById('su-pass').value;
+  const confirm=document.getElementById('su-confirm').value;
+  const errEl=document.getElementById('su-error');
+  const succEl=document.getElementById('su-success');
+  const btn=document.getElementById('su-btn');
+  errEl.textContent='';succEl.style.display='none';
+  if(!name){errEl.textContent='Please enter your full name.';return;}
+  if(!email){errEl.textContent='Please enter your email.';return;}
+  if(pass.length<8){errEl.textContent='Password must be at least 8 characters.';return;}
+  if(pass!==confirm){errEl.textContent='Passwords do not match.';return;}
+  btn.textContent='Creating...';btn.disabled=true;
+  try{
+    const {error}=await supaClient.auth.signUp({email,password:pass,options:{data:{full_name:name,role:'tester'}}});
+    if(error){errEl.textContent=error.message;btn.textContent='Create Account';btn.disabled=false;return;}
+    succEl.innerHTML='<strong>Account created!</strong><br>Check your email to confirm, then sign in.<br><small>Check spam if you do not see it.</small>';
+    succEl.style.display='block';
+    btn.textContent='Done!';
+    setTimeout(()=>{authTab('signin');document.getElementById('login-email').value=email;btn.textContent='Create Account';btn.disabled=false;},4000);
+  }catch(e){errEl.textContent='Error: '+e.message;btn.textContent='Create Account';btn.disabled=false;}
+}
 async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
@@ -1162,50 +1225,11 @@ async function saveProfile() {
   btn.innerHTML = '💾 Save Profile';
   btn.disabled = false;
   if (error) { toast('Save failed: ' + error.message, 'error'); return; }
-
-  // ── Submit to admin approval queue ──────────────────────────────────────────
-  // Upsert into tester_registrations table for admin review
-  const requiredFields = ['cert','company','licenseExp','gaugeDate','gaugeSerial'];
-  const allPresent = requiredFields.every(f => testerProfile[f] && testerProfile[f].toString().trim());
-  const regPayload = {
-    user_id: currentUser.id,
-    email: currentUser.email,
-    full_name: testerProfile.name || '',
-    company: testerProfile.company || '',
-    cert_number: testerProfile.cert || '',
-    cert_exp: testerProfile.certExp || '',
-    license_number: testerProfile.license || '',
-    license_exp: testerProfile.licenseExp || '',
-    gauge_serial: testerProfile.gaugeSerial || '',
-    gauge_cal_date: testerProfile.gaugeDate || '',
-    gauge_cal_due: testerProfile.gaugeDue || '',
-    phone: testerProfile.phone || '',
-    all_fields_complete: allPresent,
-    status: 'pending',
-    submitted_at: new Date().toISOString(),
-  };
-
-  // Try to upsert — table may not exist yet (pending SQL migration)
-  try {
-    const { error: regError } = await supaClient
-      .from('tester_registrations')
-      .upsert([regPayload], { onConflict: 'user_id' });
-    if (regError) {
-      console.warn('Registration queue not available yet:', regError.message);
-      // Silently fail — admin can still see data via auth.users
-    } else {
-      console.log('Profile submitted to admin approval queue');
-    }
-  } catch(e) {
-    console.warn('tester_registrations table not yet created:', e.message);
-  }
-  // ───────────────────────────────────────────────────────────────────────────
-
   applyProfileToForm();
   const pill = document.getElementById('tester-name-pill');
   if (pill) pill.textContent = (testerProfile.name || currentUser.email || 'TESTER').toUpperCase().slice(0,16);
   renderExpirationWarnings();
-  toast(allPresent ? 'Profile saved! Submitted for admin approval.' : 'Profile saved. Complete all fields to submit for approval.', allPresent ? 'success' : 'warn');
+  toast('Profile saved!', 'success');
 }
 
 function checkProfileWarning() {
@@ -2384,7 +2408,7 @@ async function processAIPhoto(input) {
             },
             {
               type: 'text',
-              text: 'Extract info from this backflow assembly nameplate image. Respond ONLY with valid JSON: {"manufacturer":"brand name","model":"model number","serial":"serial number"}. Use null for unreadable fields.'
+              text: 'Extract info from this backflow assembly nameplate. Respond ONLY with valid JSON: {"manufacturer":"brand name","model":"model number","serial":"serial number"}. Use null for unreadable fields.'
             }
           ]
         }]
