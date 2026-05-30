@@ -2702,65 +2702,79 @@ supaClient.auth.getSession().then(({data:{session}})=>{
 // ════════════════════════════════════════════════════════════════
 
 const BACKFLOW_DEVICES = {
-  'Watts': {
-    models: {
-      'LF009': { types: ['RPZ'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
-      'LF009M2': { types: ['RPZ'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
-      'LF007': { types: ['DCVA'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"','2-1/2"','3"'] },
-      'LF007M2': { types: ['DCVA'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
-      'LF800M4': { types: ['PVB'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
-      'LF800MKII': { types: ['PVB'], leadFree: true, sizes: ['3/4"','1"','1-1/2"','2"'] },
-      '009': { types: ['RPZ'], leadFree: false, sizes: ['3/4"','1"','1-1/2"','2"'] },
-      '007': { types: ['DCVA'], leadFree: false, sizes: ['3/4"','1"','1-1/2"','2"','3"'] },
-    }
-  },
-  'Febco': {
-    models: {
-      'LF825Y': { types: ['RPZ'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
-      'LF825YA': { types: ['RPZ'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
-      'LF860': { types: ['DCVA'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
-      'LF765': { types: ['PVB'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
-      '825Y': { types: ['RPZ'], leadFree: false, sizes: ['3/4"','1"','1-1/2"','2"'] },
-      '860': { types: ['DCVA'], leadFree: false, sizes: ['3/4"','1"','1-1/2"','2"'] },
-    }
-  },
-  'Wilkins': {
-    models: {
-      'LF375XL': { types: ['RPZ'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
-      'LF375A': { types: ['RPZ'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
-      'LF350XL': { types: ['DCVA'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
-      'LF720A': { types: ['PVB'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
-      '375XL': { types: ['RPZ'], leadFree: false, sizes: ['3/4"','1"','1-1/2"','2"'] },
-      '350XL': { types: ['DCVA'], leadFree: false, sizes: ['3/4"','1"','1-1/2"','2"'] },
-    }
-  },
-  'Ames': {
-    models: {
-      'LF4000SS': { types: ['RPZ'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
-      'LF2000SS': { types: ['DCVA'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
-      '4000SS': { types: ['RPZ'], leadFree: false, sizes: ['3/4"','1"','1-1/2"','2"'] },
-      '2000SS': { types: ['DCVA'], leadFree: false, sizes: ['3/4"','1"','1-1/2"','2"'] },
-    }
-  },
-  'Apollo': {
-    models: {
-      'LF4ALF': { types: ['RPZ'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
-      'LF4A': { types: ['RPZ'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
-      'LF4CIV': { types: ['DCVA'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
-      '4ALF': { types: ['RPZ'], leadFree: false, sizes: ['3/4"','1"','1-1/2"','2"'] },
-    }
-  },
-  'Conbraco': {
-    models: {
-      'LF4ALF': { types: ['RPZ'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
-      'LF4CIV': { types: ['DCVA'], leadFree: true, sizes: ['3/4"','1"','1-1/2"','2"'] },
-    }
-  },
-  'Cash Acme': {
-    models: {
-      'LF3': { types: ['RPZ'], leadFree: true, sizes: ['3/4"','1"','1-1/4"','1-1/2"','2"'] },
-    }
-  },
+  'Watts': { models: {
+    'LF009':     { types:['RPZ'],  leadFree:true,  sizes:['1/2"','3/4"','1"','1-1/4"','1-1/2"','2"','2-1/2"','3"'] },
+    'LF009M2':   { types:['RPZ'],  leadFree:true,  sizes:['3/4"','1"','1-1/4"','1-1/2"','2"','2-1/2"','3"'] },
+    'LF909':     { types:['RPZ'],  leadFree:true,  sizes:['2-1/2"','3"','4"','6"','8"','10"'] },
+    '009':       { types:['RPZ'],  leadFree:false, sizes:['3/4"','1"','1-1/4"','1-1/2"','2"','2-1/2"','3"','4"','6"','8"','10"'] },
+    'LF007':     { types:['DCVA'], leadFree:true,  sizes:['1/4"','3/8"','1/2"','3/4"','1"','1-1/4"','1-1/2"','2"','2-1/2"','3"','4"','6"','8"','10"'] },
+    'LF007M2':   { types:['DCVA'], leadFree:true,  sizes:['3/4"','1"','1-1/4"','1-1/2"','2"','2-1/2"','3"','4"'] },
+    '007':       { types:['DCVA'], leadFree:false, sizes:['3/4"','1"','1-1/4"','1-1/2"','2"','2-1/2"','3"','4"','6"','8"','10"'] },
+    'LF800M4':   { types:['PVB'],  leadFree:true,  sizes:['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+    'LF800MKII': { types:['PVB'],  leadFree:true,  sizes:['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+    'LF957':     { types:['SVB'],  leadFree:true,  sizes:['3/4"','1"'] }
+  }},
+  'Febco': { models: {
+    'LF825Y':  { types:['RPZ'],  leadFree:true,  sizes:['3/4"','1"','1-1/4"','1-1/2"','2"','2-1/2"','3"','4"','6"','8"','10"'] },
+    'LF825YA': { types:['RPZ'],  leadFree:true,  sizes:['3/4"','1"','1-1/4"','1-1/2"','2"','2-1/2"','3"','4"'] },
+    'LF876V':  { types:['RPZ'],  leadFree:true,  sizes:['2-1/2"','3"','4"','6"','8"','10"'] },
+    'LF876VE': { types:['RPZ'],  leadFree:true,  sizes:['2-1/2"','3"','4"','6"','8"'] },
+    '825Y':    { types:['RPZ'],  leadFree:false, sizes:['3/4"','1"','1-1/2"','2"','2-1/2"','3"','4"','6"','8"','10"'] },
+    'LF860':   { types:['DCVA'], leadFree:true,  sizes:['3/4"','1"','1-1/4"','1-1/2"','2"','2-1/2"','3"','4"','6"','8"','10"'] },
+    'LF880V':  { types:['DCVA'], leadFree:true,  sizes:['2-1/2"','3"','4"','6"','8"','10"'] },
+    '860':     { types:['DCVA'], leadFree:false, sizes:['3/4"','1"','1-1/2"','2"','2-1/2"','3"','4"','6"','8"','10"'] },
+    'LF765':   { types:['PVB'],  leadFree:true,  sizes:['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+    'LF795':   { types:['SVB'],  leadFree:true,  sizes:['1/2"','3/4"','1"'] }
+  }},
+  'Wilkins': { models: {
+    'LF375XL': { types:['RPZ'],  leadFree:true,  sizes:['3/4"','1"','1-1/4"','1-1/2"','2"','2-1/2"','3"','4"'] },
+    'LF375A':  { types:['RPZ'],  leadFree:true,  sizes:['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+    'LF475XL': { types:['RPZ'],  leadFree:true,  sizes:['2-1/2"','3"','4"','6"','8"','10"'] },
+    '375XL':   { types:['RPZ'],  leadFree:false, sizes:['3/4"','1"','1-1/2"','2"','2-1/2"','3"','4"','6"','8"','10"'] },
+    'LF350XL': { types:['DCVA'], leadFree:true,  sizes:['3/4"','1"','1-1/4"','1-1/2"','2"','2-1/2"','3"','4"','6"','8"','10"'] },
+    'LF450XL': { types:['DCVA'], leadFree:true,  sizes:['2-1/2"','3"','4"','6"','8"','10"'] },
+    '350XL':   { types:['DCVA'], leadFree:false, sizes:['3/4"','1"','1-1/2"','2"','2-1/2"','3"','4"','6"','8"','10"'] },
+    'LF720A':  { types:['PVB'],  leadFree:true,  sizes:['1/2"','3/4"','1"','1-1/4"','1-1/2"','2"'] },
+    'LF720':   { types:['PVB'],  leadFree:true,  sizes:['3/4"','1"','1-1/2"','2"'] }
+  }},
+  'Ames': { models: {
+    'LF4000SS':  { types:['RPZ'],  leadFree:true,  sizes:['3/4"','1"','1-1/4"','1-1/2"','2"','2-1/2"','3"','4"'] },
+    'LF4000B':   { types:['RPZ'],  leadFree:true,  sizes:['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+    'LF4000BM2': { types:['RPZ'],  leadFree:true,  sizes:['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+    '4000SS':    { types:['RPZ'],  leadFree:false, sizes:['3/4"','1"','1-1/2"','2"','2-1/2"','3"','4"','6"','8"','10"'] },
+    'LF2000SS':  { types:['DCVA'], leadFree:true,  sizes:['3/4"','1"','1-1/4"','1-1/2"','2"','2-1/2"','3"','4"','6"','8"','10"'] },
+    '2000SS':    { types:['DCVA'], leadFree:false, sizes:['3/4"','1"','1-1/2"','2"','2-1/2"','3"','4"','6"','8"','10"'] },
+    'LF800SS':   { types:['PVB'],  leadFree:true,  sizes:['3/4"','1"','1-1/2"','2"'] }
+  }},
+  'Apollo': { models: {
+    'LF4ALF':  { types:['RPZ'],  leadFree:true,  sizes:['3/4"','1"','1-1/4"','1-1/2"','2"','2-1/2"','3"','4"'] },
+    'LF4A':    { types:['RPZ'],  leadFree:true,  sizes:['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+    'LF4ALFC': { types:['RPZ'],  leadFree:true,  sizes:['2-1/2"','3"','4"','6"','8"','10"'] },
+    '4ALF':    { types:['RPZ'],  leadFree:false, sizes:['3/4"','1"','1-1/2"','2"','2-1/2"','3"','4"'] },
+    'LF4CIV':  { types:['DCVA'], leadFree:true,  sizes:['3/4"','1"','1-1/4"','1-1/2"','2"','2-1/2"','3"','4"'] },
+    'LF4CI':   { types:['DCVA'], leadFree:true,  sizes:['3/4"','1"','1-1/4"','1-1/2"','2"'] },
+    'LF40100': { types:['PVB'],  leadFree:true,  sizes:['3/4"','1"','1-1/4"','1-1/2"','2"'] }
+  }},
+  'Conbraco': { models: {
+    'LF4ALF':  { types:['RPZ'],  leadFree:true,  sizes:['3/4"','1"','1-1/4"','1-1/2"','2"','2-1/2"','3"','4"'] },
+    'LF4ALFC': { types:['RPZ'],  leadFree:true,  sizes:['2-1/2"','3"','4"','6"','8"','10"'] },
+    'LF4CIV':  { types:['DCVA'], leadFree:true,  sizes:['3/4"','1"','1-1/4"','1-1/2"','2"','2-1/2"','3"'] },
+    'LF4CI':   { types:['DCVA'], leadFree:true,  sizes:['3/4"','1"','1-1/4"','1-1/2"','2"'] }
+  }},
+  'Cash Acme': { models: {
+    'LF3': { types:['RPZ'], leadFree:true, sizes:['3/4"','1"','1-1/4"','1-1/2"','2"'] }
+  }},
+  'Flomatic': { models: {
+    'LF80D':  { types:['RPZ'],  leadFree:true, sizes:['3/4"','1"','1-1/4"','1-1/2"','2"','2-1/2"','3"','4"'] },
+    'LF80XL': { types:['RPZ'],  leadFree:true, sizes:['2-1/2"','3"','4"','6"','8"','10"'] },
+    'LF20D':  { types:['DCVA'], leadFree:true, sizes:['3/4"','1"','1-1/4"','1-1/2"','2"','2-1/2"','3"','4"'] }
+  }},
+  'Zurn': { models: {
+    'LF1770':   { types:['RPZ'],  leadFree:true, sizes:['3/4"','1"','1-1/4"','1-1/2"','2"','2-1/2"','3"','4"'] },
+    'LF1770XL': { types:['RPZ'],  leadFree:true, sizes:['2-1/2"','3"','4"','6"','8"','10"'] },
+    'LF1750':   { types:['DCVA'], leadFree:true, sizes:['3/4"','1"','1-1/4"','1-1/2"','2"','2-1/2"','3"','4"','6"','8"','10"'] },
+    'LF34':     { types:['PVB'],  leadFree:true, sizes:['1/2"','3/4"','1"','1-1/4"','1-1/2"','2"'] }
+  }}
 };
 
 const BRAND_LIST = Object.keys(BACKFLOW_DEVICES);
