@@ -44,13 +44,9 @@ function sanitize(str) {
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;display:flex;font-weight:400;font-size:15px;line-height:var(--lh)}
 ::-webkit-scrollbar{width:5px;height:5px}
-.lov-tab{padding:13px 18px;background:transparent;border:none;border-bottom:3px solid transparent;color:var(--muted);font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s;margin-bottom:-1px}
-.lov-tab:hover{color:var(--text)}
-.lov-tab.lov-active{color:var(--accent);border-bottom-color:var(--accent)}
-
-.loc-side-tab{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:9px;background:transparent;border:none;color:var(--muted);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;text-align:left;transition:all .15s;white-space:nowrap}
-.loc-side-tab:hover{color:var(--text)}
-.loc-side-tab.active{color:var(--accent);border-bottom:2px solid var(--accent) !important;font-weight:700}
+.loc-side-tab{display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;border-radius:9px;background:transparent;border:none;color:var(--muted);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;text-align:left;transition:all .15s}
+.loc-side-tab:hover{background:var(--elevated);color:var(--text)}
+.loc-side-tab.active{background:rgba(249,166,30,.12);color:var(--accent);font-weight:700}
 
 .rpt-opt{display:flex;align-items:center;gap:10px;width:100%;padding:10px 13px;border-radius:10px;background:transparent;border:none;color:var(--text);font-family:var(--sans);font-size:15px;font-weight:500;cursor:pointer;text-align:left;transition:all .15s;position:relative}
 .rpt-opt:hover{background:rgba(255,255,255,.05);transform:translateX(2px)}
@@ -1464,44 +1460,73 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
 <div class="es-sub">TCEQ regulations and resources coming soon.</div></div></div>
 
 <!-- Location Full-Screen Detail Overlay -->
-<div id="locFullOverlay" style="display:none;position:fixed;top:56px;left:170px;right:0;bottom:0;background:var(--bg);z-index:100;flex-direction:column;overflow:hidden;border-left:1px solid var(--border)">
+<div id="locFullOverlay" style="display:none;position:absolute;inset:0;background:var(--bg);z-index:50;flex-direction:column;overflow:hidden;opacity:1;transform:translateX(0);transition:opacity .2s ease,transform .2s ease">
 
-  <!-- Top bar -->
+  <!-- Overlay top bar -->
   <div style="display:flex;align-items:center;gap:14px;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0">
-    <button id="locOverlayBackBtn" style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--elevated);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer">
+    <!-- Back button -->
+    <button onclick="locCloseDetail()" style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--elevated);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s"
+      onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
       Back to Locations
     </button>
+
+    <!-- Breadcrumb -->
     <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)">
-      <span>Locations</span>
+      <span style="color:var(--muted)">Locations</span>
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
       <span id="locOverlayBreadcrumb" style="color:var(--text);font-weight:600"></span>
     </div>
+
+    <!-- Right actions -->
     <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
       <div id="locOverlayBadge"></div>
-      <button id="locOverlayEditBtn" style="display:flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:9px;background:var(--elevated);border:1.5px solid var(--border);color:var(--muted);cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600">
+      <button id="locOverlayEditBtn" onclick="locToggleEdit()" style="display:flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:9px;background:var(--elevated);border:1.5px solid var(--border);color:var(--muted);cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600;transition:all .15s">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         Edit
       </button>
-      <button id="locOverlayCloseBtn" style="width:34px;height:34px;border-radius:8px;background:var(--elevated);border:1.5px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px">&#x2715;</button>
+      <button onclick="locCloseDetail()" style="width:34px;height:34px;border-radius:8px;background:var(--elevated);border:1.5px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .15s"
+        onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">&#x2715;</button>
     </div>
   </div>
 
-  <!-- Summary strip -->
-  <div id="locOverlaySummary" style="display:flex;align-items:center;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto"></div>
+  <!-- Summary stat bar -->
+  <div id="locOverlaySummary" style="display:flex;align-items:center;gap:0;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto"></div>
 
-  <!-- Tab bar -->
-  <div id="locOverlayTabBar" style="display:flex;gap:0;padding:0 28px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0">
-    <button data-tab="details"       class="lov-tab lov-active">Details</button>
-    <button data-tab="assemblies"    class="lov-tab">Assemblies</button>
-    <button data-tab="contacts"      class="lov-tab">Contacts</button>
-    <button data-tab="communications" class="lov-tab">Communications</button>
-    <button data-tab="surveys"       class="lov-tab">Surveys</button>
-    <button data-tab="compliance"    class="lov-tab">Compliance</button>
+  <!-- Content: tabs + body side by side on wide screen -->
+  <div style="flex:1;display:flex;overflow:hidden">
+    <!-- Tab sidebar -->
+    <div style="width:180px;border-right:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;flex-shrink:0;padding:12px 8px;gap:2px">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;padding:6px 10px 10px">Location</div>
+      <button class="loc-side-tab active" onclick="locOverlaySwitchTab('details',this)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Details
+      </button>
+      <button class="loc-side-tab" onclick="locOverlaySwitchTab('assemblies',this)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83"/></svg>
+        Assemblies
+      </button>
+      <button class="loc-side-tab" onclick="locOverlaySwitchTab('contacts',this)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Contacts
+      </button>
+      <button class="loc-side-tab" onclick="locOverlaySwitchTab('communications',this)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.86 13"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+        Comms
+      </button>
+      <button class="loc-side-tab" onclick="locOverlaySwitchTab('surveys',this)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+        Surveys
+      </button>
+      <button class="loc-side-tab" onclick="locOverlaySwitchTab('compliance',this)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Compliance
+      </button>
+    </div>
+
+    <!-- Tab body -->
+    <div id="locOverlayTabBody" style="flex:1;overflow-y:auto;padding:28px 32px;max-width:900px"></div>
   </div>
-
-  <!-- Tab body -->
-  <div id="locOverlayTabBody" style="flex:1;overflow-y:auto;padding:28px 32px"></div>
 </div>
 
 <!-- Add Location Modal -->
@@ -4387,7 +4412,7 @@ function locDelFilter(i){locSavedFilters.splice(i,1);localStorage.setItem('cci_l
 
 function locHazardStyle(h){if(h==='High')return{bg:'rgba(224,82,82,.15)',color:'var(--red)',border:'rgba(224,82,82,.3)'};if(h==='Medium')return{bg:'rgba(240,192,64,.15)',color:'var(--yellow)',border:'rgba(240,192,64,.3)'};return{bg:'rgba(76,175,121,.15)',color:'var(--green)',border:'rgba(76,175,121,.3)'};}
 
-function locRenderTable(){const body=document.getElementById('locTableBody');const rpp=parseInt(document.getElementById('locRowsPerPage')?.value||'10');const total=locFiltered.length;const totalPages=Math.max(1,Math.ceil(total/rpp));if(locCurrentPage>totalPages)locCurrentPage=totalPages;const start=(locCurrentPage-1)*rpp;const page=locFiltered.slice(start,start+rpp);const info=document.getElementById('locPageInfo');if(info)info.textContent=total===0?'No results':`${start+1}-${Math.min(start+rpp,total)} of ${total} items`;locRenderHeaders();if(!body)return;if(!page.length){body.innerHTML=`<div style="text-align:center;padding:48px;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px;opacity:.3">&#x1F4CD;</div><div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px">No locations found</div></div>`;return;}const cols=locDetailOpen?LOC_COLS_SLIM:LOC_COLS_FULL;body.innerHTML=page.map(loc=>{const isActive=locActiveId===loc.id;const cc=loc.compliance==='Compliant'?'var(--green)':loc.compliance==='Overdue'?'var(--yellow)':'var(--red)';const hs=locHazardStyle(loc.hazard);const hazardChip=`<span style="font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;background:${hs.bg};color:${hs.color};border:1px solid ${hs.border};white-space:nowrap">${loc.hazard.toUpperCase()} ${loc.hazardRating}/10</span>`;const asmTypes=[...new Set((loc.assemblies||[]).map(a=>a.type))].join(', ');const asmSizes=[...new Set((loc.assemblies||[]).map(a=>a.size))].join(', ');const asmSerials=(loc.assemblies||[]).map(a=>a.serial).join(', ');let cells;if(!locDetailOpen){cells=[`<div style="min-width:0"><div style="font-size:15px;font-weight:600;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(loc.address)}</div><div style="display:flex;align-items:center;gap:4px;margin-top:2px"><div style="width:6px;height:6px;border-radius:50%;background:${cc};box-shadow:0 0 4px ${cc}"></div><span style="font-family:var(--mono);font-size:10px;color:${cc}">${loc.compliance}</span></div></div>`,`<div style="min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(loc.name)}</div><div style="font-size:12px;color:var(--muted);margin-top:1px">${sanitize(loc.contact)}</div></div>`,`<div style="font-family:var(--mono);font-size:12px;color:var(--text)">${asmTypes}</div>`,`<div style="font-family:var(--mono);font-size:12px;color:var(--muted)">${asmSizes}</div>`,`<div style="font-family:var(--mono);font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${sanitize(asmSerials)}">${sanitize(asmSerials)}</div>`,`<div style="font-family:var(--mono);font-size:12px;color:var(--muted)">${sanitize(loc.account)||'&mdash;'}</div>`,hazardChip];}else{cells=[`<div style="min-width:0"><div style="font-size:13px;font-weight:600;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(loc.address)}</div><div style="display:flex;align-items:center;gap:4px;margin-top:2px"><div style="width:6px;height:6px;border-radius:50%;background:${cc};box-shadow:0 0 4px ${cc}"></div><span style="font-family:var(--mono);font-size:10px;color:${cc}">${loc.compliance}</span></div></div>`,`<div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(loc.name)}</div>`,`<div style="font-family:var(--mono);font-size:12px;color:var(--text)">${asmTypes}</div>`,`<div style="font-family:var(--mono);font-size:12px;color:var(--muted)">${sanitize(loc.account)||'&mdash;'}</div>`,hazardChip];}return`<div onclick="locSelectRow(${loc.id})" style="display:grid;grid-template-columns:${cols};padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;align-items:center;background:${isActive?'rgba(249,166,30,.06)':'transparent'};border-left:3px solid ${isActive?'var(--accent)':'transparent'};gap:0" onmouseover="if(!${isActive})this.style.background='var(--elevated)'" onmouseout="this.style.background='${isActive?'rgba(249,166,30,.06)':'transparent'}'"> ${cells.map(c=>`<div style="padding:0 8px;overflow:hidden">${c}</div>`).join('')}</div>`;}).join('');}
+function locRenderTable(){const body=document.getElementById('locTableBody');const rpp=parseInt(document.getElementById('locRowsPerPage')?.value||'10');const total=locFiltered.length;const totalPages=Math.max(1,Math.ceil(total/rpp));if(locCurrentPage>totalPages)locCurrentPage=totalPages;const start=(locCurrentPage-1)*rpp;const page=locFiltered.slice(start,start+rpp);const info=document.getElementById('locPageInfo');if(info)info.textContent=total===0?'No results':`${start+1}-${Math.min(start+rpp,total)} of ${total} items`;locRenderHeaders();if(!body)return;if(!page.length){body.innerHTML=`<div style="text-align:center;padding:48px;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px;opacity:.3">&#x1F4CD;</div><div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px">No locations found</div></div>`;return;}const cols=locDetailOpen?LOC_COLS_SLIM:LOC_COLS_FULL;body.innerHTML=page.map(loc=>{const isActive=locActiveId===loc.id;const cc=loc.compliance==='Compliant'?'var(--green)':loc.compliance==='Overdue'?'var(--yellow)':'var(--red)';const hs=locHazardStyle(loc.hazard);const hazardChip=`<span style="font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;background:${hs.bg};color:${hs.color};border:1px solid ${hs.border};white-space:nowrap">${loc.hazard.toUpperCase()} ${loc.hazardRating}/10</span>`;const asmTypes=[...new Set(loc.assemblies.map(a=>a.type))].join(', ');const asmSizes=[...new Set(loc.assemblies.map(a=>a.size))].join(', ');const asmSerials=loc.assemblies.map(a=>a.serial).join(', ');let cells;if(!locDetailOpen){cells=[`<div style="min-width:0"><div style="font-size:15px;font-weight:600;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(loc.address)}</div><div style="display:flex;align-items:center;gap:4px;margin-top:2px"><div style="width:6px;height:6px;border-radius:50%;background:${cc};box-shadow:0 0 4px ${cc}"></div><span style="font-family:var(--mono);font-size:10px;color:${cc}">${loc.compliance}</span></div></div>`,`<div style="min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(loc.name)}</div><div style="font-size:12px;color:var(--muted);margin-top:1px">${sanitize(loc.contact)}</div></div>`,`<div style="font-family:var(--mono);font-size:12px;color:var(--text)">${asmTypes}</div>`,`<div style="font-family:var(--mono);font-size:12px;color:var(--muted)">${asmSizes}</div>`,`<div style="font-family:var(--mono);font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${sanitize(asmSerials)}">${sanitize(asmSerials)}</div>`,`<div style="font-family:var(--mono);font-size:12px;color:var(--muted)">${sanitize(loc.account)||'&mdash;'}</div>`,hazardChip];}else{cells=[`<div style="min-width:0"><div style="font-size:13px;font-weight:600;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(loc.address)}</div><div style="display:flex;align-items:center;gap:4px;margin-top:2px"><div style="width:6px;height:6px;border-radius:50%;background:${cc};box-shadow:0 0 4px ${cc}"></div><span style="font-family:var(--mono);font-size:10px;color:${cc}">${loc.compliance}</span></div></div>`,`<div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(loc.name)}</div>`,`<div style="font-family:var(--mono);font-size:12px;color:var(--text)">${asmTypes}</div>`,`<div style="font-family:var(--mono);font-size:12px;color:var(--muted)">${sanitize(loc.account)||'&mdash;'}</div>`,hazardChip];}return`<div onclick="locSelectRow(${loc.id})" style="display:grid;grid-template-columns:${cols};padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;align-items:center;background:${isActive?'rgba(249,166,30,.06)':'transparent'};border-left:3px solid ${isActive?'var(--accent)':'transparent'};gap:0" onmouseover="if(!${isActive})this.style.background='var(--elevated)'" onmouseout="this.style.background='${isActive?'rgba(249,166,30,.06)':'transparent'}'"> ${cells.map(c=>`<div style="padding:0 8px;overflow:hidden">${c}</div>`).join('')}</div>`;}).join('');}
 
 function locChangePage(p){locCurrentPage=p;locRenderTable();}
 function locPrevPage(){if(locCurrentPage>1){locCurrentPage--;locRenderTable();}}
@@ -4422,7 +4447,7 @@ function locRenderDetails(loc){if(locEditMode){const ef=(id,val,type='text',opts
 
 function locSaveEdit(){const loc=LOC_DATA.find(l=>l.id===locActiveId);if(!loc)return;const g=id=>document.getElementById(id)?.value?.trim();loc.name=g('edit-name')||loc.name;loc.account=g('edit-account')||loc.account;loc.hazard=g('edit-hazard')||loc.hazard;loc.hazardRating=loc.hazard==='High'?8:loc.hazard==='Medium'?5:2;loc.zip=g('edit-zip')||loc.zip;loc.connections=parseInt(g('edit-connections'))||loc.connections;loc.contact=g('edit-contact')||loc.contact;loc.phone=g('edit-phone')||loc.phone;loc.email=g('edit-email')||loc.email;locEditMode=false;const btn=document.getElementById('locEditBtn');if(btn){btn.innerHTML='&#x2713; Saved';btn.style.color='var(--green)';btn.style.borderColor='var(--green)';setTimeout(()=>{btn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit';btn.style.color='';btn.style.borderColor='';},1500);}const body=document.getElementById('locTabBody');if(body)body.innerHTML=locRenderDetails(loc);locRenderTable();}
 
-function locRenderAssemblies(loc){const sc=s=>s==='Pass'?'var(--green)':s==='Fail'?'var(--red)':'var(--yellow)';const sbg=s=>s==='Pass'?'rgba(76,175,121,.12)':s==='Fail'?'rgba(224,82,82,.12)':'rgba(240,192,64,.12)';const sbr=s=>s==='Pass'?'rgba(76,175,121,.3)':s==='Fail'?'rgba(224,82,82,.3)':'rgba(240,192,64,.3)';if(locEditMode){const editRows=(loc.assemblies||[]).map((a,i)=>`<tr style="border-bottom:1px solid var(--border);background:var(--elevated)"><td style="padding:6px 5px"><select id="ae-type-${i}" class="ss" style="font-size:12px;padding:4px 5px;width:60px"><option${a.type==='RPZ'?' selected':''}>RPZ</option><option${a.type==='DCVA'?' selected':''}>DCVA</option><option${a.type==='PVB'?' selected':''}>PVB</option><option${a.type==='SVB'?' selected':''}>SVB</option></select></td><td style="padding:6px 5px"><input id="ae-make-${i}" class="si" value="${sanitize(a.make)}" style="font-size:12px;padding:4px 6px;width:70px"></td><td style="padding:6px 5px"><input id="ae-model-${i}" class="si" value="${sanitize(a.model)}" style="font-size:12px;padding:4px 6px;width:70px"></td><td style="padding:6px 5px"><input id="ae-size-${i}" class="si" value="${sanitize(a.size)}" style="font-size:12px;padding:4px 6px;width:50px"></td><td style="padding:6px 5px"><input id="ae-serial-${i}" class="si" value="${sanitize(a.serial)}" style="font-size:12px;padding:4px 6px;width:80px"></td><td style="padding:6px 5px"><select id="ae-status-${i}" class="ss" style="font-size:12px;padding:4px 5px;width:70px"><option${a.status==='Pass'?' selected':''}>Pass</option><option${a.status==='Fail'?' selected':''}>Fail</option><option${a.status==='Overdue'?' selected':''}>Overdue</option></select></td><td style="padding:6px 5px"><input id="ae-due-${i}" class="si" type="date" value="${a.due}" style="font-size:12px;padding:4px 6px;width:110px"></td><td style="padding:6px 5px"><button onclick="locDeleteAssembly(${i})" style="background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.25);border-radius:4px;color:var(--red);cursor:pointer;padding:3px 7px;font-size:12px">&#x2715;</button></td></tr>`).join('');const addRow=`<tr style="border-top:2px solid var(--border);background:rgba(249,166,30,.04)"><td style="padding:6px 5px"><select id="ae-type-new" class="ss" style="font-size:12px;padding:4px 5px;width:60px"><option>RPZ</option><option>DCVA</option><option>PVB</option><option>SVB</option></select></td><td style="padding:6px 5px"><input id="ae-make-new" class="si" placeholder="Make" style="font-size:12px;padding:4px 6px;width:70px"></td><td style="padding:6px 5px"><input id="ae-model-new" class="si" placeholder="Model" style="font-size:12px;padding:4px 6px;width:70px"></td><td style="padding:6px 5px"><input id="ae-size-new" class="si" placeholder='3/4"' style="font-size:12px;padding:4px 6px;width:50px"></td><td style="padding:6px 5px"><input id="ae-serial-new" class="si" placeholder="Serial" style="font-size:12px;padding:4px 6px;width:80px"></td><td style="padding:6px 5px"><select id="ae-status-new" class="ss" style="font-size:12px;padding:4px 5px;width:70px"><option>Pass</option><option>Fail</option><option>Overdue</option></select></td><td style="padding:6px 5px"><input id="ae-due-new" class="si" type="date" style="font-size:12px;padding:4px 6px;width:110px"></td><td style="padding:6px 5px"><button onclick="locSaveAssemblies()" style="background:rgba(249,166,30,.12);border:1px solid rgba(249,166,30,.3);border-radius:4px;color:var(--accent);cursor:pointer;padding:3px 7px;font-size:12px">+ Add</button></td></tr>`;return _lc('Assemblies — Editing',`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:520px"><thead><tr style="border-bottom:1px solid var(--border)">${['Type','Make','Model','Size','Serial #','Status','Due',''].map(h=>`<th style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;text-align:left;padding:5px 8px">${h}</th>`).join('')}</tr></thead><tbody>${editRows}${addRow}</tbody></table></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px"><button onclick="locEditMode=false;locToggleEdit()" class="btn btn-gh btn-sm">Cancel</button><button onclick="locSaveAssemblies()" class="btn btn-ac btn-sm">Save Assemblies</button></div>`);}const rows=(loc.assemblies||[]).map(a=>`<tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 10px;font-size:15px;font-weight:600">${a.type}</td><td style="padding:10px 10px;font-size:15px;color:var(--muted)">${a.make}</td><td style="padding:10px 10px;font-size:15px;color:var(--muted)">${a.model}</td><td style="padding:10px 10px;font-family:var(--mono);font-size:12px;color:var(--muted)">${a.size}</td><td style="padding:10px 10px;font-family:var(--mono);font-size:12px;color:var(--muted)">${sanitize(a.serial)}</td><td style="padding:9px 8px"><span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${sc(a.status)};background:${sbg(a.status)};border:1px solid ${sbr(a.status)};padding:2px 7px;border-radius:3px">${a.status.toUpperCase()}</span></td><td style="padding:10px 10px;font-family:var(--mono);font-size:12px;color:var(--muted)">${a.due}</td></tr>`).join('');return _lc('Assemblies ('+loc.assemblies.length+')','<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:480px"><thead><tr style="border-bottom:1px solid var(--border)">'+['Type','Make','Model','Size','Serial #','Status','Due'].map(h=>`<th style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;text-align:left;padding:5px 8px">${h}</th>`).join('')+'</tr></thead><tbody>'+rows+'</tbody></table></div>')+'<button onclick="locToggleEdit()" class="btn btn-ac" style="width:100%;justify-content:center;margin-top:8px">+ Add / Edit Assemblies</button>';}
+function locRenderAssemblies(loc){const sc=s=>s==='Pass'?'var(--green)':s==='Fail'?'var(--red)':'var(--yellow)';const sbg=s=>s==='Pass'?'rgba(76,175,121,.12)':s==='Fail'?'rgba(224,82,82,.12)':'rgba(240,192,64,.12)';const sbr=s=>s==='Pass'?'rgba(76,175,121,.3)':s==='Fail'?'rgba(224,82,82,.3)':'rgba(240,192,64,.3)';if(locEditMode){const editRows=loc.assemblies.map((a,i)=>`<tr style="border-bottom:1px solid var(--border);background:var(--elevated)"><td style="padding:6px 5px"><select id="ae-type-${i}" class="ss" style="font-size:12px;padding:4px 5px;width:60px"><option${a.type==='RPZ'?' selected':''}>RPZ</option><option${a.type==='DCVA'?' selected':''}>DCVA</option><option${a.type==='PVB'?' selected':''}>PVB</option><option${a.type==='SVB'?' selected':''}>SVB</option></select></td><td style="padding:6px 5px"><input id="ae-make-${i}" class="si" value="${sanitize(a.make)}" style="font-size:12px;padding:4px 6px;width:70px"></td><td style="padding:6px 5px"><input id="ae-model-${i}" class="si" value="${sanitize(a.model)}" style="font-size:12px;padding:4px 6px;width:70px"></td><td style="padding:6px 5px"><input id="ae-size-${i}" class="si" value="${sanitize(a.size)}" style="font-size:12px;padding:4px 6px;width:50px"></td><td style="padding:6px 5px"><input id="ae-serial-${i}" class="si" value="${sanitize(a.serial)}" style="font-size:12px;padding:4px 6px;width:80px"></td><td style="padding:6px 5px"><select id="ae-status-${i}" class="ss" style="font-size:12px;padding:4px 5px;width:70px"><option${a.status==='Pass'?' selected':''}>Pass</option><option${a.status==='Fail'?' selected':''}>Fail</option><option${a.status==='Overdue'?' selected':''}>Overdue</option></select></td><td style="padding:6px 5px"><input id="ae-due-${i}" class="si" type="date" value="${a.due}" style="font-size:12px;padding:4px 6px;width:110px"></td><td style="padding:6px 5px"><button onclick="locDeleteAssembly(${i})" style="background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.25);border-radius:4px;color:var(--red);cursor:pointer;padding:3px 7px;font-size:12px">&#x2715;</button></td></tr>`).join('');const addRow=`<tr style="border-top:2px solid var(--border);background:rgba(249,166,30,.04)"><td style="padding:6px 5px"><select id="ae-type-new" class="ss" style="font-size:12px;padding:4px 5px;width:60px"><option>RPZ</option><option>DCVA</option><option>PVB</option><option>SVB</option></select></td><td style="padding:6px 5px"><input id="ae-make-new" class="si" placeholder="Make" style="font-size:12px;padding:4px 6px;width:70px"></td><td style="padding:6px 5px"><input id="ae-model-new" class="si" placeholder="Model" style="font-size:12px;padding:4px 6px;width:70px"></td><td style="padding:6px 5px"><input id="ae-size-new" class="si" placeholder='3/4"' style="font-size:12px;padding:4px 6px;width:50px"></td><td style="padding:6px 5px"><input id="ae-serial-new" class="si" placeholder="Serial" style="font-size:12px;padding:4px 6px;width:80px"></td><td style="padding:6px 5px"><select id="ae-status-new" class="ss" style="font-size:12px;padding:4px 5px;width:70px"><option>Pass</option><option>Fail</option><option>Overdue</option></select></td><td style="padding:6px 5px"><input id="ae-due-new" class="si" type="date" style="font-size:12px;padding:4px 6px;width:110px"></td><td style="padding:6px 5px"><button onclick="locSaveAssemblies()" style="background:rgba(249,166,30,.12);border:1px solid rgba(249,166,30,.3);border-radius:4px;color:var(--accent);cursor:pointer;padding:3px 7px;font-size:12px">+ Add</button></td></tr>`;return _lc('Assemblies — Editing',`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:520px"><thead><tr style="border-bottom:1px solid var(--border)">${['Type','Make','Model','Size','Serial #','Status','Due',''].map(h=>`<th style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;text-align:left;padding:5px 8px">${h}</th>`).join('')}</tr></thead><tbody>${editRows}${addRow}</tbody></table></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px"><button onclick="locEditMode=false;locToggleEdit()" class="btn btn-gh btn-sm">Cancel</button><button onclick="locSaveAssemblies()" class="btn btn-ac btn-sm">Save Assemblies</button></div>`);}const rows=loc.assemblies.map(a=>`<tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 10px;font-size:15px;font-weight:600">${a.type}</td><td style="padding:10px 10px;font-size:15px;color:var(--muted)">${a.make}</td><td style="padding:10px 10px;font-size:15px;color:var(--muted)">${a.model}</td><td style="padding:10px 10px;font-family:var(--mono);font-size:12px;color:var(--muted)">${a.size}</td><td style="padding:10px 10px;font-family:var(--mono);font-size:12px;color:var(--muted)">${sanitize(a.serial)}</td><td style="padding:9px 8px"><span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${sc(a.status)};background:${sbg(a.status)};border:1px solid ${sbr(a.status)};padding:2px 7px;border-radius:3px">${a.status.toUpperCase()}</span></td><td style="padding:10px 10px;font-family:var(--mono);font-size:12px;color:var(--muted)">${a.due}</td></tr>`).join('');return _lc('Assemblies ('+loc.assemblies.length+')','<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:480px"><thead><tr style="border-bottom:1px solid var(--border)">'+['Type','Make','Model','Size','Serial #','Status','Due'].map(h=>`<th style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;text-align:left;padding:5px 8px">${h}</th>`).join('')+'</tr></thead><tbody>'+rows+'</tbody></table></div>')+'<button onclick="locToggleEdit()" class="btn btn-ac" style="width:100%;justify-content:center;margin-top:8px">+ Add / Edit Assemblies</button>';}
 
 function locSaveAssemblies(){const loc=LOC_DATA.find(l=>l.id===locActiveId);if(!loc)return;loc.assemblies.forEach((a,i)=>{const g=id=>document.getElementById(id)?.value?.trim();a.type=g('ae-type-'+i)||a.type;a.make=g('ae-make-'+i)||a.make;a.model=g('ae-model-'+i)||a.model;a.size=g('ae-size-'+i)||a.size;a.serial=g('ae-serial-'+i)||a.serial;a.status=g('ae-status-'+i)||a.status;a.due=g('ae-due-'+i)||a.due;});const newSerial=document.getElementById('ae-serial-new')?.value?.trim();if(newSerial){loc.assemblies.push({type:document.getElementById('ae-type-new')?.value||'RPZ',make:document.getElementById('ae-make-new')?.value?.trim()||'',model:document.getElementById('ae-model-new')?.value?.trim()||'',size:document.getElementById('ae-size-new')?.value?.trim()||'',serial:newSerial,status:document.getElementById('ae-status-new')?.value||'Pass',due:document.getElementById('ae-due-new')?.value||'',tested:new Date().toISOString().split('T')[0]});loc.deviceCount=loc.assemblies.length;}locEditMode=false;locToggleEdit();const body=document.getElementById('locTabBody');if(body)body.innerHTML=locRenderAssemblies(loc);locRenderTable();}
 
@@ -4432,7 +4457,7 @@ function locRenderContacts(loc){if(locEditMode){const ef=(id,val)=>`<input id="$
 
 function locSaveContact(){const loc=LOC_DATA.find(l=>l.id===locActiveId);if(!loc)return;const g=id=>document.getElementById(id)?.value?.trim();loc.contact=g('ec-contact')||loc.contact;loc.phone=g('ec-phone')||loc.phone;loc.email=g('ec-email')||loc.email;loc.role=g('ec-role')||loc.role;loc.account=g('ec-account')||loc.account;locEditMode=false;locToggleEdit();const body=document.getElementById('locTabBody');if(body)body.innerHTML=locRenderContacts(loc);locRenderTable();}
 
-function locRenderComms(loc){if(!loc.communications)loc.communications=[];const dotColor=c=>c.status==='Logged'?'var(--blue)':c.status==='Sent'?'var(--green)':'var(--muted)';const tl=(loc.communications||[]).map(c=>`<div style="display:flex;gap:10px;padding-bottom:14px"><div style="display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0"><div style="width:9px;height:9px;border-radius:50%;background:${dotColor(c)};box-shadow:0 0 5px ${dotColor(c)};margin-top:3px"></div><div style="flex:1;width:1px;background:var(--border);margin-top:3px"></div></div><div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">${c.type}</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:1px">${c.date} &bull; ${c.method}</div>${c.notes?`<div style="margin-top:5px;padding:7px 10px;background:var(--elevated);border-radius:5px;font-size:12px;color:var(--muted);line-height:1.5">${sanitize(c.notes)}</div>`:''}<div style="margin-top:2px;font-family:var(--mono);font-size:10px;color:${dotColor(c)}">&#x2713; ${c.status}</div></div></div>`).join('');const lastDue=new Date(loc.assemblies.sort((a,b)=>new Date(b.due)-new Date(a.due))[0].due);const fmt=d=>d.toISOString().split('T')[0];const d60=new Date(lastDue);d60.setDate(d60.getDate()-60);const d30=new Date(lastDue);d30.setDate(d30.getDate()-30);const d7=new Date(lastDue);d7.setDate(d7.getDate()-7);const sched=[['60-Day Notice',fmt(d60),'var(--blue)'],['30-Day Notice',fmt(d30),'var(--yellow)'],['7-Day Urgent',fmt(d7),'var(--red)'],['Due Date',loc.assemblies[0].due,'var(--accent)']].map(([t,d,c])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:var(--text)">${t}</div><div style="font-family:var(--mono);font-size:11px;color:${c}">${d}</div></div>`).join('');const noteForm=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px"><div style="font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:1.4px;text-transform:uppercase;margin-bottom:13px;font-weight:600">Log Communication</div><div style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px"><select id="comm-note-type" class="ss" style="font-size:13px;padding:7px 10px;flex-shrink:0;width:140px"><option>Phone Call</option><option>Email Sent</option><option>In Person</option><option>Voicemail</option><option>Text Message</option><option>Letter</option></select><div style="font-family:var(--mono);font-size:11px;color:var(--muted);align-self:center">${new Date().toISOString().split('T')[0]}</div></div><textarea id="comm-note-text" class="si" rows="3" placeholder="Enter notes..." style="font-size:13px;padding:8px 10px;resize:vertical;line-height:1.5"></textarea><div style="display:flex;justify-content:flex-end"><button onclick="locAddCommNote(${loc.id})" class="btn btn-ac btn-sm">+ Log Entry</button></div></div></div>`;return noteForm+_lc('Communication History ('+(loc.communications.length)+')',loc.communications.length?'<div>'+tl+'</div>':'<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">No communications logged yet.</div>')+_lc('Predictive Outreach Schedule',sched);}
+function locRenderComms(loc){if(!loc.communications)loc.communications=[];const dotColor=c=>c.status==='Logged'?'var(--blue)':c.status==='Sent'?'var(--green)':'var(--muted)';const tl=loc.communications.map(c=>`<div style="display:flex;gap:10px;padding-bottom:14px"><div style="display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0"><div style="width:9px;height:9px;border-radius:50%;background:${dotColor(c)};box-shadow:0 0 5px ${dotColor(c)};margin-top:3px"></div><div style="flex:1;width:1px;background:var(--border);margin-top:3px"></div></div><div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">${c.type}</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:1px">${c.date} &bull; ${c.method}</div>${c.notes?`<div style="margin-top:5px;padding:7px 10px;background:var(--elevated);border-radius:5px;font-size:12px;color:var(--muted);line-height:1.5">${sanitize(c.notes)}</div>`:''}<div style="margin-top:2px;font-family:var(--mono);font-size:10px;color:${dotColor(c)}">&#x2713; ${c.status}</div></div></div>`).join('');const lastDue=new Date(loc.assemblies.sort((a,b)=>new Date(b.due)-new Date(a.due))[0].due);const fmt=d=>d.toISOString().split('T')[0];const d60=new Date(lastDue);d60.setDate(d60.getDate()-60);const d30=new Date(lastDue);d30.setDate(d30.getDate()-30);const d7=new Date(lastDue);d7.setDate(d7.getDate()-7);const sched=[['60-Day Notice',fmt(d60),'var(--blue)'],['30-Day Notice',fmt(d30),'var(--yellow)'],['7-Day Urgent',fmt(d7),'var(--red)'],['Due Date',loc.assemblies[0].due,'var(--accent)']].map(([t,d,c])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:var(--text)">${t}</div><div style="font-family:var(--mono);font-size:11px;color:${c}">${d}</div></div>`).join('');const noteForm=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px"><div style="font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:1.4px;text-transform:uppercase;margin-bottom:13px;font-weight:600">Log Communication</div><div style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px"><select id="comm-note-type" class="ss" style="font-size:13px;padding:7px 10px;flex-shrink:0;width:140px"><option>Phone Call</option><option>Email Sent</option><option>In Person</option><option>Voicemail</option><option>Text Message</option><option>Letter</option></select><div style="font-family:var(--mono);font-size:11px;color:var(--muted);align-self:center">${new Date().toISOString().split('T')[0]}</div></div><textarea id="comm-note-text" class="si" rows="3" placeholder="Enter notes..." style="font-size:13px;padding:8px 10px;resize:vertical;line-height:1.5"></textarea><div style="display:flex;justify-content:flex-end"><button onclick="locAddCommNote(${loc.id})" class="btn btn-ac btn-sm">+ Log Entry</button></div></div></div>`;return noteForm+_lc('Communication History ('+(loc.communications.length)+')',loc.communications.length?'<div>'+tl+'</div>':'<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">No communications logged yet.</div>')+_lc('Predictive Outreach Schedule',sched);}
 
 // ── PERSISTENT COMMS NOTES (localStorage) ────────────────────────────────────
 function locSaveCommsToStorage(){
@@ -4493,7 +4518,7 @@ function locAddCommNote(locId){
 
 function locRenderSurveys(loc){const s=loc.surveys&&loc.surveys[0];if(!s)return _lc('Surveys','<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">No surveys on file.</div>');const rc=s.result==='Pass'?'var(--green)':s.result==='Fail'?'var(--red)':'var(--yellow)';return _lc('Customer Service Inspection',_lg([['Date',s.date],['Surveyor',s.surveyor],['Result','<span style="color:'+rc+'">'+s.result+'</span>'],['','&nbsp;']])+`<div style="margin-top:10px;padding:10px 12px;background:var(--elevated);border-radius:6px;font-size:13px;color:var(--muted);line-height:1.6">${sanitize(s.notes)}</div>`)+'<button onclick="alert(\'New Survey\')" class="btn btn-gh" style="width:100%;justify-content:center;margin-top:8px">+ New Survey</button>';}
 
-function locRenderCompliance(loc){const bars=(loc.complianceHistory||[]).map(y=>{const c=y.pct===100?'var(--green)':y.pct>=50?'var(--yellow)':'var(--red)';return`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><div style="font-family:var(--mono);font-size:11px;color:var(--muted);width:34px">${y.year}</div><div style="flex:1;background:var(--elevated);border-radius:3px;height:14px;overflow:hidden"><div style="height:100%;border-radius:3px;width:${y.pct}%;background:${c}"></div></div><div style="font-family:var(--mono);font-size:11px;color:var(--text);width:32px;text-align:right">${y.pct}%</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);width:50px">${y.pass}P/${y.fail}F</div></div>`;}).join('');const rc=loc.riskScore<30?'var(--green)':loc.riskScore<60?'var(--yellow)':'var(--red)';const rl=loc.riskScore<30?'LOW RISK':loc.riskScore<60?'MODERATE RISK':'HIGH RISK';const rm=loc.riskScore<30?'Excellent compliance.':loc.riskScore<60?'Moderate risk. Inspect within 30 days.':'High risk. Immediate follow-up required.';return _lc('Year-Over-Year Compliance',bars)+_lc('AI Risk Score',`<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px"><div style="width:52px;height:52px;border-radius:50%;background:conic-gradient(${rc} ${loc.riskScore*3.6}deg,var(--elevated) 0deg);display:flex;align-items:center;justify-content:center;flex-shrink:0"><div style="width:40px;height:40px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:17px;color:${rc}">${loc.riskScore}</div></div><div><div style="font-family:var(--cond);font-weight:700;font-size:17px;color:${rc}">${rl}</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Composite score 0-100</div></div></div><div style="font-size:13px;color:var(--muted);line-height:1.6;padding:9px 11px;background:var(--elevated);border-radius:6px">${rm}</div>`);}
+function locRenderCompliance(loc){const bars=loc.complianceHistory.map(y=>{const c=y.pct===100?'var(--green)':y.pct>=50?'var(--yellow)':'var(--red)';return`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><div style="font-family:var(--mono);font-size:11px;color:var(--muted);width:34px">${y.year}</div><div style="flex:1;background:var(--elevated);border-radius:3px;height:14px;overflow:hidden"><div style="height:100%;border-radius:3px;width:${y.pct}%;background:${c}"></div></div><div style="font-family:var(--mono);font-size:11px;color:var(--text);width:32px;text-align:right">${y.pct}%</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);width:50px">${y.pass}P/${y.fail}F</div></div>`;}).join('');const rc=loc.riskScore<30?'var(--green)':loc.riskScore<60?'var(--yellow)':'var(--red)';const rl=loc.riskScore<30?'LOW RISK':loc.riskScore<60?'MODERATE RISK':'HIGH RISK';const rm=loc.riskScore<30?'Excellent compliance.':loc.riskScore<60?'Moderate risk. Inspect within 30 days.':'High risk. Immediate follow-up required.';return _lc('Year-Over-Year Compliance',bars)+_lc('AI Risk Score',`<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px"><div style="width:52px;height:52px;border-radius:50%;background:conic-gradient(${rc} ${loc.riskScore*3.6}deg,var(--elevated) 0deg);display:flex;align-items:center;justify-content:center;flex-shrink:0"><div style="width:40px;height:40px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:17px;color:${rc}">${loc.riskScore}</div></div><div><div style="font-family:var(--cond);font-weight:700;font-size:17px;color:${rc}">${rl}</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Composite score 0-100</div></div></div><div style="font-size:13px;color:var(--muted);line-height:1.6;padding:9px 11px;background:var(--elevated);border-radius:6px">${rm}</div>`);}
 
 function locOpenAdd(){const m=document.getElementById('locAddModal');if(m)m.style.display='flex';const err=document.getElementById('la-error');if(err){err.style.display='none';err.textContent='';}}
 function locCloseAdd(){const m=document.getElementById('locAddModal');if(m)m.style.display='none';['la-address','la-name','la-account','la-zip','la-contact','la-phone','la-email','la-notes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});['la-city','la-state'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=id==='la-city'?'Abilene':'TX';});['la-connections'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='1';});const hz=document.getElementById('la-hazard');if(hz)hz.value='';}
@@ -4579,28 +4604,17 @@ document.addEventListener('click', function(e) {
 
 // Locations: click outside detail panel
 document.addEventListener('click', function(e) {
-  if(!locDetailOpen) return;
-  // If overlay is visible, NEVER auto-close - user must use Back button or X
-  const overlay = document.getElementById('locFullOverlay');
-  if(overlay && overlay.style.display === 'flex') return;
-  // Side panel click-outside
-  const panel = document.getElementById('locDetailPanel');
-  if(!panel) return;
-  if(!panel.contains(e.target)
-    && !e.target.closest('[onclick^="locSelectRow"]')
-    && !e.target.closest('#page-locations-page > div:first-child')
-    && !e.target.closest('#locAdvPanel')
-    && !e.target.closest('#locAddModal')) {
-    locCloseDetail();
-  }
-});
+  if(!locDetailOpen)return;
+  const panel=document.getElementById('locDetailPanel'); if(!panel)return;
+  if(!panel.contains(e.target)&&!e.target.closest('[onclick^="locSelectRow"]')&&!e.target.closest('#page-locations-page > div:first-child')&&!e.target.closest('#locAdvPanel')&&!e.target.closest('#locAddModal'))locCloseDetail();
+},true);
 
 // Contacts: click outside detail panel
 document.addEventListener('click', function(e) {
   if(!conDetailOpen)return;
   const panel=document.getElementById('conDetailPanel'); if(!panel)return;
   if(!panel.contains(e.target)&&!e.target.closest('[onclick^="conSelectRow"]')&&!e.target.closest('#page-contacts-page > div:first-child')&&!e.target.closest('#conAddModal'))conCloseDetail();
-});
+},true);
 
 // Service Providers: click outside detail panel
 document.addEventListener('click', function(e) {
@@ -5631,178 +5645,86 @@ document.addEventListener('click',function(e){
 },true);
 
 
-// ── LOCATION FULL-SCREEN OVERLAY ─────────────────────────────────────────────
+// ── LOCATION FULL-SCREEN OVERLAY ──────────────────────────────────────────────
 function locShowFullDetail(loc){
   const overlay = document.getElementById('locFullOverlay');
   if(!overlay) return;
-  overlay.dataset.locId = String(loc.id);
 
-  // Breadcrumb
+  // Update breadcrumb
   const bc = document.getElementById('locOverlayBreadcrumb');
   if(bc) bc.textContent = loc.address;
 
-  // Badge
+  // Update compliance badge
   const badge = document.getElementById('locOverlayBadge');
   if(badge){
     const cc = loc.compliance==='Compliant'?'var(--green)':loc.compliance==='Overdue'?'var(--yellow)':'var(--red)';
     const cbg = loc.compliance==='Compliant'?'rgba(76,175,121,.14)':loc.compliance==='Overdue'?'rgba(240,192,64,.14)':'rgba(224,82,82,.14)';
     const cbr = loc.compliance==='Compliant'?'rgba(76,175,121,.3)':loc.compliance==='Overdue'?'rgba(240,192,64,.3)':'rgba(224,82,82,.3)';
-    badge.style.cssText = 'font-family:var(--mono);font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;background:'+cbg+';color:'+cc+';border:1px solid '+cbr;
+    badge.style.cssText = `font-family:var(--mono);font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;background:${cbg};color:${cc};border:1px solid ${cbr}`;
     badge.textContent = loc.compliance.toUpperCase();
   }
 
-  // Summary strip
+  // Summary stat bar
   const summary = document.getElementById('locOverlaySummary');
   if(summary){
     const stats = [
-      {l:'Account',   v: loc.account||'—'},
-      {l:'Hazard',    v: loc.hazard+' ('+loc.hazardRating+'/10)'},
-      {l:'Devices',   v: (loc.assemblies||[]).length+' assemblies'},
-      {l:'Connections', v: loc.connections||1},
-      {l:'Last Survey', v: loc.lastSurvey||'—'},
-      {l:'Contact',   v: loc.contact||'—'},
+      {label:'Account', value:loc.account||'—'},
+      {label:'Hazard', value:loc.hazard+' ('+loc.hazardRating+'/10)'},
+      {label:'Devices', value:(loc.assemblies?.length||loc.deviceCount||0)+' assemblies'},
+      {label:'Connections', value:loc.connections||1},
+      {label:'Last Survey', value:loc.lastSurvey||'—'},
+      {label:'Contact', value:loc.contact||'—'},
     ];
-    summary.innerHTML = stats.map(s =>
-      '<div style="padding:14px 24px;border-right:1px solid var(--border);flex-shrink:0">'+
-      '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">'+s.l+'</div>'+
-      '<div style="font-size:15px;font-weight:600;color:var(--text)">'+s.v+'</div></div>'
-    ).join('');
+    summary.innerHTML = stats.map((s,i) => `
+      <div style="padding:14px 24px;border-right:1px solid var(--border);flex-shrink:0${i===0?';border-left:none':''}">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">${s.label}</div>
+        <div style="font-size:15px;font-weight:600;color:var(--text)">${s.value}</div>
+      </div>`).join('');
   }
 
-  // Reset to details tab
-  document.querySelectorAll('.lov-tab').forEach(b => b.classList.remove('lov-active'));
-  const detailsTab = document.querySelector('.lov-tab[data-tab="details"]');
-  if(detailsTab) detailsTab.classList.add('lov-active');
-  locEditMode = false;
+  // Sync edit button to locEditBtn
+  const overlayEdit = document.getElementById('locOverlayEditBtn');
+  if(overlayEdit){
+    overlayEdit.onclick = () => locToggleEdit();
+  }
 
-  const body = document.getElementById('locOverlayTabBody');
-  if(body) body.innerHTML = locRenderDetails(loc);
-
-  // Show with animation
+  // Show overlay with animation
   overlay.style.display = 'flex';
   overlay.style.opacity = '0';
-  overlay.style.transform = 'translateX(16px)';
-  overlay.style.transition = 'opacity .2s ease,transform .2s ease';
+  overlay.style.transform = 'translateX(20px)';
   requestAnimationFrame(() => {
+    overlay.style.transition = 'opacity .2s ease,transform .2s ease';
     overlay.style.opacity = '1';
     overlay.style.transform = 'translateX(0)';
   });
-}
 
-function locOverlayClose(){
-  const overlay = document.getElementById('locFullOverlay');
-  if(!overlay) return;
-  overlay.style.opacity = '0';
-  overlay.style.transform = 'translateX(16px)';
-  setTimeout(() => {
-    overlay.style.display = 'none';
-    overlay.style.transform = '';
-  }, 220);
-  locDetailOpen = false;
-  locActiveId = null;
+  // Reset to details tab
+  document.querySelectorAll('.loc-side-tab').forEach((b,i) => b.classList.toggle('active', i===0));
   locEditMode = false;
-  locRenderTable();
+  const body = document.getElementById('locOverlayTabBody');
+  if(body) body.innerHTML = locRenderDetails(loc);
 }
-
-// Wire up overlay buttons once DOM is ready
-document.addEventListener('DOMContentLoaded', function(){
-  // Back button
-  const backBtn = document.getElementById('locOverlayBackBtn');
-  if(backBtn) backBtn.addEventListener('click', locOverlayClose);
-
-  // Close button
-  const closeBtn = document.getElementById('locOverlayCloseBtn');
-  if(closeBtn) closeBtn.addEventListener('click', locOverlayClose);
-
-  // Edit button
-  const editBtn = document.getElementById('locOverlayEditBtn');
-  if(editBtn) editBtn.addEventListener('click', locToggleEdit);
-
-  // Tab buttons - using event delegation on the tab bar
-  const tabBar = document.getElementById('locOverlayTabBar');
-  if(tabBar){
-    tabBar.addEventListener('click', function(e){
-      const btn = e.target.closest('[data-tab]');
-      if(!btn) return;
-      const tab = btn.dataset.tab;
-
-      // Get location from overlay dataset
-      const overlay = document.getElementById('locFullOverlay');
-      const locId = overlay ? parseInt(overlay.dataset.locId) : locActiveId;
-      const loc = LOC_DATA.find(l => l.id === locId);
-      if(!loc) return;
-
-      // Update active tab
-      document.querySelectorAll('.lov-tab').forEach(b => b.classList.remove('lov-active'));
-      btn.classList.add('lov-active');
-
-      // Reset edit mode
-      locEditMode = false;
-      const editBtn = document.getElementById('locOverlayEditBtn');
-      if(editBtn){
-        editBtn.style.display = ['details','assemblies','contacts'].includes(tab) ? 'flex' : 'none';
-        editBtn.style.color=''; editBtn.style.borderColor=''; editBtn.style.background='';
-      }
-
-      // Render tab content
-      const body = document.getElementById('locOverlayTabBody');
-      if(!body) return;
-      try {
-        if(tab==='details')         body.innerHTML = locRenderDetails(loc);
-        else if(tab==='assemblies') body.innerHTML = locRenderAssemblies(loc);
-        else if(tab==='contacts')   body.innerHTML = locRenderContacts(loc);
-        else if(tab==='communications') body.innerHTML = locRenderComms(loc);
-        else if(tab==='surveys')    body.innerHTML = locRenderSurveys(loc);
-        else if(tab==='compliance') body.innerHTML = locRenderCompliance(loc);
-      } catch(err) {
-        body.innerHTML = '<div style="padding:20px;color:var(--red)">Error: '+err.message+'</div>';
-      }
-    });
-  }
-});
-
 
 function locOverlaySwitchTab(tab, btn){
-  try {
-    // Mark active tab
-    document.querySelectorAll('.loc-side-tab').forEach(b => b.classList.remove('active'));
-    if(btn) btn.classList.add('active');
-
-    // Get location
-    const overlay = document.getElementById('locFullOverlay');
-    const activeId = locActiveId || (overlay && parseInt(overlay.dataset.locId));
-    const loc = LOC_DATA.find(l => l.id === activeId);
-    if(!loc){ console.warn('locOverlaySwitchTab: no active location, locActiveId='+locActiveId); return; }
-
-    // Get body
-    const body = document.getElementById('locOverlayTabBody');
-    if(!body){ console.warn('locOverlaySwitchTab: no body element'); return; }
-
-    // Reset edit mode
-    locEditMode = false;
-    const editBtn = document.getElementById('locOverlayEditBtn');
-    if(editBtn){
-      editBtn.style.display = ['details','assemblies','contacts'].includes(tab) ? 'flex' : 'none';
-      editBtn.style.color=''; editBtn.style.borderColor=''; editBtn.style.background='';
-      editBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit';
-    }
-
-    // Render tab content
-    let html = '';
-    if(tab==='details')        html = locRenderDetails(loc);
-    else if(tab==='assemblies') html = locRenderAssemblies(loc);
-    else if(tab==='contacts')   html = locRenderContacts(loc);
-    else if(tab==='communications') html = locRenderComms(loc);
-    else if(tab==='surveys')    html = locRenderSurveys(loc);
-    else if(tab==='compliance') html = locRenderCompliance(loc);
-    else html = '<div style="padding:20px;color:var(--muted)">Unknown tab: '+tab+'</div>';
-
-    body.innerHTML = html;
-  } catch(err) {
-    console.error('locOverlaySwitchTab error:', err);
-    const body = document.getElementById('locOverlayTabBody');
-    if(body) body.innerHTML = '<div style="padding:20px;color:var(--red)">Error loading tab: ' + err.message + '</div>';
+  document.querySelectorAll('.loc-side-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const loc = LOC_DATA.find(l => l.id === locActiveId);
+  const body = document.getElementById('locOverlayTabBody');
+  if(!body || !loc) return;
+  // Reset edit mode on tab switch
+  locEditMode = false;
+  const editBtn = document.getElementById('locOverlayEditBtn');
+  if(editBtn){
+    editBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit';
+    editBtn.style.color = ''; editBtn.style.borderColor = ''; editBtn.style.background = '';
+    editBtn.style.display = ['details','assemblies','contacts'].includes(tab) ? 'flex' : 'none';
   }
+  if(tab==='details') body.innerHTML = locRenderDetails(loc);
+  else if(tab==='assemblies') body.innerHTML = locRenderAssemblies(loc);
+  else if(tab==='contacts') body.innerHTML = locRenderContacts(loc);
+  else if(tab==='communications') body.innerHTML = locRenderComms(loc);
+  else if(tab==='surveys') body.innerHTML = locRenderSurveys(loc);
+  else if(tab==='compliance') body.innerHTML = locRenderCompliance(loc);
 }
 
 </script>
