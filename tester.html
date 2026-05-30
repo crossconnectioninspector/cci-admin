@@ -115,28 +115,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
   height:72px;background:var(--surface);border-top:1px solid var(--border);
   display:flex;align-items:stretch;flex-shrink:0;position:sticky;bottom:0;
   padding-bottom:env(safe-area-inset-bottom);
-  backdrop-filter:blur(12px);
 }
 .bn-item{
   flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:4px;border:none;background:transparent;color:var(--muted);
-  font-family:var(--mono);font-size:8px;letter-spacing:1.2px;font-weight:600;
-  cursor:pointer;padding:8px 4px 10px;position:relative;
-  transition:color .15s;
+  cursor:pointer;padding:8px 4px 10px;position:relative;transition:color .15s;
 }
-.bn-item:hover{ color:var(--text); }
-.bn-svg{
-  width:22px;height:22px;transition:stroke .15s,transform .15s;
-}
-.bn-label{
-  font-family:var(--mono);font-size:8px;letter-spacing:1.2px;font-weight:700;
-  transition:color .15s;
-}
-.bn-bar{
-  position:absolute;bottom:0;left:25%;right:25%;height:2.5px;
-  background:var(--accent);border-radius:2px 2px 0 0;
-  opacity:0;transition:opacity .2s;
-}
+.bn-item:hover{color:var(--text);}
+.bn-svg{width:22px;height:22px;transition:stroke .15s;}
+.bn-label{font-family:var(--mono);font-size:8px;letter-spacing:1.2px;font-weight:700;}
+.bn-bar{position:absolute;bottom:0;left:25%;right:25%;height:2.5px;background:var(--accent);border-radius:2px 2px 0 0;opacity:0;transition:opacity .2s;}
 .bn-item.active{color:var(--accent);}
 .bn-item.active .bn-svg{stroke:var(--accent);}
 .bn-item.active .bn-bar{opacity:1;}
@@ -1185,11 +1173,26 @@ select.field-input option{background:var(--elevated)}
 
   <!-- BOTTOM NAV -->
   <div class="bottom-nav">
-    <button class="bn-item active" id="bn-home" onclick="switchPage('home')"><span class="bn-icon">🏠</span>HOME</button>
-    <button class="bn-item" id="bn-search" onclick="switchPage('search')"><span class="bn-icon">🔍</span>SEARCH</button>
-    <button class="bn-item" id="bn-submit" onclick="switchPage('submit')"><span class="bn-icon">📋</span>SUBMIT</button>
-    <button class="bn-item" id="bn-history" onclick="switchPage('history')"><span class="bn-icon">📁</span>HISTORY</button>
-    <button class="bn-item" id="bn-profile" onclick="switchPage('profile')"><span class="bn-icon">👤</span>PROFILE</button>
+    <button class="bn-item active" id="bn-home" onclick="switchPage('home')">
+      <svg class="bn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+      <span class="bn-label">HOME</span><span class="bn-bar"></span>
+    </button>
+    <button class="bn-item" id="bn-search" onclick="switchPage('search')">
+      <svg class="bn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>
+      <span class="bn-label">SEARCH</span><span class="bn-bar"></span>
+    </button>
+    <button class="bn-item" id="bn-submit" onclick="switchPage('submit')">
+      <svg class="bn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>
+      <span class="bn-label">SUBMIT</span><span class="bn-bar"></span>
+    </button>
+    <button class="bn-item" id="bn-history" onclick="switchPage('history')">
+      <svg class="bn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 3.5"/></svg>
+      <span class="bn-label">HISTORY</span><span class="bn-bar"></span>
+    </button>
+    <button class="bn-item" id="bn-profile" onclick="switchPage('profile')">
+      <svg class="bn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      <span class="bn-label">PROFILE</span><span class="bn-bar"></span>
+    </button>
   </div>
 </div>
 
