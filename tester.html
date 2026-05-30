@@ -687,7 +687,7 @@ select.field-input option{background:var(--elevated)}
   <div class="topbar">
     <div class="topbar-left">
       <div class="topbar-icon">🛡️</div>
-      <div class="topbar-title">CCI Tester</div>
+      <div class="topbar-title">Backflow Check Pro</div>
     </div>
     <div class="topbar-right">
       <div class="tester-pill" id="tester-name-pill">TESTER</div>
@@ -781,7 +781,7 @@ select.field-input option{background:var(--elevated)}
       </div>
       <div style="flex:1">
         <div style="font-family:var(--cond);font-size:19px;font-weight:900;color:#000;line-height:1">Submit Test Report</div>
-        <div style="font-family:var(--mono);font-size:10px;color:rgba(0,0,0,.6);letter-spacing:1px;margin-top:3px">NEW TCEQ 290.47(f) REPORT</div>
+        <div style="font-family:var(--mono);font-size:10px;color:rgba(0,0,0,.6);letter-spacing:1px;margin-top:3px">SUBMIT BACKFLOW TEST REPORT</div>
       </div>
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
@@ -830,7 +830,7 @@ select.field-input option{background:var(--elevated)}
         <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase">Recent Tests</div>
         <button onclick="switchPage('history')" style="font-family:var(--mono);font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;letter-spacing:.5px">View All</button>
       </div>
-      <div id="home-recent"><div style="padding:16px;text-align:center;color:var(--muted);font-size:13px">Loading...</div></div>
+      <div id="home-recent"><div style="padding:16px;text-align:center;color:var(--muted);font-size:13px">No tests yet — submit your first report!</div></div>
     </div>
 
   </div>
@@ -913,7 +913,7 @@ select.field-input option{background:var(--elevated)}
       <div id="psid-fields"></div>
       <div style="margin-top:12px">
         <div class="result-banner" id="result-banner">Enter readings above — result auto-calculates</div>
-        <div class="result-detail" id="result-detail">Based on TCEQ guidelines</div>
+        <div class="result-detail" id="result-detail">Based on USC/AWWA standards</div>
       </div>
     </div>
 
@@ -975,7 +975,7 @@ select.field-input option{background:var(--elevated)}
 
     <button class="btn btn-accent" id="submit-btn" onclick="submitReport()"
       style="margin-bottom:8px;font-size:17px;padding:18px;border-radius:14px;letter-spacing:.3px;box-shadow:0 6px 24px rgba(249,166,30,.35)">
-      ✓ Submit &amp; Generate TCEQ 20700
+      ✓ Submit Test Report
     </button>
     <button class="btn btn-ghost" onclick="clearForm()" style="margin-bottom:32px">Clear Form</button>
   </div>
@@ -1015,7 +1015,7 @@ select.field-input option{background:var(--elevated)}
         <div class="form-field"><span class="field-label">License Expiration</span><input type="date" class="field-input" id="prof-license-exp"></div>
       </div>
       <div class="form-row full" style="margin-top:4px">
-        <div class="form-field"><span class="field-label">Gauge Serial # (for TCEQ form)</span><input type="text" class="field-input" id="prof-gauge-serial" placeholder="Gauge SN-00000"></div>
+        <div class="form-field"><span class="field-label">Gauge Serial #</span><input type="text" class="field-input" id="prof-gauge-serial" placeholder="Gauge SN-00000"></div>
       </div>
     </div>
 
@@ -1319,9 +1319,9 @@ async function handleDocUpload(input, type) {
   try {
     const ext = file.name.split('.').pop();
     const path = `tester-docs/${currentUser.id}/${type}_${Date.now()}.${ext}`;
-    const { error } = await supaClient.storage.from('test-photos').upload(path, file, { contentType: file.type, upsert: true });
+    const { error } = await supaClient.storage.from('backflow-photos').upload(path, file, { contentType: file.type, upsert: true });
     if (error) throw error;
-    const { data } = supaClient.storage.from('test-photos').getPublicUrl(path);
+    const { data } = supaClient.storage.from('backflow-photos').getPublicUrl(path);
     const url = data.publicUrl;
     if (type === 'gauge') {
       testerProfile.gaugeDocUrl = url;
@@ -1680,19 +1680,19 @@ function updateResultBanner() {
   if (!result) {
     banner.style.background='rgba(140,149,159,.1)'; banner.style.color='var(--muted)';
     banner.textContent='Enter readings above — result auto-calculates';
-    detail.textContent='Based on TCEQ guidelines'; return;
+    detail.textContent='Based on USC/AWWA standards'; return;
   }
-  if (result==='PASS') { banner.style.background='rgba(76,175,121,.15)'; banner.style.color='var(--green)'; banner.textContent='✓ PASS — All readings meet TCEQ thresholds'; }
-  else { banner.style.background='rgba(224,82,82,.15)'; banner.style.color='var(--red)'; banner.textContent='✗ FAIL — Assembly does not meet TCEQ requirements'; }
+  if (result==='PASS') { banner.style.background='rgba(76,175,121,.15)'; banner.style.color='var(--green)'; banner.textContent='✓ PASS — All readings meet USC/AWWA standards'; }
+  else { banner.style.background='rgba(224,82,82,.15)'; banner.style.color='var(--red)'; banner.textContent='✗ FAIL — Assembly does not meet USC/AWWA standards'; }
   detail.innerHTML = fails.length ? fails.join('<br>') : '';
 }
 
 function calcResult(asm, c1, c2, rv) {
-  // TCEQ / USC standards for backflow prevention assembly testing
+  // USC/AWWA standards for backflow prevention assembly testing
   const fails = [];
 
   if (asm === 'RPZ') {
-    // Reduced Pressure Zone — TCEQ criteria:
+    // Reduced Pressure Zone (RPZ) — USC criteria:
     // 1st check: must hold ≥ 5.0 PSID differential
     // 2nd check: must hold ≥ 1.0 PSID differential
     // Relief valve: must open at ≥ 2.0 PSID BELOW 1st check reading
@@ -1773,8 +1773,8 @@ async function submitReport() {
   for (const file of photoFiles) {
     try {
       const path=`reports/${Date.now()}_${file.name}`;
-      const {error}=await supaClient.storage.from('test-photos').upload(path,file,{contentType:file.type});
-      if (!error){const {data}=supaClient.storage.from('test-photos').getPublicUrl(path);photoUrls.push(data.publicUrl);}
+      const {error}=await supaClient.storage.from('backflow-photos').upload(path,file,{contentType:file.type});
+      if (!error){const {data}=supaClient.storage.from('backflow-photos').getPublicUrl(path);photoUrls.push(data.publicUrl);}
     } catch(e){}
   }
 
@@ -1846,14 +1846,14 @@ async function submitReport() {
     if (!res.ok) throw new Error(await res.text());
     myReports.unshift(row);
     toast(result==='PASS'?'✓ Saved — Generating PDF…':'✗ Saved — Generating PDF…', result==='PASS'?'success':'error');
-    // Generate TCEQ 20700 PDF
-    setTimeout(()=>generateTCEQ20700(row), 800);
+    // Generate report PDF
+    setTimeout(()=>generateReportPDF(row), 800);
     clearForm();
     setTimeout(()=>switchPage('history'),2000);
   } catch(e){
     toast('Error: '+e.message,'error');
   }
-  btn.innerHTML='✓ Submit & Generate TCEQ 20700';
+  btn.innerHTML='✓ Submit Test Report';
   btn.disabled=false;
 }
 
@@ -1870,9 +1870,9 @@ function clearForm() {
   selectAsm('RPZ');
 }
 
-// ── TCEQ 20700 PDF GENERATOR ──────────────────────────
+// ── REPORT PDF GENERATOR ──────────────────────────
 
-function generateTCEQ20700(r) {
+function generateReportPDF(r) {
   try {
     const {jsPDF} = window.jspdf;
     const doc = new jsPDF({ orientation:'portrait', unit:'pt', format:'letter' });
@@ -1889,7 +1889,7 @@ function generateTCEQ20700(r) {
     // HEADER
     rect(ml, y-14, cw, 28, [249,166,30]);
     font(14,'bold'); doc.setTextColor(0);
-    text('TCEQ BACKFLOW PREVENTION ASSEMBLY TEST REPORT',W/2,y+4,{align:'center'});
+    text('BACKFLOW PREVENTION ASSEMBLY TEST REPORT',W/2,y+4,{align:'center'});
     font(8,'normal'); doc.setTextColor(60);
     text('Form 20700 — Texas Commission on Environmental Quality 30 TAC §290.47(f)',W/2,y+16,{align:'center'});
     doc.setTextColor(0); y+=40;
@@ -2009,12 +2009,12 @@ function generateTCEQ20700(r) {
     rect(ml,y,cw,20,[240,240,240]);
     font(7,'normal'); doc.setTextColor(100);
     text(`Generated by Cross Connection Inspector — ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}`,W/2,y+13,{align:'center'});
-    text('TCEQ 30 TAC §290.47(f) — City of Abilene Cross-Connection Control Program',W/2,y+22,{align:'center'});
+    text('City of Abilene Cross-Connection Control Program — Test Reportntrol Program',W/2,y+22,{align:'center'});
 
     // Save
-    const filename=`TCEQ_20700_${(r.address||'report').replace(/[^a-z0-9]/gi,'_').slice(0,30)}_${r.date}.pdf`;
+    const filename=`BCP_Report_${(r.address||'report').replace(/[^a-z0-9]/gi,'_').slice(0,30)}_${r.date}.pdf`;
     doc.save(filename);
-    toast('📄 TCEQ 20700 PDF downloaded!','success');
+    toast('📄 Report PDF downloaded!','success');
   } catch(e) {
     console.error('PDF error:',e);
     toast('PDF generation failed: '+e.message,'error');
@@ -2051,7 +2051,7 @@ function renderHistory() {
         <div class="history-addr">${r.address||'—'}</div>
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
           <span class="badge ${bc}">${bl}</span>
-          <button class="pdf-btn" onclick="generateTCEQ20700(${JSON.stringify(r).replace(/"/g,'&quot;')})">📄 PDF</button>
+          <button class="pdf-btn" onclick="generateReportPDF(${JSON.stringify(r).replace(/"/g,'&quot;')})">📄 PDF</button>
         </div>
       </div>
       <div class="history-meta">
@@ -2160,10 +2160,10 @@ function wizShowStep(step) {
   const isHome = step === 'home';
   const backBtn = document.getElementById('wiz-back-btn');
   const logoWrap = document.getElementById('wiz-logo-wrap');
-  const titles = { home:'CCI Tester', addr:'New Test — Step 1', asm:'New Test — Step 2', readings:'New Test — Step 3', device:'New Test — Step 4', result:'Test Complete', history:'My Reports' };
+  const titles = { home:'Backflow Check Pro', addr:'New Test — Step 1', asm:'New Test — Step 2', readings:'New Test — Step 3', device:'New Test — Step 4', result:'Test Complete', history:'My Reports' };
   if (backBtn) backBtn.style.display = isHome ? 'none' : 'flex';
   if (logoWrap) logoWrap.style.display = isHome ? 'flex' : 'none';
-  document.getElementById('wiz-title').textContent = isHome ? '' : (titles[step] || 'CCI Tester');
+  document.getElementById('wiz-title').textContent = isHome ? '' : (titles[step] || 'Backflow Check Pro');
 }
 
 function wizBack() {
@@ -2348,8 +2348,8 @@ async function wizStep4Next() {
   for (const file of wizPhotoFiles) {
     try {
       const path = `reports/${Date.now()}_${file.name}`;
-      const { error } = await supaClient.storage.from('test-photos').upload(path, file, { contentType: file.type });
-      if (!error) { const { data } = supaClient.storage.from('test-photos').getPublicUrl(path); photoUrls.push(data.publicUrl); }
+      const { error } = await supaClient.storage.from('backflow-photos').upload(path, file, { contentType: file.type });
+      if (!error) { const { data } = supaClient.storage.from('backflow-photos').getPublicUrl(path); photoUrls.push(data.publicUrl); }
     } catch(e) {}
   }
 
@@ -2423,7 +2423,7 @@ function wizShowResult(r) {
 }
 
 function wizDownloadPDF() {
-  if (wizLastReport) generateTCEQ20700(wizLastReport);
+  if (wizLastReport) generateReportPDF(wizLastReport);
 }
 
 // ── History (wizard) ────────────────────────────────────────────
@@ -2446,7 +2446,7 @@ async function loadWizHistory() {
           <div class="history-addr">${r.address||'—'}</div>
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
             <span class="badge ${pass?'badge-pass':'badge-fail'}">${pass?'✓ PASS':'✗ FAIL'}</span>
-            <button class="pdf-btn" onclick="generateTCEQ20700(${JSON.stringify(r).replace(/"/g,'&quot;')})">📄</button>
+            <button class="pdf-btn" onclick="generateReportPDF(${JSON.stringify(r).replace(/"/g,'&quot;')})">📄</button>
           </div>
         </div>
         <div class="history-meta">
@@ -2726,12 +2726,12 @@ function checkLeadFree(brand, model) {
     checkEl.style.background = 'rgba(61,184,112,.08)';
     checkEl.style.border = '1px solid rgba(61,184,112,.25)';
     checkEl.style.color = 'var(--green)';
-    checkEl.innerHTML = '✓ LEAD-FREE COMPLIANT — This model meets TCEQ ≤0.25% lead requirement (NSF/ANSI 372)';
+    checkEl.innerHTML = '✓ LEAD-FREE COMPLIANT — Lead-free (NSF/ANSI 372 compliant)';
   } else {
     checkEl.style.background = 'rgba(224,82,82,.08)';
     checkEl.style.border = '1px solid rgba(224,82,82,.25)';
     checkEl.style.color = 'var(--red)';
-    checkEl.innerHTML = '⚠ NOT LEAD-FREE — This model exceeds TCEQ 0.25% lead limit. Replacement required for new installations per TCEQ 30 TAC §290.42.';
+    checkEl.innerHTML = '⚠ NOT NON-COMPLIANT — Exceeds 0.25% lead limit. Not approved for new installations.';
   }
 }
 
@@ -2863,7 +2863,7 @@ function dismissAIResult() {
     <button class="wiz-back" id="wiz-back-btn" onclick="wizBack()" style="display:none">‹ Back</button>
     <div style="display:flex;align-items:center;gap:8px" id="wiz-logo-wrap">
       <div style="width:28px;height:28px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 8px rgba(249,166,30,.3)">🛡️</div>
-      <div class="wiz-title" id="wiz-title">CCI Tester</div>
+      <div class="wiz-title" id="wiz-title">Backflow Check Pro</div>
     </div>
     <button class="wiz-switch" onclick="switchToFullPortal()">Full View</button>
   </div>
@@ -3146,7 +3146,7 @@ function dismissAIResult() {
     <div id="wiz-step-result" style="display:none;flex-direction:column;flex:1;overflow-y:auto">
       <div class="wiz-result" id="wiz-result-content"></div>
       <div style="padding:0 16px 32px">
-        <button class="wiz-pdf-btn" id="wiz-pdf-btn" onclick="wizDownloadPDF()">📄 Download TCEQ PDF</button>
+        <button class="wiz-pdf-btn" id="wiz-pdf-btn" onclick="wizDownloadPDF()">📄 Download Report PDF</button>
         <button class="wiz-new-btn" onclick="wizStartTest()">Start New Test</button>
       </div>
     </div>
