@@ -1315,6 +1315,8 @@ async function doLogout() {
 }
 
 async function enterApp() {
+  // Add show-full-portal so screen-app becomes visible on desktop
+  document.body.classList.add('show-full-portal');
   showScreen('app');
   document.getElementById('sub-date').valueAsDate = new Date();
   await loadProfile();
@@ -1324,7 +1326,6 @@ async function enterApp() {
   switchPage('home');
   await loadHomeStats();
   await loadAllDevices();
-  // Init autocompletes for full portal
   setTimeout(initPortalAutocompletes, 300);
 }
 
