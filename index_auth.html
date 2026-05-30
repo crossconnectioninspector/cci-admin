@@ -1499,12 +1499,12 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
     <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
       <!-- Tab bar -->
       <div style="display:flex;gap:2px;padding:0 28px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0">
-        <button class="loc-side-tab active" onclick="event.stopPropagation();locOverlaySwitchTab('details',this)" style="border-radius:0;border-bottom:2px solid transparent;padding:13px 18px">Details</button>
-        <button class="loc-side-tab" onclick="event.stopPropagation();locOverlaySwitchTab('assemblies',this)" style="border-radius:0;border-bottom:2px solid transparent;padding:13px 18px">Assemblies</button>
-        <button class="loc-side-tab" onclick="event.stopPropagation();locOverlaySwitchTab('contacts',this)" style="border-radius:0;border-bottom:2px solid transparent;padding:13px 18px">Contacts</button>
-        <button class="loc-side-tab" onclick="event.stopPropagation();locOverlaySwitchTab('communications',this)" style="border-radius:0;border-bottom:2px solid transparent;padding:13px 18px">Communications</button>
-        <button class="loc-side-tab" onclick="event.stopPropagation();locOverlaySwitchTab('surveys',this)" style="border-radius:0;border-bottom:2px solid transparent;padding:13px 18px">Surveys</button>
-        <button class="loc-side-tab" onclick="event.stopPropagation();locOverlaySwitchTab('compliance',this)" style="border-radius:0;border-bottom:2px solid transparent;padding:13px 18px">Compliance</button>
+        <button class="loc-side-tab active" onclick="locOverlaySwitchTab('details',this)" style="border-radius:0;border-bottom:2px solid transparent;padding:13px 18px">Details</button>
+        <button class="loc-side-tab" onclick="locOverlaySwitchTab('assemblies',this)" style="border-radius:0;border-bottom:2px solid transparent;padding:13px 18px">Assemblies</button>
+        <button class="loc-side-tab" onclick="locOverlaySwitchTab('contacts',this)" style="border-radius:0;border-bottom:2px solid transparent;padding:13px 18px">Contacts</button>
+        <button class="loc-side-tab" onclick="locOverlaySwitchTab('communications',this)" style="border-radius:0;border-bottom:2px solid transparent;padding:13px 18px">Communications</button>
+        <button class="loc-side-tab" onclick="locOverlaySwitchTab('surveys',this)" style="border-radius:0;border-bottom:2px solid transparent;padding:13px 18px">Surveys</button>
+        <button class="loc-side-tab" onclick="locOverlaySwitchTab('compliance',this)" style="border-radius:0;border-bottom:2px solid transparent;padding:13px 18px">Compliance</button>
       </div>
       <!-- Tab content -->
       <div id="locOverlayTabBody" style="flex:1;overflow-y:auto;padding:28px 32px"></div>
@@ -4587,20 +4587,28 @@ document.addEventListener('click', function(e) {
 
 // Locations: click outside detail panel
 document.addEventListener('click', function(e) {
-  if(!locDetailOpen)return;
-  // Never close when overlay is showing - it has its own close buttons
-  const overlay=document.getElementById('locFullOverlay');
-  if(overlay&&overlay.style.display==='flex')return;
-  const panel=document.getElementById('locDetailPanel'); if(!panel)return;
-  if(!panel.contains(e.target)&&!e.target.closest('[onclick^="locSelectRow"]')&&!e.target.closest('#page-locations-page > div:first-child')&&!e.target.closest('#locAdvPanel')&&!e.target.closest('#locAddModal'))locCloseDetail();
-},true);
+  if(!locDetailOpen) return;
+  // If overlay is visible, NEVER auto-close - user must use Back button or X
+  const overlay = document.getElementById('locFullOverlay');
+  if(overlay && overlay.style.display === 'flex') return;
+  // Side panel click-outside
+  const panel = document.getElementById('locDetailPanel');
+  if(!panel) return;
+  if(!panel.contains(e.target)
+    && !e.target.closest('[onclick^="locSelectRow"]')
+    && !e.target.closest('#page-locations-page > div:first-child')
+    && !e.target.closest('#locAdvPanel')
+    && !e.target.closest('#locAddModal')) {
+    locCloseDetail();
+  }
+});
 
 // Contacts: click outside detail panel
 document.addEventListener('click', function(e) {
   if(!conDetailOpen)return;
   const panel=document.getElementById('conDetailPanel'); if(!panel)return;
   if(!panel.contains(e.target)&&!e.target.closest('[onclick^="conSelectRow"]')&&!e.target.closest('#page-contacts-page > div:first-child')&&!e.target.closest('#conAddModal'))conCloseDetail();
-},true);
+});
 
 // Service Providers: click outside detail panel
 document.addEventListener('click', function(e) {
@@ -5635,6 +5643,8 @@ document.addEventListener('click',function(e){
 function locShowFullDetail(loc){
   const overlay = document.getElementById('locFullOverlay');
   if(!overlay) return;
+  // Store id on overlay element as backup
+  overlay.dataset.locId = loc.id;
 
   // Update breadcrumb
   const bc = document.getElementById('locOverlayBreadcrumb');
@@ -5692,25 +5702,46 @@ function locShowFullDetail(loc){
 }
 
 function locOverlaySwitchTab(tab, btn){
-  document.querySelectorAll('.loc-side-tab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const loc = LOC_DATA.find(l => l.id === locActiveId);
-  const body = document.getElementById('locOverlayTabBody');
-  if(!body || !loc) return;
-  // Reset edit mode on tab switch
-  locEditMode = false;
-  const editBtn = document.getElementById('locOverlayEditBtn');
-  if(editBtn){
-    editBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit';
-    editBtn.style.color = ''; editBtn.style.borderColor = ''; editBtn.style.background = '';
-    editBtn.style.display = ['details','assemblies','contacts'].includes(tab) ? 'flex' : 'none';
+  try {
+    // Mark active tab
+    document.querySelectorAll('.loc-side-tab').forEach(b => b.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+
+    // Get location
+    const overlay = document.getElementById('locFullOverlay');
+    const activeId = locActiveId || (overlay && parseInt(overlay.dataset.locId));
+    const loc = LOC_DATA.find(l => l.id === activeId);
+    if(!loc){ console.warn('locOverlaySwitchTab: no active location, locActiveId='+locActiveId); return; }
+
+    // Get body
+    const body = document.getElementById('locOverlayTabBody');
+    if(!body){ console.warn('locOverlaySwitchTab: no body element'); return; }
+
+    // Reset edit mode
+    locEditMode = false;
+    const editBtn = document.getElementById('locOverlayEditBtn');
+    if(editBtn){
+      editBtn.style.display = ['details','assemblies','contacts'].includes(tab) ? 'flex' : 'none';
+      editBtn.style.color=''; editBtn.style.borderColor=''; editBtn.style.background='';
+      editBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit';
+    }
+
+    // Render tab content
+    let html = '';
+    if(tab==='details')        html = locRenderDetails(loc);
+    else if(tab==='assemblies') html = locRenderAssemblies(loc);
+    else if(tab==='contacts')   html = locRenderContacts(loc);
+    else if(tab==='communications') html = locRenderComms(loc);
+    else if(tab==='surveys')    html = locRenderSurveys(loc);
+    else if(tab==='compliance') html = locRenderCompliance(loc);
+    else html = '<div style="padding:20px;color:var(--muted)">Unknown tab: '+tab+'</div>';
+
+    body.innerHTML = html;
+  } catch(err) {
+    console.error('locOverlaySwitchTab error:', err);
+    const body = document.getElementById('locOverlayTabBody');
+    if(body) body.innerHTML = '<div style="padding:20px;color:var(--red)">Error loading tab: ' + err.message + '</div>';
   }
-  if(tab==='details') body.innerHTML = locRenderDetails(loc);
-  else if(tab==='assemblies') body.innerHTML = locRenderAssemblies(loc);
-  else if(tab==='contacts') body.innerHTML = locRenderContacts(loc);
-  else if(tab==='communications') body.innerHTML = locRenderComms(loc);
-  else if(tab==='surveys') body.innerHTML = locRenderSurveys(loc);
-  else if(tab==='compliance') body.innerHTML = locRenderCompliance(loc);
 }
 
 </script>
