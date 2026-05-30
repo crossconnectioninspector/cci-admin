@@ -44,6 +44,10 @@ function sanitize(str) {
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;display:flex;font-weight:400;font-size:15px;line-height:var(--lh)}
 ::-webkit-scrollbar{width:5px;height:5px}
+.cf-opt{display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;border-radius:9px;background:transparent;border:none;color:var(--muted);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;text-align:left;transition:all .15s}
+.cf-opt:hover{background:var(--elevated);color:var(--text)}
+.cf-opt.active{background:rgba(249,166,30,.1);color:var(--accent);font-weight:700}
+
 /* Location fullscreen mode */
 #locDetailPanel.fullscreen {
   position: fixed !important;
@@ -1473,7 +1477,162 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
 
 <div class="page" id="page-users-page"><div class="es"><div class="es-icon">&#x1F465;</div><div class="es-title">Users</div><div class="es-sub">User management coming soon.</div></div></div>
 
-<div class="page" id="page-comms-page"><div class="es"><div class="es-icon">&#x1F4E8;</div><div class="es-title">Communications</div><div class="es-sub">Communication log coming soon.</div></div></div>
+<div class="page" id="page-comms-page" style="padding:0;display:none;height:calc(100vh - 56px);flex-direction:column;overflow:hidden">
+
+  <!-- Top bar -->
+  <div style="display:flex;align-items:center;gap:10px;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0">
+    <!-- Filter dropdown -->
+    <div style="position:relative" id="commsFilterWrap">
+      <button onclick="commsToggleFilter()" id="commsFilterBtn" style="display:flex;align-items:center;gap:8px;padding:9px 14px;background:var(--elevated);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;min-width:200px;transition:all .15s">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.86 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.77 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 10.92z"/></svg>
+        <span id="commsFilterLabel">All Communications</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" style="margin-left:auto;transition:transform .2s" id="commsFilterArrow"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <!-- Dropdown menu -->
+      <div id="commsFilterMenu" style="display:none;position:absolute;top:calc(100% + 6px);left:0;min-width:220px;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;z-index:200;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.5)">
+        <div style="padding:6px">
+          <button class="cf-opt active" onclick="commsSetFilter('all','All Communications',this)">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0;display:inline-block"></span>All Communications
+          </button>
+          <button class="cf-opt" onclick="commsSetFilter('unsent','Unsent',this)">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--yellow);flex-shrink:0;display:inline-block"></span>Unsent
+          </button>
+          <button class="cf-opt" onclick="commsSetFilter('sent','Sent',this)">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;display:inline-block"></span>Sent
+          </button>
+          <button class="cf-opt" onclick="commsSetFilter('logged','Manually Logged',this)">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0;display:inline-block"></span>Manually Logged
+          </button>
+          <button class="cf-opt" onclick="commsSetFilter('overdue','Overdue Notices',this)">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;display:inline-block"></span>Overdue Notices
+          </button>
+          <button class="cf-opt" onclick="commsSetFilter('error','Errors',this)">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;display:inline-block"></span>Communications with Errors
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div style="flex:1;display:flex;align-items:center;gap:6px;background:var(--elevated);border:1.5px solid var(--border);border-radius:9px;padding:0 12px;height:38px;max-width:500px" onfocusin="this.style.borderColor='var(--accent)'" onfocusout="this.style.borderColor='var(--border)'">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="commsSearch" type="text" placeholder="Search by location, contact, type..." oninput="commsApplyFilters()" style="background:none;border:none;outline:none;color:var(--text);font-family:var(--sans);font-size:13px;width:100%">
+    </div>
+
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <!-- Export -->
+      <button onclick="commsExport()" class="btn btn-gh" style="height:38px;gap:6px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export
+      </button>
+      <!-- Log Communication -->
+      <button onclick="commsOpenLog()" class="btn btn-ac" style="height:38px;gap:6px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Log Communication
+      </button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+    <!-- Headers -->
+    <div style="display:grid;grid-template-columns:2fr 2fr 1.5fr 120px 120px 120px;padding:10px 24px;border-bottom:1px solid var(--border);background:var(--elevated);flex-shrink:0;gap:0">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase">Communication Type</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase">Location Name</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase">Contact Name</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase">Method</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase">Due On</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase">Generated On</div>
+    </div>
+    <!-- Body -->
+    <div id="commsTableBody" style="flex:1;overflow-y:auto"></div>
+    <!-- Footer / pagination -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 24px;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">Rows per page:</span>
+        <select id="commsRowsPerPage" onchange="commsChangePage(1)" class="ss" style="font-size:11px;padding:3px 6px;width:auto"><option>10</option><option>25</option><option>50</option></select>
+      </div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted)" id="commsPageInfo"></div>
+      <div style="display:flex;gap:4px">
+        <button onclick="commsChangePage(1)" class="btn btn-gh btn-sm" style="padding:4px 10px">&#x27E8;&#x27E8;</button>
+        <button onclick="commsPrevPage()" class="btn btn-gh btn-sm" style="padding:4px 10px">&#x27E8;</button>
+        <button onclick="commsNextPage()" class="btn btn-gh btn-sm" style="padding:4px 10px">&#x27E9;</button>
+        <button onclick="commsLastPage()" class="btn btn-gh btn-sm" style="padding:4px 10px">&#x27E9;&#x27E9;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Log Communication Modal -->
+<div id="commsLogModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.6)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <div style="font-family:var(--cond);font-weight:900;font-size:22px;color:var(--text)">Log Communication</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:2px">Record a phone call, visit, letter, or other outreach</div>
+      </div>
+      <button onclick="commsCloseLog()" style="width:30px;height:30px;border-radius:8px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px">&#x2715;</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1">
+        <label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Communication Type *</label>
+        <select id="cl-type" class="ss" style="font-size:13px;padding:9px 12px">
+          <option value="">Select type...</option>
+          <option>Phone Call</option>
+          <option>Email Sent</option>
+          <option>In Person Visit</option>
+          <option>Voicemail Left</option>
+          <option>Text Message</option>
+          <option>Letter Mailed</option>
+          <option>First Notice</option>
+          <option>Second Notice</option>
+          <option>Final Notice</option>
+          <option>Overdue Notice</option>
+        </select>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1">
+        <label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Location / Address *</label>
+        <input type="text" id="cl-location" class="si" placeholder="1423 N 1st St or business name..." style="font-size:13px;padding:9px 12px">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Contact Name</label>
+        <input type="text" id="cl-contact" class="si" placeholder="Name" style="font-size:13px;padding:9px 12px">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Contact Method</label>
+        <select id="cl-method" class="ss" style="font-size:13px;padding:9px 12px">
+          <option>Email</option>
+          <option>Phone</option>
+          <option>Letter</option>
+          <option>In Person</option>
+          <option>SMS</option>
+        </select>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Date</label>
+        <input type="date" id="cl-date" class="si" style="font-size:13px;padding:9px 12px">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Status</label>
+        <select id="cl-status" class="ss" style="font-size:13px;padding:9px 12px">
+          <option>Sent</option>
+          <option>Logged</option>
+          <option>Pending</option>
+          <option>Failed</option>
+        </select>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1">
+        <label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Notes</label>
+        <textarea id="cl-notes" class="si" rows="3" placeholder="What was discussed, follow-up needed, outcome..." style="font-size:13px;padding:9px 12px;resize:vertical;line-height:1.5"></textarea>
+      </div>
+    </div>
+    <div id="cl-error" style="display:none;background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.3);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red);margin-top:12px"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:20px">
+      <button onclick="commsCloseLog()" class="btn btn-gh">Cancel</button>
+      <button onclick="commsSaveLog()" class="btn btn-ac">Save Log Entry</button>
+    </div>
+  </div>
+</div>
 
 <div class="page" id="page-notif-page"><div class="es"><div class="es-icon">&#x1F514;</div><div class="es-title">Notifications</div><div class="es-sub">Notification management coming soon.</div></div></div>
 
@@ -2008,6 +2167,7 @@ function nav(id, btn) {
   if(id==='locations-page') locInit();
   if(id==='contacts-page') conInit();
   if(id==='providers-page') spInit();
+  if(id==='comms-page') commsInit();
   if(id==='assemblies-page') asmInit();
 }
 
@@ -5627,6 +5787,229 @@ document.addEventListener('click',function(e){
     if(btn){btn.style.borderColor='var(--border)';btn.style.boxShadow='0 2px 8px rgba(0,0,0,.2)';}
   }
 },true);
+
+
+// ═══════════════════════════════════════════════════════
+//  COMMUNICATIONS MODULE
+// ═══════════════════════════════════════════════════════
+
+// Build demo data from LOC_DATA and ASM_DATA communications
+function commsGetAllData(){
+  const rows = [];
+  // From location communications (manually logged)
+  if(typeof LOC_DATA !== 'undefined'){
+    LOC_DATA.forEach(loc => {
+      (loc.communications||[]).forEach(c => {
+        rows.push({
+          id: Math.random(),
+          type: c.type||'Communication',
+          location: loc.address + (loc.name ? ' — '+loc.name : ''),
+          contact: loc.contact||'—',
+          method: c.method||'Email',
+          dueOn: c.date||'',
+          generatedOn: c.date||'',
+          status: c.status||'Logged',
+          notes: c.notes||'',
+          source: 'location'
+        });
+      });
+    });
+  }
+  // From assembly communications
+  if(typeof ASM_DATA !== 'undefined'){
+    ASM_DATA.forEach(a => {
+      (a.communications||[]).forEach(c => {
+        rows.push({
+          id: Math.random(),
+          type: c.type||'Assembly Notice',
+          location: a.address + ' — ' + a.serial,
+          contact: '—',
+          method: c.method||'Email',
+          dueOn: c.date||'',
+          generatedOn: c.date||'',
+          status: c.status||'Sent',
+          notes: '',
+          source: 'assembly'
+        });
+      });
+    });
+  }
+  // Add some demo entries if empty
+  if(rows.length === 0){
+    const demos = [
+      {type:'First Notice',location:'1423 N 1st St — Circle K #4421',contact:'Randy Torres',method:'Email',dueOn:'2025-09-14',generatedOn:'2025-09-01',status:'Sent',notes:''},
+      {type:'30-Day Notice',location:'1423 N 1st St — Circle K #4421',contact:'Randy Torres',method:'Email + SMS',dueOn:'2025-10-14',generatedOn:'2025-10-01',status:'Sent',notes:''},
+      {type:'Overdue Notice',location:'3801 S Clack St — Hendrick Medical',contact:'Susan Park',method:'Email',dueOn:'2025-09-30',generatedOn:'2025-09-28',status:'Sent',notes:''},
+      {type:'Phone Call',location:'3801 S Clack St — Hendrick Medical',contact:'Susan Park',method:'Phone',dueOn:'2025-10-14',generatedOn:'2025-10-14',status:'Logged',notes:'Left voicemail. Called back - said will schedule soon.'},
+      {type:'Fail Notice',location:'2018 Grape St — Abilene High School',contact:'Dr. Maria Okonkwo',method:'Email + SMS',dueOn:'2025-08-10',generatedOn:'2025-08-10',status:'Sent',notes:'Assembly RP-1145 failed inspection.'},
+      {type:'Repair Follow-up',location:'2018 Grape St — Abilene High School',contact:'Dr. Maria Okonkwo',method:'Email',dueOn:'2025-08-17',generatedOn:'2025-08-17',status:'Sent',notes:''},
+      {type:'First Notice',location:'4150 Buffalo Gap Rd — Walmart',contact:'Luis Garza',method:'Email',dueOn:'2025-11-22',generatedOn:'2025-11-10',status:'Unsent',notes:''},
+    ];
+    demos.forEach((d,i) => rows.push({...d, id:i+1, source:'demo'}));
+  }
+  return rows.sort((a,b) => (b.dueOn||'').localeCompare(a.dueOn||''));
+}
+
+let COMMS_DATA = [];
+let commsFiltered = [];
+let commsCurrentPage = 1;
+let commsCurrentFilter = 'all';
+
+function commsInit(){
+  COMMS_DATA = commsGetAllData();
+  commsFiltered = [...COMMS_DATA];
+  commsCurrentPage = 1;
+  // Set today's date in log modal
+  const dateEl = document.getElementById('cl-date');
+  if(dateEl) dateEl.value = new Date().toISOString().split('T')[0];
+  commsRenderTable();
+}
+
+function commsToggleFilter(){
+  const menu = document.getElementById('commsFilterMenu');
+  const arrow = document.getElementById('commsFilterArrow');
+  if(!menu) return;
+  const open = menu.style.display === 'block';
+  menu.style.display = open ? 'none' : 'block';
+  if(arrow) arrow.style.transform = open ? '' : 'rotate(180deg)';
+}
+
+function commsSetFilter(filter, label, btn){
+  commsCurrentFilter = filter;
+  document.getElementById('commsFilterLabel').textContent = label;
+  document.querySelectorAll('.cf-opt').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  commsToggleFilter();
+  commsApplyFilters();
+}
+
+function commsApplyFilters(){
+  const search = document.getElementById('commsSearch')?.value.trim().toLowerCase()||'';
+  commsFiltered = COMMS_DATA.filter(c => {
+    const matchSearch = !search ||
+      c.type.toLowerCase().includes(search) ||
+      c.location.toLowerCase().includes(search) ||
+      c.contact.toLowerCase().includes(search) ||
+      c.method.toLowerCase().includes(search);
+    const matchFilter =
+      commsCurrentFilter === 'all' ||
+      (commsCurrentFilter === 'sent'    && c.status === 'Sent') ||
+      (commsCurrentFilter === 'unsent'  && (c.status === 'Unsent' || c.status === 'Pending')) ||
+      (commsCurrentFilter === 'logged'  && c.status === 'Logged') ||
+      (commsCurrentFilter === 'overdue' && c.type.toLowerCase().includes('overdue')) ||
+      (commsCurrentFilter === 'error'   && c.status === 'Failed');
+    return matchSearch && matchFilter;
+  });
+  commsCurrentPage = 1;
+  commsRenderTable();
+}
+
+function commsRenderTable(){
+  const body = document.getElementById('commsTableBody');
+  const rpp = parseInt(document.getElementById('commsRowsPerPage')?.value||'10');
+  const total = commsFiltered.length;
+  const pages = Math.max(1, Math.ceil(total/rpp));
+  if(commsCurrentPage > pages) commsCurrentPage = pages;
+  const start = (commsCurrentPage-1)*rpp;
+  const page = commsFiltered.slice(start, start+rpp);
+  const info = document.getElementById('commsPageInfo');
+  if(info) info.textContent = total===0?'No results':`${start+1}–${Math.min(start+rpp,total)} of ${total} items`;
+  if(!body) return;
+  if(!page.length){
+    body.innerHTML = '<div style="text-align:center;padding:60px;color:var(--muted)"><div style="font-size:32px;margin-bottom:12px;opacity:.3">📨</div><div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">No communications found</div><div style="font-size:13px">Try changing the filter or search term</div></div>';
+    return;
+  }
+
+  const methodColor = m => m.includes('Email')?'var(--blue)':m.includes('SMS')||m.includes('Text')?'var(--green)':m==='Phone'||m.includes('Call')?'var(--accent)':m==='Letter'||m.includes('Mail')?'var(--yellow)':'var(--muted)';
+  const methodBg   = m => m.includes('Email')?'rgba(100,149,237,.14)':m.includes('SMS')||m.includes('Text')?'rgba(61,184,112,.14)':m==='Phone'||m.includes('Call')?'rgba(249,166,30,.14)':m==='Letter'||m.includes('Mail')?'rgba(240,192,64,.14)':'rgba(168,179,196,.1)';
+  const statusColor = s => s==='Sent'?'var(--green)':s==='Logged'?'var(--blue)':s==='Pending'||s==='Unsent'?'var(--yellow)':'var(--red)';
+  const statusBg    = s => s==='Sent'?'rgba(61,184,112,.12)':s==='Logged'?'rgba(100,149,237,.12)':s==='Pending'||s==='Unsent'?'rgba(240,192,64,.12)':'rgba(224,82,82,.12)';
+
+  const today = new Date().toISOString().split('T')[0];
+
+  body.innerHTML = page.map((c,idx) => {
+    const dueColor = !c.dueOn?'var(--muted)':c.dueOn < today?'var(--red)':c.dueOn < today.slice(0,7)+'-'+(parseInt(today.slice(8))+30).toString().padStart(2,'0')?'var(--yellow)':'var(--text)';
+    return `<div style="display:grid;grid-template-columns:2fr 2fr 1.5fr 120px 120px 120px;padding:13px 24px;border-bottom:1px solid var(--border);align-items:center;background:${idx%2===0?'transparent':'rgba(255,255,255,.015)'};transition:background .1s;cursor:default"
+      onmouseover="this.style.background='var(--elevated)'" onmouseout="this.style.background='${idx%2===0?'transparent':'rgba(255,255,255,.015)'}'">
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)">${sanitize(c.type)}</div>
+        ${c.notes?`<div style="font-size:11px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:280px" title="${sanitize(c.notes)}">${sanitize(c.notes)}</div>`:''}
+      </div>
+      <div style="font-size:13px;color:var(--accent);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:12px">${sanitize(c.location)}</div>
+      <div style="font-size:13px;color:var(--text)">${sanitize(c.contact)}</div>
+      <div>
+        <span style="font-family:var(--mono);font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;background:${methodBg(c.method)};color:${methodColor(c.method)}">${sanitize(c.method)}</span>
+      </div>
+      <div style="font-family:var(--mono);font-size:12px;color:${dueColor};font-weight:${c.dueOn&&c.dueOn<today?'700':'400'}">${c.dueOn||'—'}</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="font-family:var(--mono);font-size:12px;color:var(--muted)">${c.generatedOn||'—'}</div>
+        <span style="font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;background:${statusBg(c.status)};color:${statusColor(c.status)}">${sanitize(c.status)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function commsChangePage(p){commsCurrentPage=p;commsRenderTable();}
+function commsPrevPage(){if(commsCurrentPage>1){commsCurrentPage--;commsRenderTable();}}
+function commsNextPage(){const rpp=parseInt(document.getElementById('commsRowsPerPage')?.value||'10');if(commsCurrentPage<Math.ceil(commsFiltered.length/rpp)){commsCurrentPage++;commsRenderTable();}}
+function commsLastPage(){const rpp=parseInt(document.getElementById('commsRowsPerPage')?.value||'10');commsCurrentPage=Math.ceil(commsFiltered.length/rpp)||1;commsRenderTable();}
+
+function commsOpenLog(){
+  const m=document.getElementById('commsLogModal');if(m)m.style.display='flex';
+  const dateEl=document.getElementById('cl-date');if(dateEl)dateEl.value=new Date().toISOString().split('T')[0];
+}
+function commsCloseLog(){
+  const m=document.getElementById('commsLogModal');if(m)m.style.display='none';
+  ['cl-type','cl-location','cl-contact','cl-notes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('cl-method').value='Email';
+  document.getElementById('cl-status').value='Sent';
+  const err=document.getElementById('cl-error');if(err)err.style.display='none';
+}
+function commsSaveLog(){
+  const type=document.getElementById('cl-type')?.value;
+  const location=document.getElementById('cl-location')?.value.trim();
+  const err=document.getElementById('cl-error');
+  if(!type){if(err){err.textContent='Please select a communication type.';err.style.display='block';}return;}
+  if(!location){if(err){err.textContent='Location is required.';err.style.display='block';}return;}
+  const entry = {
+    id: Date.now(),
+    type, location,
+    contact: document.getElementById('cl-contact')?.value.trim()||'—',
+    method: document.getElementById('cl-method')?.value||'Email',
+    dueOn: document.getElementById('cl-date')?.value||new Date().toISOString().split('T')[0],
+    generatedOn: new Date().toISOString().split('T')[0],
+    status: document.getElementById('cl-status')?.value||'Logged',
+    notes: document.getElementById('cl-notes')?.value.trim()||'',
+    source: 'manual'
+  };
+  COMMS_DATA.unshift(entry);
+  commsFiltered = [...COMMS_DATA];
+  commsCurrentPage = 1;
+  commsCloseLog();
+  commsRenderTable();
+}
+function commsExport(){
+  const h=['Type','Location','Contact','Method','Due On','Generated On','Status','Notes'];
+  const rows=commsFiltered.map(c=>[c.type,c.location,c.contact,c.method,c.dueOn,c.generatedOn,c.status,c.notes]);
+  const csv=[h,...rows].map(r=>r.map(v=>'"'+(v||'').toString().replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='bcp-communications.csv';a.click();
+}
+
+// Close filter dropdown on outside click
+document.addEventListener('click',function(e){
+  const wrap=document.getElementById('commsFilterWrap');
+  if(wrap&&!wrap.contains(e.target)){
+    const menu=document.getElementById('commsFilterMenu');
+    const arrow=document.getElementById('commsFilterArrow');
+    if(menu)menu.style.display='none';
+    if(arrow)arrow.style.transform='';
+  }
+});
+// Close log modal on backdrop click
+document.addEventListener('click',function(e){
+  const modal=document.getElementById('commsLogModal');
+  if(modal&&e.target===modal)commsCloseLog();
+});
 
 </script>
 
