@@ -1320,9 +1320,83 @@ async function loadHomeStats() {
       (r.tester && r.tester.toLowerCase() === (name||'').toLowerCase()) ||
       (r.tester_email && r.tester_email === currentUser.email)
     );
-    document.getElementById('stat-total').textContent = myReports.length;
-    document.getElementById('stat-pass').textContent = myReports.filter(r => r.result==='PASS').length;
-    document.getElementById('stat-fail').textContent = myReports.filter(r => r.result==='FAIL').length;
+    const total = myReports.length;
+    const passed = myReports.filter(r => r.result==='PASS').length;
+    const failed = myReports.filter(r => r.result==='FAIL').length;
+    document.getElementById('stat-total').textContent = total;
+    document.getElementById('stat-pass').textContent = passed;
+    document.getElementById('stat-fail').textContent = failed;
+
+    // Pass rate bar
+    const pct = total > 0 ? Math.round(passed/total*100) : 0;
+    const bar = document.getElementById('home-pass-bar');
+    const pctEl = document.getElementById('home-pass-pct');
+    if(bar) setTimeout(() => { bar.style.width = pct + '%'; }, 200);
+    if(pctEl) { pctEl.textContent = pct + '%'; pctEl.style.color = pct >= 90 ? 'var(--green)' : pct >= 70 ? 'var(--yellow)' : 'var(--red)'; }
+
+    // Greeting
+    const hour = new Date().getHours();
+    const greet = hour < 12 ? 'GOOD MORNING' : hour < 17 ? 'GOOD AFTERNOON' : 'GOOD EVENING';
+    const greetEl = document.getElementById('home-greeting');
+    if(greetEl) greetEl.textContent = greet;
+
+    // Avatar + name
+    const profile = testerProfile || {};
+    const displayName = profile.name || currentUser?.user_metadata?.full_name || currentUser?.email?.split('@')[0] || 'Tester';
+    const nameEl = document.getElementById('home-name');
+    const avatarEl = document.getElementById('home-avatar');
+    if(nameEl) nameEl.textContent = displayName;
+    if(avatarEl) avatarEl.textContent = displayName.charAt(0).toUpperCase();
+
+    // Credential pills
+    const certEl = document.getElementById('home-cert');
+    const gaugeEl = document.getElementById('home-gauge');
+    const companyEl = document.getElementById('home-company');
+    if(certEl) certEl.textContent = 'CERT ' + (profile.cert || '—');
+    if(gaugeEl) {
+      const gcal = profile.gaugeCal || profile.gauge_cal_date || '—';
+      const gcalDate = gcal !== '—' ? new Date(gcal) : null;
+      const gcalDays = gcalDate ? Math.floor((gcalDate - new Date()) / 86400000) : null;
+      gaugeEl.textContent = 'GAUGE CAL ' + gcal;
+      if(gcalDays !== null && gcalDays < 60) gaugeEl.style.color = gcalDays < 0 ? 'var(--red)' : 'var(--yellow)';
+    }
+    if(companyEl) companyEl.textContent = profile.company || '—';
+
+    // Streak
+    let streak = 0;
+    const sorted = [...myReports].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+    for(const r of sorted) { if(r.result==='PASS') streak++; else break; }
+    const streakEl = document.getElementById('home-streak');
+    if(streakEl) {
+      streakEl.textContent = streak + ' CONSECUTIVE PASS' + (streak !== 1 ? 'ES' : '');
+      streakEl.style.color = streak >= 5 ? 'var(--green)' : streak >= 1 ? 'var(--accent)' : 'var(--muted)';
+    }
+
+    // Recent tests
+    const recentEl = document.getElementById('home-recent');
+    if(recentEl) {
+      if(!myReports.length) {
+        recentEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">No tests submitted yet</div>';
+      } else {
+        recentEl.innerHTML = sorted.slice(0,4).map(r => {
+          const pass = r.result === 'PASS';
+          const color = pass ? 'var(--green)' : 'var(--red)';
+          const bg = pass ? 'rgba(61,184,112,.12)' : 'rgba(224,82,82,.12)';
+          return '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border)">' +
+            '<div style="width:36px;height:36px;border-radius:10px;background:' + bg + ';display:flex;align-items:center;justify-content:center;flex-shrink:0">' +
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="2.5">' +
+            (pass ? '<polyline points="20 6 9 17 4 12"/>' : '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>') +
+            '</svg></div>' +
+            '<div style="flex:1;min-width:0">' +
+            '<div style="font-size:14px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (r.address || '—') + '</div>' +
+            '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px">' + (r.assembly_type||r.assembly||'—') + ' · ' + (r.date||'—') + '</div>' +
+            '</div>' +
+            '<div style="font-family:var(--mono);font-size:11px;font-weight:700;color:' + color + '">' + r.result + '</div>' +
+            '</div>';
+        }).join('');
+      }
+    }
+
     renderHomeAlerts();
   } catch(e) {
     document.getElementById('stat-total').textContent = '—';
