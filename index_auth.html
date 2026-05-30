@@ -44,6 +44,10 @@ function sanitize(str) {
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;display:flex;font-weight:400;font-size:15px;line-height:var(--lh)}
 ::-webkit-scrollbar{width:5px;height:5px}
+.lov-tab{padding:13px 18px;background:transparent;border:none;border-bottom:3px solid transparent;color:var(--muted);font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s;margin-bottom:-1px}
+.lov-tab:hover{color:var(--text)}
+.lov-tab.lov-active{color:var(--accent);border-bottom-color:var(--accent)}
+
 .loc-side-tab{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:9px;background:transparent;border:none;color:var(--muted);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;text-align:left;transition:all .15s;white-space:nowrap}
 .loc-side-tab:hover{color:var(--text)}
 .loc-side-tab.active{color:var(--accent);border-bottom:2px solid var(--accent) !important;font-weight:700}
@@ -1460,56 +1464,44 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
 <div class="es-sub">TCEQ regulations and resources coming soon.</div></div></div>
 
 <!-- Location Full-Screen Detail Overlay -->
-<div id="locFullOverlay" style="display:none;position:fixed;top:56px;left:170px;right:0;bottom:0;background:var(--bg);z-index:100;flex-direction:column;overflow:hidden;opacity:1;transform:translateX(0);transition:opacity .2s ease,transform .2s ease;border-left:1px solid var(--border)">
+<div id="locFullOverlay" style="display:none;position:fixed;top:56px;left:170px;right:0;bottom:0;background:var(--bg);z-index:100;flex-direction:column;overflow:hidden;border-left:1px solid var(--border)">
 
-  <!-- Overlay top bar -->
+  <!-- Top bar -->
   <div style="display:flex;align-items:center;gap:14px;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0">
-    <!-- Back button -->
-    <button onclick="event.stopPropagation();locCloseDetail()" style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--elevated);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s"
-      onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">
+    <button id="locOverlayBackBtn" style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--elevated);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
       Back to Locations
     </button>
-
-    <!-- Breadcrumb -->
     <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)">
-      <span style="color:var(--muted)">Locations</span>
+      <span>Locations</span>
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
       <span id="locOverlayBreadcrumb" style="color:var(--text);font-weight:600"></span>
     </div>
-
-    <!-- Right actions -->
     <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
       <div id="locOverlayBadge"></div>
-      <button id="locOverlayEditBtn" onclick="locToggleEdit()" style="display:flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:9px;background:var(--elevated);border:1.5px solid var(--border);color:var(--muted);cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600;transition:all .15s">
+      <button id="locOverlayEditBtn" style="display:flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:9px;background:var(--elevated);border:1.5px solid var(--border);color:var(--muted);cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         Edit
       </button>
-      <button onclick="locCloseDetail()" style="width:34px;height:34px;border-radius:8px;background:var(--elevated);border:1.5px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .15s"
-        onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">&#x2715;</button>
+      <button id="locOverlayCloseBtn" style="width:34px;height:34px;border-radius:8px;background:var(--elevated);border:1.5px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px">&#x2715;</button>
     </div>
   </div>
 
-  <!-- Summary stat bar -->
-  <div id="locOverlaySummary" style="display:flex;align-items:center;gap:0;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto"></div>
+  <!-- Summary strip -->
+  <div id="locOverlaySummary" style="display:flex;align-items:center;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto"></div>
 
-  <!-- Content: tabs + body side by side on wide screen -->
-  <div style="flex:1;display:flex;overflow:hidden">
-    <!-- Horizontal tabs + body -->
-    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
-      <!-- Tab bar -->
-      <div style="display:flex;gap:2px;padding:0 28px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0">
-        <button class="loc-side-tab active" onclick="locOverlaySwitchTab('details',this)" style="border-radius:0;border-bottom:2px solid transparent;padding:13px 18px">Details</button>
-        <button class="loc-side-tab" onclick="locOverlaySwitchTab('assemblies',this)" style="border-radius:0;border-bottom:2px solid transparent;padding:13px 18px">Assemblies</button>
-        <button class="loc-side-tab" onclick="locOverlaySwitchTab('contacts',this)" style="border-radius:0;border-bottom:2px solid transparent;padding:13px 18px">Contacts</button>
-        <button class="loc-side-tab" onclick="locOverlaySwitchTab('communications',this)" style="border-radius:0;border-bottom:2px solid transparent;padding:13px 18px">Communications</button>
-        <button class="loc-side-tab" onclick="locOverlaySwitchTab('surveys',this)" style="border-radius:0;border-bottom:2px solid transparent;padding:13px 18px">Surveys</button>
-        <button class="loc-side-tab" onclick="locOverlaySwitchTab('compliance',this)" style="border-radius:0;border-bottom:2px solid transparent;padding:13px 18px">Compliance</button>
-      </div>
-      <!-- Tab content -->
-      <div id="locOverlayTabBody" style="flex:1;overflow-y:auto;padding:28px 32px"></div>
-    </div>
+  <!-- Tab bar -->
+  <div id="locOverlayTabBar" style="display:flex;gap:0;padding:0 28px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0">
+    <button data-tab="details"       class="lov-tab lov-active">Details</button>
+    <button data-tab="assemblies"    class="lov-tab">Assemblies</button>
+    <button data-tab="contacts"      class="lov-tab">Contacts</button>
+    <button data-tab="communications" class="lov-tab">Communications</button>
+    <button data-tab="surveys"       class="lov-tab">Surveys</button>
+    <button data-tab="compliance"    class="lov-tab">Compliance</button>
   </div>
+
+  <!-- Tab body -->
+  <div id="locOverlayTabBody" style="flex:1;overflow-y:auto;padding:28px 32px"></div>
 </div>
 
 <!-- Add Location Modal -->
@@ -5639,67 +5631,136 @@ document.addEventListener('click',function(e){
 },true);
 
 
-// ── LOCATION FULL-SCREEN OVERLAY ──────────────────────────────────────────────
+// ── LOCATION FULL-SCREEN OVERLAY ─────────────────────────────────────────────
 function locShowFullDetail(loc){
   const overlay = document.getElementById('locFullOverlay');
   if(!overlay) return;
-  // Store id on overlay element as backup
-  overlay.dataset.locId = loc.id;
+  overlay.dataset.locId = String(loc.id);
 
-  // Update breadcrumb
+  // Breadcrumb
   const bc = document.getElementById('locOverlayBreadcrumb');
   if(bc) bc.textContent = loc.address;
 
-  // Update compliance badge
+  // Badge
   const badge = document.getElementById('locOverlayBadge');
   if(badge){
     const cc = loc.compliance==='Compliant'?'var(--green)':loc.compliance==='Overdue'?'var(--yellow)':'var(--red)';
     const cbg = loc.compliance==='Compliant'?'rgba(76,175,121,.14)':loc.compliance==='Overdue'?'rgba(240,192,64,.14)':'rgba(224,82,82,.14)';
     const cbr = loc.compliance==='Compliant'?'rgba(76,175,121,.3)':loc.compliance==='Overdue'?'rgba(240,192,64,.3)':'rgba(224,82,82,.3)';
-    badge.style.cssText = `font-family:var(--mono);font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;background:${cbg};color:${cc};border:1px solid ${cbr}`;
+    badge.style.cssText = 'font-family:var(--mono);font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;background:'+cbg+';color:'+cc+';border:1px solid '+cbr;
     badge.textContent = loc.compliance.toUpperCase();
   }
 
-  // Summary stat bar
+  // Summary strip
   const summary = document.getElementById('locOverlaySummary');
   if(summary){
     const stats = [
-      {label:'Account', value:loc.account||'—'},
-      {label:'Hazard', value:loc.hazard+' ('+loc.hazardRating+'/10)'},
-      {label:'Devices', value:(loc.assemblies?.length||loc.deviceCount||0)+' assemblies'},
-      {label:'Connections', value:loc.connections||1},
-      {label:'Last Survey', value:loc.lastSurvey||'—'},
-      {label:'Contact', value:loc.contact||'—'},
+      {l:'Account',   v: loc.account||'—'},
+      {l:'Hazard',    v: loc.hazard+' ('+loc.hazardRating+'/10)'},
+      {l:'Devices',   v: (loc.assemblies||[]).length+' assemblies'},
+      {l:'Connections', v: loc.connections||1},
+      {l:'Last Survey', v: loc.lastSurvey||'—'},
+      {l:'Contact',   v: loc.contact||'—'},
     ];
-    summary.innerHTML = stats.map((s,i) => `
-      <div style="padding:14px 24px;border-right:1px solid var(--border);flex-shrink:0${i===0?';border-left:none':''}">
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">${s.label}</div>
-        <div style="font-size:15px;font-weight:600;color:var(--text)">${s.value}</div>
-      </div>`).join('');
+    summary.innerHTML = stats.map(s =>
+      '<div style="padding:14px 24px;border-right:1px solid var(--border);flex-shrink:0">'+
+      '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">'+s.l+'</div>'+
+      '<div style="font-size:15px;font-weight:600;color:var(--text)">'+s.v+'</div></div>'
+    ).join('');
   }
 
-  // Sync edit button to locEditBtn
-  const overlayEdit = document.getElementById('locOverlayEditBtn');
-  if(overlayEdit){
-    overlayEdit.onclick = () => locToggleEdit();
-  }
+  // Reset to details tab
+  document.querySelectorAll('.lov-tab').forEach(b => b.classList.remove('lov-active'));
+  const detailsTab = document.querySelector('.lov-tab[data-tab="details"]');
+  if(detailsTab) detailsTab.classList.add('lov-active');
+  locEditMode = false;
 
-  // Show overlay with animation
+  const body = document.getElementById('locOverlayTabBody');
+  if(body) body.innerHTML = locRenderDetails(loc);
+
+  // Show with animation
   overlay.style.display = 'flex';
   overlay.style.opacity = '0';
-  overlay.style.transform = 'translateX(20px)';
+  overlay.style.transform = 'translateX(16px)';
+  overlay.style.transition = 'opacity .2s ease,transform .2s ease';
   requestAnimationFrame(() => {
-    overlay.style.transition = 'opacity .2s ease,transform .2s ease';
     overlay.style.opacity = '1';
     overlay.style.transform = 'translateX(0)';
   });
-
-  // Reset to details tab
-  document.querySelectorAll('.loc-side-tab').forEach((b,i) => b.classList.toggle('active', i===0));
-  locEditMode = false;
-  const body = document.getElementById('locOverlayTabBody');
-  if(body) body.innerHTML = locRenderDetails(loc);
 }
+
+function locOverlayClose(){
+  const overlay = document.getElementById('locFullOverlay');
+  if(!overlay) return;
+  overlay.style.opacity = '0';
+  overlay.style.transform = 'translateX(16px)';
+  setTimeout(() => {
+    overlay.style.display = 'none';
+    overlay.style.transform = '';
+  }, 220);
+  locDetailOpen = false;
+  locActiveId = null;
+  locEditMode = false;
+  locRenderTable();
+}
+
+// Wire up overlay buttons once DOM is ready
+document.addEventListener('DOMContentLoaded', function(){
+  // Back button
+  const backBtn = document.getElementById('locOverlayBackBtn');
+  if(backBtn) backBtn.addEventListener('click', locOverlayClose);
+
+  // Close button
+  const closeBtn = document.getElementById('locOverlayCloseBtn');
+  if(closeBtn) closeBtn.addEventListener('click', locOverlayClose);
+
+  // Edit button
+  const editBtn = document.getElementById('locOverlayEditBtn');
+  if(editBtn) editBtn.addEventListener('click', locToggleEdit);
+
+  // Tab buttons - using event delegation on the tab bar
+  const tabBar = document.getElementById('locOverlayTabBar');
+  if(tabBar){
+    tabBar.addEventListener('click', function(e){
+      const btn = e.target.closest('[data-tab]');
+      if(!btn) return;
+      const tab = btn.dataset.tab;
+
+      // Get location from overlay dataset
+      const overlay = document.getElementById('locFullOverlay');
+      const locId = overlay ? parseInt(overlay.dataset.locId) : locActiveId;
+      const loc = LOC_DATA.find(l => l.id === locId);
+      if(!loc) return;
+
+      // Update active tab
+      document.querySelectorAll('.lov-tab').forEach(b => b.classList.remove('lov-active'));
+      btn.classList.add('lov-active');
+
+      // Reset edit mode
+      locEditMode = false;
+      const editBtn = document.getElementById('locOverlayEditBtn');
+      if(editBtn){
+        editBtn.style.display = ['details','assemblies','contacts'].includes(tab) ? 'flex' : 'none';
+        editBtn.style.color=''; editBtn.style.borderColor=''; editBtn.style.background='';
+      }
+
+      // Render tab content
+      const body = document.getElementById('locOverlayTabBody');
+      if(!body) return;
+      try {
+        if(tab==='details')         body.innerHTML = locRenderDetails(loc);
+        else if(tab==='assemblies') body.innerHTML = locRenderAssemblies(loc);
+        else if(tab==='contacts')   body.innerHTML = locRenderContacts(loc);
+        else if(tab==='communications') body.innerHTML = locRenderComms(loc);
+        else if(tab==='surveys')    body.innerHTML = locRenderSurveys(loc);
+        else if(tab==='compliance') body.innerHTML = locRenderCompliance(loc);
+      } catch(err) {
+        body.innerHTML = '<div style="padding:20px;color:var(--red)">Error: '+err.message+'</div>';
+      }
+    });
+  }
+});
+
 
 function locOverlaySwitchTab(tab, btn){
   try {
