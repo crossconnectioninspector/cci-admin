@@ -528,6 +528,7 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
   letter-spacing:1px;
 }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -6456,10 +6457,22 @@ document.addEventListener('click',function(e){
 
 
 // ── BACKFLOW TEST REPORT PDF (matches TCEQ 20700 layout) ──────────────────
-function generateReportPDF(r) {
+async function generateReportPDF(r) {
   if (!r) return;
   try {
-    const { jsPDF } = window.jspdf;
+    // Handle different ways jsPDF is exposed depending on load timing
+    const jsPDFClass = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+    if (!jsPDFClass) { 
+      // Try loading dynamically
+      if(typeof toast==='function') toast('Loading PDF library...','info');
+      await new Promise(function(res){ 
+        const s=document.createElement('script');
+        s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        s.onload=res; document.head.appendChild(s);
+      });
+    }
+    const jsPDF = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+    if (!jsPDF) throw new Error('PDF library failed to load. Please try again.');
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
     const pw = 215.9; // letter width mm
     const m = 12;    // margin
