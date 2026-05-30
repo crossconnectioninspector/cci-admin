@@ -1351,7 +1351,7 @@ function switchPage(id) {
   el.style.overflow = flexPages.includes(id) ? 'hidden' : '';
   const bn = document.getElementById('bn-' + id);
   if (bn) bn.classList.add('active');
-  if (id === 'home') { loadHomeStats(); }
+  if (id === 'home') { if(typeof loadHomeStats === 'function') loadHomeStats(); }
   if (id === 'history') loadHistory();
   if (id === 'profile') renderProfilePage();
   if (id === 'submit') { checkProfileWarning(); setTimeout(() => initPortalAutocompletes(), 100); }
