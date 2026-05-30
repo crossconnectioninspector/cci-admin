@@ -65,6 +65,23 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
   width: 100% !important;
 }
 
+/* Contact fullscreen mode */
+#conDetailPanel.fullscreen {
+  position: fixed !important;
+  top: 56px !important;
+  left: 170px !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: auto !important;
+  opacity: 1 !important;
+  z-index: 100;
+  border-left: 1px solid var(--border);
+  transition: none !important;
+}
+#conDetailPanel.fullscreen > div {
+  width: 100% !important;
+}
+
 .rpt-opt{display:flex;align-items:center;gap:10px;width:100%;padding:10px 13px;border-radius:10px;background:transparent;border:none;color:var(--text);font-family:var(--sans);font-size:15px;font-weight:500;cursor:pointer;text-align:left;transition:all .15s;position:relative}
 .rpt-opt:hover{background:rgba(255,255,255,.05);transform:translateX(2px)}
 .rpt-opt.active{background:rgba(249,166,30,.12);color:var(--accent);box-shadow:inset 0 0 0 1px rgba(249,166,30,.2)}
@@ -133,11 +150,9 @@ p,div,span,td,th,li{line-height:var(--lh)}
 .sb-nav{padding:12px 10px;flex:1;display:flex;flex-direction:column;gap:1px;overflow-y:auto}
 .sb-sec{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:2px;padding:8px 8px 3px;margin-top:6px}
 .nb{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;cursor:pointer;border:none;background:transparent;color:var(--muted);font-family:var(--sans);font-size:15px;font-weight:700;width:100%;text-align:left;transition:background .15s,color .15s}
-.nb:hover{background:var(--elevated);color:var(--accent);}
-.nb.active{background:rgba(249,166,30,.12);color:var(--accent);border-right:2px solid var(--accent);}
-.nb-icon{font-size:17px;width:20px;text-align:center;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.nb:hover .nb-icon svg{stroke:var(--accent);}
-.nb.active .nb-icon svg{stroke:var(--accent);}
+.nb:hover{background:var(--elevated);color:var(--text)}
+.nb.active{background:rgba(249,166,30,.1);color:var(--accent)}
+.nb-icon{font-size:17px;width:18px;text-align:center;flex-shrink:0}
 .sb-foot{padding:14px;border-top:1px solid var(--border);font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.5px;line-height:1.6}
 
 /* MAIN */
@@ -531,7 +546,7 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
 <aside class="sidebar">
   <div class="sb-logo">
     <div class="sb-logo-row">
-      <div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <div class="sb-icon">🛡️</div>
       <div class="sb-name">Cross Connection<br><span>Inspector</span></div>
     </div>
     <div class="sb-sub">Admin Portal</div>
@@ -1276,6 +1291,14 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
     </div>
     <div id="conDetailPanel" style="width:0;overflow:hidden;border-left:1px solid var(--border);transition:width .25s ease,opacity .2s ease;opacity:0;flex-shrink:0;display:flex;flex-direction:column;background:var(--bg)">
       <div style="width:420px;display:flex;flex-direction:column;height:100%;overflow:hidden">
+        <!-- Back bar (fullscreen mode only) -->
+        <div id="conBackBar" style="display:none;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0">
+          <button onclick="conExitFullscreen()" style="display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--muted);cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.5px;padding:0">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            BACK TO CONTACTS
+          </button>
+          <div style="flex:1;font-family:var(--cond);font-size:15px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="conFSBreadcrumb"></div>
+        </div>
         <div style="padding:14px 18px 0;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">
             <div><div id="conDetailName" style="font-family:var(--cond);font-weight:900;font-size:24px;color:var(--text);line-height:1.1"></div><div id="conDetailRole" style="font-size:13px;color:var(--muted);margin-top:3px"></div></div>
@@ -4687,7 +4710,9 @@ function conInit(){conFiltered=[...CON_DATA];conCurrentPage=1;conDetailOpen=fals
 function conApplyFilters(){const ms=document.getElementById('conMainSearch')?.value.trim().toLowerCase()||'';conFiltered=CON_DATA.filter(c=>!ms||c.name.toLowerCase().includes(ms)||c.email.toLowerCase().includes(ms)||c.phone.includes(ms)||c.address.toLowerCase().includes(ms));conCurrentPage=1;conRenderTable();}
 function conRenderTable(){const body=document.getElementById('conTableBody');const rpp=parseInt(document.getElementById('conRowsPerPage')?.value||'10');const total=conFiltered.length;const totalPages=Math.max(1,Math.ceil(total/rpp));if(conCurrentPage>totalPages)conCurrentPage=totalPages;const start=(conCurrentPage-1)*rpp;const page=conFiltered.slice(start,start+rpp);const info=document.getElementById('conPageInfo');if(info)info.textContent=total===0?'No results':`${start+1}-${Math.min(start+rpp,total)} of ${total} items`;const hdrs=document.getElementById('conTableHeaders');if(hdrs){if(conDetailOpen){hdrs.style.gridTemplateColumns='1fr 120px 1fr 100px';hdrs.innerHTML=['Name','Phone','Email','City'].map(h=>`<div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;padding:0 8px">${h}</div>`).join('');}else{hdrs.style.gridTemplateColumns='1fr 130px 1fr 1fr 120px';hdrs.innerHTML=['Name','Phone','Email','Address','City'].map(h=>`<div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;padding:0 8px">${h}</div>`).join('');}}if(!body)return;if(!page.length){body.innerHTML=`<div style="text-align:center;padding:48px;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px;opacity:.3">&#x1F464;</div><div style="font-size:16px;font-weight:600;color:var(--text)">No contacts found</div></div>`;return;}const cols=conDetailOpen?'1fr 120px 1fr 100px':'1fr 130px 1fr 1fr 120px';body.innerHTML=page.map(c=>{const isActive=conActiveId===c.id;const initials=c.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();const avatarColor=c.id%4===0?'var(--blue)':c.id%3===0?'var(--green)':c.id%2===0?'var(--accent)':'var(--red)';let cells;if(!conDetailOpen){cells=[`<div style="display:flex;align-items:center;gap:10px;min-width:0"><div style="width:30px;height:30px;border-radius:50%;background:${avatarColor};display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:13px;color:#000;flex-shrink:0">${initials}</div><div><div style="font-size:15px;font-weight:600;color:var(--text)">${sanitize(c.name)}</div><div style="font-size:12px;color:var(--muted);margin-top:1px">${sanitize(c.role)}</div></div></div>`,`<div style="font-family:var(--mono);font-size:12px;color:var(--muted)">${sanitize(c.phone)||'&mdash;'}</div>`,`<div style="font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(c.email)||'&mdash;'}</div>`,`<div style="font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(c.address)||'&mdash;'}</div>`,`<div style="font-size:13px;color:var(--muted)">${sanitize(c.city)||'&mdash;'}</div>`];}else{cells=[`<div style="display:flex;align-items:center;gap:8px;min-width:0"><div style="width:26px;height:26px;border-radius:50%;background:${avatarColor};display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:12px;color:#000;flex-shrink:0">${initials}</div><div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(c.name)}</div></div>`,`<div style="font-family:var(--mono);font-size:12px;color:var(--muted)">${sanitize(c.phone)||'&mdash;'}</div>`,`<div style="font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(c.email)||'&mdash;'}</div>`,`<div style="font-size:12px;color:var(--muted)">${sanitize(c.city)||'&mdash;'}</div>`];}return`<div onclick="conSelectRow(${c.id})" style="display:grid;grid-template-columns:${cols};padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;align-items:center;background:${isActive?'rgba(249,166,30,.06)':'transparent'};border-left:3px solid ${isActive?'var(--accent)':'transparent'};gap:0" onmouseover="if(!${isActive})this.style.background='var(--elevated)'" onmouseout="this.style.background='${isActive?'rgba(249,166,30,.06)':'transparent'}'"> ${cells.map(cl=>`<div style="padding:0 8px;overflow:hidden">${cl}</div>`).join('')}</div>`;}).join('');}
 function conChangePage(p){conCurrentPage=p;conRenderTable();}function conPrevPage(){if(conCurrentPage>1){conCurrentPage--;conRenderTable();}}function conNextPage(){const rpp=parseInt(document.getElementById('conRowsPerPage')?.value||'10');if(conCurrentPage<Math.ceil(conFiltered.length/rpp)){conCurrentPage++;conRenderTable();}}function conLastPage(){const rpp=parseInt(document.getElementById('conRowsPerPage')?.value||'10');conCurrentPage=Math.ceil(conFiltered.length/rpp)||1;conRenderTable();}
-function conSelectRow(id){conActiveId=id;conDetailOpen=true;const c=CON_DATA.find(x=>x.id===id);if(!c)return;const panel=document.getElementById('conDetailPanel');if(panel){panel.style.width='420px';panel.style.opacity='1';}const nm=document.getElementById('conDetailName');if(nm)nm.textContent=c.name;const rl=document.getElementById('conDetailRole');if(rl)rl.textContent=c.role+' \u2022 '+c.city+', '+c.state;document.querySelectorAll('#conDetailTabs .m-tab').forEach((b,i)=>b.classList.toggle('active',i===0));const body=document.getElementById('conTabBody');if(body)body.innerHTML=conRenderInfo(c);conRenderTable();}
+function conSelectRow(id){conActiveId=id;conDetailOpen=true;const c=CON_DATA.find(x=>x.id===id);if(!c)return;const panel=document.getElementById('conDetailPanel');if(panel){panel.classList.add('fullscreen');panel.style.opacity='1';}const backBar=document.getElementById('conBackBar');if(backBar)backBar.style.display='flex';const bc=document.getElementById('conFSBreadcrumb');if(bc)bc.textContent=c.name;const nm=document.getElementById('conDetailName');if(nm)nm.textContent=c.name;const rl=document.getElementById('conDetailRole');if(rl)rl.textContent=c.role+' • '+c.city+', '+c.state;document.querySelectorAll('#conDetailTabs .m-tab').forEach((b,i)=>b.classList.toggle('active',i===0));const body=document.getElementById('conTabBody');if(body)body.innerHTML=conRenderInfo(c);conRenderTable();}
+
+function conExitFullscreen(){const panel=document.getElementById('conDetailPanel');if(panel){panel.classList.remove('fullscreen');panel.style.width='0';panel.style.opacity='0';}const backBar=document.getElementById('conBackBar');if(backBar)backBar.style.display='none';conDetailOpen=false;conActiveId=null;conRenderTable();}
 function conCloseDetail(){conDetailOpen=false;conActiveId=null;const p=document.getElementById('conDetailPanel');if(p){p.style.opacity='0';setTimeout(()=>{p.style.width='0';setTimeout(()=>{conRenderTable();},260);},180);}else{conRenderTable();}}
 function conSwitchTab(tab,btn){document.querySelectorAll('#conDetailTabs .m-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');const c=CON_DATA.find(x=>x.id===conActiveId);const body=document.getElementById('conTabBody');if(!body||!c)return;if(tab==='info')body.innerHTML=conRenderInfo(c);else if(tab==='locations')body.innerHTML=conRenderLocations(c);else if(tab==='devices')body.innerHTML=conRenderDevices(c);}
 function _cc(title,html){return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px"><div style="font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:1.4px;text-transform:uppercase;margin-bottom:13px;font-weight:600">${title}</div>${html}</div>`;}
