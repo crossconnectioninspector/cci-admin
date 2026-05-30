@@ -2261,6 +2261,7 @@ function nav(id, btn) {
   if(id==='contacts-page'){ conExitFullscreen(); conInit(); }
   if(id==='providers-page'){ spExitFullscreen(); spInit(); }
   if(id==='comms-page') commsInit();
+  if(id==='notif-page') notifInit();
   if(id==='assemblies-page'){ asmExitFullscreen(); asmInit(); }
 }
 
@@ -5310,6 +5311,87 @@ function asmSaveEdit(){
   asmSwitchTab('details',firstTab);
   asmRenderTable();
   toast('Assembly updated','success');
+}
+
+// ── NOTIFICATIONS ─────────────────────────────────────────────────────────────
+function notifInit() {
+  const list = document.getElementById('notif-list');
+  const totalBadge = document.getElementById('notif-total-badge');
+  if (!list) return;
+
+  const today = new Date();
+  const in30 = new Date(today); in30.setDate(today.getDate()+30);
+  const in60 = new Date(today); in60.setDate(today.getDate()+60);
+  function pd(s){ if(!s)return null; const d=new Date(s); return isNaN(d)?null:d; }
+
+  const locNonCompliant=(LOC_DATA||[]).filter(l=>l.compliance==='Non-Compliant'||l.compliance==='Overdue').length;
+  const asmOverdue=(ASM_DATA||[]).filter(a=>{const d=pd(a.nextDue);return d&&d<today;}).length;
+  const asmDueSoon=(ASM_DATA||[]).filter(a=>{const d=pd(a.nextDue);return d&&d>=today&&d<=in30;}).length;
+  const testersPending=(SP_DATA||[]).filter(t=>t.status==='pending').length;
+  const reportsRecent=(BF_DATA||[]).filter(r=>{const d=pd(r.date);return d&&d>=new Date(today-30*86400000);}).length;
+  const gaugeExpiring=(SP_DATA||[]).filter(t=>{const d=pd(t.gaugeCal);return d&&d>=today&&d<=in30;}).length;
+  const certExpiring=(SP_DATA||[]).filter(t=>{const d=pd(t.certExp);return d&&d>=today&&d<=in60;}).length;
+
+  const items=[
+    {label:'Locations Non-Compliant',count:locNonCompliant,color:'var(--red)',page:'locations-page',
+     icon:'<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/>',
+     desc:'Locations flagged as non-compliant or overdue'},
+    {label:'Assemblies Overdue',count:asmOverdue,color:'var(--red)',page:'assemblies-page',
+     icon:'<circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4"/>',
+     desc:'Assemblies past their required test due date'},
+    {label:'Assemblies Due Within 30 Days',count:asmDueSoon,color:'var(--yellow)',page:'assemblies-page',
+     icon:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 3.5"/>',
+     desc:'Assemblies approaching their test due date'},
+    {label:'Testers Pending Approval',count:testersPending,color:'var(--yellow)',page:'providers-page',
+     icon:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+     desc:'Tester applications awaiting admin review'},
+    {label:'Test Reports To Review',count:reportsRecent,color:'var(--accent)',page:'backflow-page',
+     icon:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/>',
+     desc:'Test reports submitted in the last 30 days'},
+    {label:'Gauge Calibrations Expiring (30 days)',count:gaugeExpiring,color:'var(--yellow)',page:'providers-page',
+     icon:'<circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83"/>',
+     desc:'Tester gauge calibrations expiring within 30 days'},
+    {label:'Tester Certs Expiring (60 days)',count:certExpiring,color:'var(--yellow)',page:'providers-page',
+     icon:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+     desc:'Tester certifications expiring within 60 days'},
+  ];
+
+  const total=items.reduce((s,i)=>s+i.count,0);
+  if(totalBadge){totalBadge.textContent=total+' item'+(total!==1?'s':'')+' need attention';totalBadge.style.display=total===0?'none':'inline-block';}
+
+  list.innerHTML=items.map(function(item){
+    const has=item.count>0;
+    const cc=has?item.color:'var(--muted)';
+    const bg=item.color==='var(--red)'?'rgba(224,82,82,.12)':item.color==='var(--yellow)'?'rgba(240,192,64,.12)':item.color==='var(--accent)'?'rgba(249,166,30,.12)':'rgba(168,179,196,.08)';
+    const bc=has?(item.color==='var(--red)'?'rgba(224,82,82,.3)':item.color==='var(--yellow)'?'rgba(240,192,64,.3)':item.color==='var(--accent)'?'rgba(249,166,30,.3)':'var(--border)'):'var(--border)';
+    const chev=has?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>':'';
+    const dataPage=has?('data-page="'+item.page+'"'):'';
+    return '<div '+dataPage+' style="display:flex;align-items:center;gap:16px;padding:16px 20px;background:var(--surface);border:1.5px solid '+bc+';border-radius:12px;transition:background .15s">'+
+      '<div style="width:44px;height:44px;border-radius:12px;background:'+(has?bg:'var(--elevated)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'+
+        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="'+(has?item.color:'var(--muted)')+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+item.icon+'</svg>'+
+      '</div>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:14px;font-weight:700;color:'+(has?'var(--text)':'var(--muted)')+'">'+item.label+'</div>'+
+        '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px">'+item.desc+'</div>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;gap:10px;flex-shrink:0">'+
+        '<div style="font-family:var(--cond);font-size:28px;font-weight:900;color:'+cc+';min-width:36px;text-align:right">'+item.count+'</div>'+
+        chev+
+      '</div>'+
+    '</div>';
+  }).join('');
+
+  // Click handlers via delegation
+  list.querySelectorAll('[data-page]').forEach(function(row){
+    row.style.cursor='pointer';
+    row.addEventListener('mouseover',function(){this.style.background='var(--elevated)';});
+    row.addEventListener('mouseout',function(){this.style.background='var(--surface)';});
+    row.addEventListener('click',function(){
+      const pg=this.getAttribute('data-page');
+      const btn=document.querySelector('.nb[onclick*="'+pg+'"]');
+      nav(pg,btn);
+    });
+  });
 }
 
 function asmSwitchTab(tab,btn){
