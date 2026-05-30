@@ -719,7 +719,7 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
   <div style="padding:10px 16px 0;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border)">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
       <div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px">CITY RISK MAP — TCEQ 290.47(f) APPENDIX F</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px">CITY RISK MAP — CROSS-CONNECTION CONTROL</div>
         <div style="font-size:12px;color:var(--muted);margin-top:2px" id="risk-status">Click City Risk to begin scan…</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
@@ -739,7 +739,7 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
   <div style="display:none">
     <div>
       <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:2px">CITY RISK MAP</div>
-      <div style="font-family:var(--cond);font-size:22px;font-weight:700">TCEQ 290.47(f) Appendix F</div>
+      <div style="font-family:var(--cond);font-size:22px;font-weight:700">Cross-Connection Control Program</div>
     </div>
     <div style="display:flex;align-items:center;gap:8px">
       <div style="text-align:right;font-family:var(--mono);font-size:11px;color:var(--muted)" id="risk-header-counts"></div>
@@ -1042,7 +1042,7 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
     <div class="ft" onclick="fTab(this,'bf','repairs')" style="color:var(--accent)">🔧 Repairs Made</div>
   </div>
   <div class="tw">
-    <div class="th"><span class="th-title">Backflow Test Reports — TCEQ 20700</span><span class="th-count" id="bf-ct">0 records</span></div>
+    <div class="th"><span class="th-title">Backflow Test Reports</span><span class="th-count" id="bf-ct">0 records</span></div>
     <div id="bf-body"></div>
   </div>
 </div>
@@ -1058,7 +1058,7 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
     <button class="btn btn-gh" onclick="clearF('csi')">✕ Clear</button>
   </div>
   <div class="tw">
-    <div class="th"><span class="th-title">Customer Service Inspections — TCEQ 20699</span><span class="th-count" id="csi-ct">0 records</span></div>
+    <div class="th"><span class="th-title">Customer Service Inspections</span><span class="th-count" id="csi-ct">0 records</span></div>
     <div id="csi-body"></div>
   </div>
 </div>
@@ -1086,8 +1086,8 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
         <div class="if-group">
           <label class="sl">Report Type</label>
           <select class="ss" id="imp-type" onchange="toggleImportFields()">
-            <option value="backflow">Backflow Test (TCEQ 20700)</option>
-            <option value="csi">CSI Report (TCEQ 20699)</option>
+            <option value="backflow">Backflow Test Report</option>
+            <option value="csi">CSI Report</option>
             <option value="inspection">Property Inspection</option>
           </select>
         </div>
@@ -1565,7 +1565,7 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
   </div>
 </div>
 
-<div class="page" id="page-state-reports-page"><div class="es"><div class="es-icon">&#x1F4CB;</div><div class="es-title">State Reports</div><div class="es-sub">TCEQ annual report export coming soon.</div></div></div>
+<div class="page" id="page-state-reports-page"><div class="es"><div class="es-icon">&#x1F4CB;</div><div class="es-title">State Reports</div><div class="es-sub">Annual compliance report export coming soon.</div></div></div>
 
 <div class="page" id="page-users-page"><div class="es"><div class="es-icon">&#x1F465;</div><div class="es-title">Users</div><div class="es-sub">User management coming soon.</div></div></div>
 
@@ -1727,17 +1727,23 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
 </div>
 
 <div class="page" id="page-notif-page" style="height:calc(100vh - 56px);overflow-y:auto;padding:24px 28px 28px">
+  <div style="margin-bottom:16px">
+    <button onclick="nav('dashboard',document.querySelector('.nb[onclick*=&quot;dashboard&quot;]'))" style="display:inline-flex;align-items:center;gap:6px;background:var(--elevated);border:1px solid var(--border);border-radius:8px;color:var(--muted);cursor:pointer;font-family:var(--mono);font-size:10px;padding:7px 12px;letter-spacing:.5px;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      BACK TO DASHBOARD
+    </button>
+  </div>
   <div id="notif-list">
     <div style="color:var(--muted);font-size:13px">Loading...</div>
   </div>
 
 <div class="page" id="page-settings-page"><div class="es"><div class="es-icon">&#x2699;&#xFE0F;</div><div class="es-title">Settings</div><div class="es-sub">System settings coming soon.</div></div></div>
 
-<div class="page" id="page-knowledge-page"><div class="es"><div class="es-icon">&#x1F4DA;</div><div class="es-title">Knowledge Base</div><div class="es-sub">TCEQ regulations and resources coming soon.</div></div></div>
+<div class="page" id="page-knowledge-page"><div class="es"><div class="es-icon">&#x1F4DA;</div><div class="es-title">Knowledge Base</div><div class="es-sub">Regulations and resources coming soon.</div></div></div>
 
 
 
-<div class="es-sub">TCEQ regulations and resources coming soon.</div></div></div>
+<div class="es-sub">Regulations and resources coming soon.</div></div></div>
 
 <!-- Add Location Modal -->
 <div id="locAddModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;align-items:center;justify-content:center">
@@ -1818,7 +1824,7 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Full Name *</label><input type="text" id="sp-add-name" class="si" placeholder="First and last name" style="font-size:15px;padding:8px 11px"></div>
       <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Company</label><input type="text" id="sp-add-company" class="si" placeholder="Company name" style="font-size:15px;padding:8px 11px"></div>
-      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">TCEQ Cert # *</label><input type="text" id="sp-add-cert" class="si" placeholder="TX-00000" style="font-size:15px;padding:8px 11px"></div>
+      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Backflow Cert # *</label><input type="text" id="sp-add-cert" class="si" placeholder="TX-00000" style="font-size:15px;padding:8px 11px"></div>
       <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Phone</label><input type="text" id="sp-add-phone" class="si" placeholder="(325) 555-0000" style="font-size:15px;padding:8px 11px"></div>
       <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Email</label><input type="text" id="sp-add-email" class="si" placeholder="tester@email.com" style="font-size:15px;padding:8px 11px"></div>
       <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Gauge Serial #</label><input type="text" id="sp-add-gauge" class="si" placeholder="GAU-00000" style="font-size:15px;padding:8px 11px"></div>
@@ -1898,7 +1904,7 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
       </div>
       <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
         <button class="btn btn-gh btn-sm" onclick="emailCurrentReport()" style="width:auto">📧 Email</button>
-        <button class="btn btn-gh btn-sm" onclick="generateTCEQPDF(currentRec)" style="width:auto">📄 PDF</button>
+        <button class="btn btn-gh btn-sm" onclick="generateReportPDF(currentRec)" style="width:auto">📄 PDF</button>
         <button class="mc-btn" onclick="closeModal()">✕</button>
       </div>
     </div>
@@ -2790,7 +2796,7 @@ function showRiskDetail(loc) {
         <div style="font-size:13px;font-weight:600;color:var(--accent)">${loc.device}</div>
       </div>
       <div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:2px">TCEQ CODE</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:2px">HAZARD CODE</div>
         <div style="font-size:13px;font-weight:600">${loc.code||'290.47(f)'}</div>
       </div>
     </div>
@@ -2798,7 +2804,7 @@ function showRiskDetail(loc) {
       <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">WHY THIS IS A RISK</div>
       <div style="font-size:13px;line-height:1.6;color:var(--text)">${loc.reason}</div>
     </div>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--accent);opacity:.6;margin-top:8px">⚠ Estimated risk based on TCEQ 290.47(f) Appendix F — not yet inspected</div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--accent);opacity:.6;margin-top:8px">⚠ Estimated risk based on Cross-Connection Control Program — not yet inspected</div>
   `;
   el('risk-detail-card').style.display = 'block';
   if(riskMap) riskMap.setView([loc.lat, loc.lng], 16);
@@ -2848,7 +2854,7 @@ function buildCatMenu() {
   for (const group of groups) {
     const catsInGroup = [...new Set(
       riskLocations.filter(l => {
-        const cat = TCEQ_CATEGORIES.find(c => c.label === (l.category||l.label));
+        const cat = HAZARD_CATEGORIES.find(c => c.label === (l.category||l.label));
         return cat && cat.rating >= group.min && cat.rating <= group.max;
       }).map(l => l.category || l.label)
     )].sort();
@@ -3145,12 +3151,12 @@ function closeModal(e) {
 function emailCurrentReport() {
   if(!currentRec) return;
   const r=currentRec;
-  const sub=encodeURIComponent(`${r.type==='backflow'?'TCEQ-20700':r.type==='csi'?'TCEQ-20699':'Inspection'} — ${r.address} — ${fd(r.date)}`);
+  const sub=encodeURIComponent(`${r.type==='backflow'?'BCP-Report':r.type==='csi'?'BCP-CSI':'Inspection'} — ${r.address} — ${fd(r.date)}`);
   let body='';
   if(r.type==='backflow') {
-    body=`TCEQ FORM 20700 — BACKFLOW TEST\n${'='.repeat(40)}\nAddress: ${r.address}\nDate: ${fd(r.date)}\nResult: ${r.result}\n\nAssembly: ${r.assembly} — ${r.mfr} ${r.model}\nSerial #: ${r.serial}\nSize: ${r.size}\n\n1st Check: ${r.check1||'—'}\n2nd Check: ${r.check2||'—'}\nRelief: ${r.relief||'—'}\n\nRepairs: ${r.repairs?'Yes — '+r.repairDetails:'None'}\nTester: ${r.tester} · Cert #: ${r.certNum}\nFirm: ${r.firm}\nPWS: ${r.pwsName} (${r.pwsId})\nRemarks: ${r.remarks||'None'}`;
+    body=`BACKFLOW PREVENTION ASSEMBLY TEST REPORT\n${'='.repeat(40)}\nAddress: ${r.address}\nDate: ${fd(r.date)}\nResult: ${r.result}\n\nAssembly: ${r.assembly} — ${r.mfr} ${r.model}\nSerial #: ${r.serial}\nSize: ${r.size}\n\n1st Check: ${r.check1||'—'}\n2nd Check: ${r.check2||'—'}\nRelief: ${r.relief||'—'}\n\nRepairs: ${r.repairs?'Yes — '+r.repairDetails:'None'}\nTester: ${r.tester} · Cert #: ${r.certNum}\nFirm: ${r.firm}\nPWS: ${r.pwsName} (${r.pwsId})\nRemarks: ${r.remarks||'None'}`;
   } else if(r.type==='csi') {
-    body=`TCEQ FORM 20699 — CSI REPORT\n${'='.repeat(40)}\nAddress: ${r.address}\nDate: ${fd(r.date)}\nStatus: ${r.status?.toUpperCase()}\nReason: ${r.reason}\n\n(1) No contamination connection: ${r.c1?'✓':'✗'}\n(2) No cross-connection: ${r.c2?'✓':'✗'}\n(3) No process return: ${r.c3?'✓':'✗'}\n(4) No >8% lead pipe: ${r.c4?'✓':'✗'}\n(5) Post-2014 labeled: ${r.c5?'✓':'✗'}\n(6) No lead solder: ${r.c6?'✓':'✗'}\n\nService Lines: ${r.serviceLines}\nSolder: ${r.solder}\nInspector: ${r.inspector} · #${r.licNum}\nRemarks: ${r.remarks||'None'}`;
+    body=`CUSTOMER SERVICE INSPECTION REPORT\n${'='.repeat(40)}\nAddress: ${r.address}\nDate: ${fd(r.date)}\nStatus: ${r.status?.toUpperCase()}\nReason: ${r.reason}\n\n(1) No contamination connection: ${r.c1?'✓':'✗'}\n(2) No cross-connection: ${r.c2?'✓':'✗'}\n(3) No process return: ${r.c3?'✓':'✗'}\n(4) No >8% lead pipe: ${r.c4?'✓':'✗'}\n(5) Post-2014 labeled: ${r.c5?'✓':'✗'}\n(6) No lead solder: ${r.c6?'✓':'✗'}\n\nService Lines: ${r.serviceLines}\nSolder: ${r.solder}\nInspector: ${r.inspector} · #${r.licNum}\nRemarks: ${r.remarks||'None'}`;
   } else {
     body=`PROPERTY INSPECTION\n${'='.repeat(40)}\nAddress: ${r.address}\nDate: ${fd(r.date)}\nOwner: ${r.owner||'—'}\nBusiness: ${r.bizType||'—'}\nHazard Rating: ${r.hazardRating}/10\nCompliance: ${r.complianceStatus}\nTester: ${sanitize(r.tester)}\nRemarks: ${r.remarks||'None'}`;
   }
@@ -3194,7 +3200,7 @@ function setupPsidFields(asm) {
   updateResultBanner();
 }
 
-// TCEQ pass/fail calculation per assembly type
+// USC/AWWA pass/fail calculation per assembly type
 function calcResult(asm, c1, c2, relief) {
   const fails = [];
   if(asm==='RPZ') {
@@ -3229,17 +3235,17 @@ function updateResultBanner() {
     banner.style.background='rgba(140,149,159,.1)';
     banner.style.color='var(--muted)';
     banner.textContent='Enter readings above — result auto-calculates';
-    detail.textContent='Based on TCEQ guidelines';
+    detail.textContent='Based on USC/AWWA standards';
     return;
   }
   if(result==='PASS') {
     banner.style.background='rgba(76,175,121,.15)';
     banner.style.color='var(--green)';
-    banner.textContent='✓ PASS — All readings meet TCEQ thresholds';
+    banner.textContent='✓ PASS — All readings meet USC/AWWA standards';
   } else {
     banner.style.background='rgba(224,82,82,.15)';
     banner.style.color='var(--red)';
-    banner.textContent='✗ FAIL — Assembly does not meet TCEQ requirements';
+    banner.textContent='✗ FAIL — Assembly does not meet USC/AWWA standards';
   }
   detail.innerHTML=fails.length?fails.join('<br>'):'';
 }
@@ -3864,7 +3870,7 @@ function buildHistoryTab(r) {
       <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
         ${rec.psid_c1!==null&&rec.psid_c1!==undefined ? `<div style="font-family:var(--mono);font-size:10px;color:var(--muted)">${rec.psid_c1} / ${rec.psid_c2||'—'} psid</div>` : ''}
         <span style="padding:3px 9px;border-radius:20px;font-family:var(--mono);font-size:10px;font-weight:700;background:${pass?'rgba(61,184,112,.12)':'rgba(224,82,82,.12)'};color:${pass?'var(--green)':'var(--red)'};border:1px solid ${pass?'rgba(61,184,112,.25)':'rgba(224,82,82,.25)'}">${pass?'✓ PASS':'✗ FAIL'}</span>
-        <button class="pdf-btn" onclick="generateTCEQPDF(${JSON.stringify(rec).replace(/"/g,'&quot;')})">📄</button>
+        <button class="pdf-btn" onclick="generateReportPDF(${JSON.stringify(rec).replace(/"/g,'&quot;')})">📄</button>
       </div>
     </div>`;
   }).join('');
@@ -4011,15 +4017,15 @@ function mapFilter(t)         { rebuildDeviceMarkers(t); }
 function mapReset()           { if(deviceMap) deviceMap.setView([32.4487,-99.7331],12); }
 
 // ════════════════════════════════════════════════════════════════
-//  CITY RISK MAP — Full 3-pass TCEQ 290.47(f) hazard scanner
+//  CITY RISK MAP — Full 3-pass cross-connection hazard scanner
 //  Mirrors the Swift CityRiskDataService logic
 // ════════════════════════════════════════════════════════════════
 
 const BBOX = '32.34,-99.84,32.63,-99.61'; // Tighter Abilene city limit bbox
 const VIEWBOX = '-99.86,32.33,-99.60,32.65';
 
-// Full TCEQ 290.47(f) Appendix F category table from Swift file
-const TCEQ_CATEGORIES = [
+// Full Cross-Connection Control Program category table from Swift file
+const HAZARD_CATEGORIES = [
   {tag:'amenity=hospital',       label:'Hospital',                device:'RPBA or AG', rating:10, reason:'Hospitals use sterilization equipment and chemical disinfectants. Backflow could introduce toxic chemicals or biological agents into the public supply.'},
   {tag:'healthcare=dialysis',    label:'Dialysis Center',         device:'RPBA or AG', rating:10, reason:'Dialysis centers require ultra-pure water contacting patient blood. Any contamination is immediately life-threatening.'},
   {tag:'amenity=funeral_hall',   label:'Funeral Home',            device:'RPBA or AG', rating:10, reason:'Mortuaries use embalming chemicals including formaldehyde connected to water lines.'},
@@ -4076,7 +4082,7 @@ const TCEQ_CATEGORIES = [
 
 // OSM tag lookup
 const OSM_LOOKUP = {};
-TCEQ_CATEGORIES.forEach(c => {
+HAZARD_CATEGORIES.forEach(c => {
   const [key,val] = c.tag.split('=');
   if (!OSM_LOOKUP[key]) OSM_LOOKUP[key] = {};
   OSM_LOOKUP[key][val] = c;
@@ -4129,7 +4135,7 @@ function classifyByName(name) {
   const lower = name.toLowerCase();
   for (const rule of NAME_RULES) {
     if (rule.keywords.some(k => lower.includes(k))) {
-      const cat = TCEQ_CATEGORIES.find(c => c.tag === rule.tag);
+      const cat = HAZARD_CATEGORIES.find(c => c.tag === rule.tag);
       if (cat) return cat;
     }
   }
@@ -4850,7 +4856,7 @@ document.addEventListener('click',function(e){if(!conDetailOpen)return;const pan
 //  SERVICE PROVIDERS — TESTER APPROVAL MODULE
 // ═══════════════════════════════════════════════════════
 const SP_REQUIRED=['cert_number','company','license_exp','gauge_cal_date','gauge_serial'];
-const SP_REQUIRED_LABELS={cert_number:'TCEQ Cert Number',company:'Company / Firm',license_exp:'License Expiration Date',gauge_cal_date:'Gauge Calibration Date',gauge_serial:'Gauge Serial Number'};
+const SP_REQUIRED_LABELS={cert_number:'Backflow Cert Number',company:'Company / Firm',license_exp:'License Expiration Date',gauge_cal_date:'Gauge Calibration Date',gauge_serial:'Gauge Serial Number'};
 const SP_DATA=[{id:1,name:"Matt Snider",email:"matt@backflowcheckpro.com",company:"Backflow Check Pro",cert_number:"TX-4421",phone:"(325) 555-0101",gauge_serial:"GAU-2291",gauge_cal_date:"2026-09-01",license_number:"LIC-0042",license_exp:"2027-03-15",testsRun:47,status:"active",approved_at:"2025-01-10",notes:"Lead tester.",testHistory:[{date:"2026-01-22",address:"4150 Buffalo Gap Rd",assembly:"PV-0034",result:"Pass"},{date:"2025-11-14",address:"1423 N 1st St",assembly:"RP-2291",result:"Pass"}]},{id:2,name:"Jorge Rodriguez",email:"j.rodriguez@abileneplumbing.com",company:"Abilene Plumbing Co.",cert_number:"TX-2209",phone:"(325) 555-0217",gauge_serial:"GAU-1144",gauge_cal_date:"2026-06-15",license_number:"LIC-0088",license_exp:"2026-11-30",testsRun:23,status:"active",approved_at:"2025-03-15",notes:"",testHistory:[{date:"2025-10-02",address:"3801 S Clack St",assembly:"RP-0881",result:"Pass"}]},{id:3,name:"Sandra Williams",email:"s.williams@williamsbackflow.com",company:"Williams Backflow LLC",cert_number:"TX-3387",phone:"(325) 555-0344",gauge_serial:"",gauge_cal_date:"",license_number:"",license_exp:"",testsRun:31,status:"pending",submitted_at:"2026-05-20",notes:"Missing gauge cal and license.",testHistory:[]},{id:4,name:"David Kim",email:"d.kim@kimmechanical.com",company:"Kim Mechanical Services",cert_number:"",phone:"(325) 555-0488",gauge_serial:"",gauge_cal_date:"",license_number:"",license_exp:"",testsRun:0,status:"pending",submitted_at:"2026-05-27",notes:"New — multiple fields missing.",testHistory:[]}];
 let spFiltered=[...SP_DATA],spActiveId=null,spCurrentPage=1,spDetailOpen=false,spCurrentTab='active';
 function spInit(){spCurrentPage=1;spDetailOpen=false;const p=document.getElementById('spDetailPanel');if(p){p.style.width='0';p.style.opacity='0';}spSetTab('active');spUpdatePendingBadge();}
@@ -4932,9 +4938,9 @@ function spReject(){const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return;if(!
 function spRefresh(){spInit();const btn=event?.currentTarget;if(btn){const orig=btn.innerHTML;btn.innerHTML='&#x2713; Synced!';setTimeout(()=>{btn.innerHTML=orig;},2000);}}
 function _sp(title,html){return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px"><div style="font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:1.4px;text-transform:uppercase;margin-bottom:13px;font-weight:600">${title}</div>${html}</div>`;}
 function _sg(pairs){return`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${pairs.map(([l,v])=>`<div><div style="font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px">${l}</div><div style="font-size:16px;color:var(--text);font-weight:500;line-height:1.4">${v||'<span style=color:var(--red)>Missing</span>'}</div></div>`).join('')}</div>`;}
-function spRenderInfo(t){const initials=t.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();const sc=t.status==='active'?'var(--green)':t.status==='pending'?'var(--yellow)':'var(--red)';return`<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px"><div style="width:52px;height:52px;border-radius:50%;background:${t.status==='pending'?'var(--yellow)':'var(--accent)'};display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:22px;color:#000;flex-shrink:0">${initials}</div><div><div style="font-family:var(--cond);font-weight:900;font-size:20px;color:var(--text)">${sanitize(t.name)}</div><div style="font-size:13px;color:var(--muted);margin-top:2px">${sanitize(t.company)||'No company'}</div><div style="font-size:12px;color:var(--muted);margin-top:1px">${sanitize(t.email)}</div></div></div>`+_sp('Contact & Profile',_sg([['Phone',sanitize(t.phone)],['Email',sanitize(t.email)],['TCEQ Cert #',sanitize(t.cert_number)],['Company',sanitize(t.company)],['Tests Completed',t.testsRun+' total'],['Status',`<span style="color:${sc}">${t.status.toUpperCase()}</span>`]]))+(t.notes?_sp('Notes',`<div style="font-size:13px;color:var(--muted);line-height:1.6;padding:9px 11px;background:var(--elevated);border-radius:6px">${sanitize(t.notes)}</div>`):'');}
+function spRenderInfo(t){const initials=t.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();const sc=t.status==='active'?'var(--green)':t.status==='pending'?'var(--yellow)':'var(--red)';return`<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px"><div style="width:52px;height:52px;border-radius:50%;background:${t.status==='pending'?'var(--yellow)':'var(--accent)'};display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:22px;color:#000;flex-shrink:0">${initials}</div><div><div style="font-family:var(--cond);font-weight:900;font-size:20px;color:var(--text)">${sanitize(t.name)}</div><div style="font-size:13px;color:var(--muted);margin-top:2px">${sanitize(t.company)||'No company'}</div><div style="font-size:12px;color:var(--muted);margin-top:1px">${sanitize(t.email)}</div></div></div>`+_sp('Contact & Profile',_sg([['Phone',sanitize(t.phone)],['Email',sanitize(t.email)],['Backflow Cert #',sanitize(t.cert_number)],['Company',sanitize(t.company)],['Tests Completed',t.testsRun+' total'],['Status',`<span style="color:${sc}">${t.status.toUpperCase()}</span>`]]))+(t.notes?_sp('Notes',`<div style="font-size:13px;color:var(--muted);line-height:1.6;padding:9px 11px;background:var(--elevated);border-radius:6px">${sanitize(t.notes)}</div>`):'');}
 function spRenderTests(t){if(!t.testHistory||!t.testHistory.length)return _sp('Test History','<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">No tests submitted yet.</div>');const rows=t.testHistory.map(h=>{const rc=h.result==='Pass'?'var(--green)':'var(--red)';return`<tr style="border-bottom:1px solid var(--border)"><td style="padding:8px;font-family:var(--mono);font-size:11px;color:var(--muted)">${h.date}</td><td style="padding:8px;font-size:13px;color:var(--text)">${sanitize(h.address)}</td><td style="padding:8px;font-family:var(--mono);font-size:11px;color:var(--muted)">${sanitize(h.assembly)}</td><td style="padding:8px"><span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${rc};padding:2px 7px;border-radius:3px;background:${h.result==='Pass'?'rgba(76,175,121,.12)':'rgba(224,82,82,.12)'};border:1px solid ${h.result==='Pass'?'rgba(76,175,121,.3)':'rgba(224,82,82,.3)'}">${h.result.toUpperCase()}</span></td></tr>`;}).join('');return _sp('Test History ('+t.testHistory.length+')','<table style="width:100%;border-collapse:collapse"><thead><tr style="border-bottom:1px solid var(--border)">'+['Date','Address','Assembly','Result'].map(h=>`<th style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;text-align:left;padding:5px 8px">${h}</th>`).join('')+'</tr></thead><tbody>'+rows+'</tbody></table>');}
-function spRenderCredentials(t){const cal=spCalStatus(t.gauge_cal_date);const lic=spCalStatus(t.license_exp);return _sp('Credentials & Equipment',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">TCEQ Cert #</div><div style="font-size:15px;color:${t.cert_number?'var(--text)':'var(--red)'};font-weight:500">${t.cert_number||'&#x26A0; Missing'}</div></div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">License #</div><div style="font-size:15px;color:${t.license_number?'var(--text)':'var(--red)'};font-weight:500">${t.license_number||'&#x26A0; Missing'}</div></div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">License Expiry</div><div style="font-size:15px;color:${lic.color};font-weight:500">${!t.license_exp?'&#x26A0; Missing':lic.label}</div></div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Gauge Serial #</div><div style="font-size:15px;color:${t.gauge_serial?'var(--text)':'var(--red)'};font-weight:500">${t.gauge_serial||'&#x26A0; Missing'}</div></div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Gauge Cal Expiry</div><div style="font-size:15px;color:${cal.color};font-weight:500">${!t.gauge_cal_date?'&#x26A0; Missing':cal.label}</div></div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Approved</div><div style="font-size:16px;color:var(--text);font-weight:500;line-height:1.4">${t.approved_at||'Not yet approved'}</div></div></div>`);}
+function spRenderCredentials(t){const cal=spCalStatus(t.gauge_cal_date);const lic=spCalStatus(t.license_exp);return _sp('Credentials & Equipment',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Backflow Cert #</div><div style="font-size:15px;color:${t.cert_number?'var(--text)':'var(--red)'};font-weight:500">${t.cert_number||'&#x26A0; Missing'}</div></div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">License #</div><div style="font-size:15px;color:${t.license_number?'var(--text)':'var(--red)'};font-weight:500">${t.license_number||'&#x26A0; Missing'}</div></div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">License Expiry</div><div style="font-size:15px;color:${lic.color};font-weight:500">${!t.license_exp?'&#x26A0; Missing':lic.label}</div></div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Gauge Serial #</div><div style="font-size:15px;color:${t.gauge_serial?'var(--text)':'var(--red)'};font-weight:500">${t.gauge_serial||'&#x26A0; Missing'}</div></div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Gauge Cal Expiry</div><div style="font-size:15px;color:${cal.color};font-weight:500">${!t.gauge_cal_date?'&#x26A0; Missing':cal.label}</div></div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Approved</div><div style="font-size:16px;color:var(--text);font-weight:500;line-height:1.4">${t.approved_at||'Not yet approved'}</div></div></div>`);}
 function spExportCSV(){const h=['Name','Email','Company','Cert #','Phone','Gauge Serial','Cal Expiry','License Expiry','Tests Run','Status'];const rows=spFiltered.map(t=>[t.name,t.email,t.company,t.cert_number,t.phone,t.gauge_serial,t.gauge_cal_date,t.license_exp,t.testsRun,t.status]);const csv=[h,...rows].map(r=>r.map(v=>'"'+(v||'').toString().replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='bcp-testers.csv';a.click();}
 document.addEventListener('click',function(e){if(!spDetailOpen)return;const panel=document.getElementById('spDetailPanel');if(!panel)return;if(panel.contains(e.target))return;if(e.target.closest&&(e.target.closest('[onclick^="spSelectRow"]')||e.target.closest('#page-providers-page > div:first-child')))return;spCloseDetail();},true);
 
@@ -5929,7 +5935,7 @@ const RPT_DEFINITIONS = {
   },
   'sp-testers': {
     title: 'Tester Certification Info',
-    subtitle: 'TCEQ certification details for all registered service providers',
+    subtitle: 'Backflow certification details for all registered service providers',
     headers: ['Name','Company','Cert #','License #','License Expiry','Tests Run','Status'],
     data_source: 'testers',
     filter_fn: () => true,
@@ -6523,7 +6529,7 @@ document.addEventListener('click',function(e){
   <div id="ma-page-risk" style="display:none;flex-direction:column;flex:1">
     <div style="padding:14px 14px 0;flex-shrink:0">
       <div style="font-family:var(--cond);font-size:22px;font-weight:900;margin-bottom:4px">City Risk Map</div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:10px">TCEQ 290.47(f) APPENDIX F</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:10px">Cross-Connection Hazard Categories</div>
     </div>
     <div style="flex:1;position:relative;min-height:0">
       <div id="ma-risk-map" style="width:100%;height:100%;min-height:400px"></div>
