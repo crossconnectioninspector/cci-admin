@@ -562,7 +562,7 @@ select.field-input option{background:var(--elevated)}
   body.wizard-active #screen-app { display: none !important; }
   /* Full portal override */
   body.show-full-portal #wizard-mode { display: none !important; }
-  body.show-full-portal #screen-app { display: flex !important; }
+  body.show-full-portal #screen-app { display: flex !important; flex-direction: column; min-height: 100dvh; }
 }
 @media (min-width: 769px) {
   #wizard-mode { display: none !important; }
@@ -1318,6 +1318,9 @@ async function enterApp() {
   // Add show-full-portal so screen-app becomes visible on desktop
   document.body.classList.add('show-full-portal');
   showScreen('app');
+  // Ensure screen-app has proper flex column layout
+  const appEl = document.getElementById('screen-app');
+  if(appEl) { appEl.style.flexDirection = 'column'; appEl.style.minHeight = '100dvh'; }
   document.getElementById('sub-date').valueAsDate = new Date();
   await loadProfile();
   applyProfileToForm();
