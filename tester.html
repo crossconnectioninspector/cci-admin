@@ -710,55 +710,133 @@ select.field-input option{background:var(--elevated)}
     <button onclick="switchToWizard()" style="font-family:var(--mono);font-size:9px;color:#000;background:var(--accent);border:none;border-radius:7px;padding:6px 12px;cursor:pointer;font-weight:700;letter-spacing:.5px">← FIELD MODE</button>
   </div>
 
-  <div class="page-content" id="page-home" style="display:none">
-    <div class="stats-row">
-      <div class="stat-chip"><div class="stat-val" id="stat-total">—</div><div class="stat-label">MY TESTS</div></div>
-      <div class="stat-chip"><div class="stat-val" style="color:var(--green)" id="stat-pass">—</div><div class="stat-label">PASSED</div></div>
-      <div class="stat-chip"><div class="stat-val" style="color:var(--red)" id="stat-fail">—</div><div class="stat-label">FAILED</div></div>
+  <div class="page-content" id="page-home" style="display:none;padding:0;background:var(--bg)">
+
+  <!-- PROFILE HERO -->
+  <div style="background:linear-gradient(160deg,#1a1f27 0%,#111417 100%);padding:24px 20px 20px;border-bottom:1px solid var(--border);position:relative;overflow:hidden">
+    <div style="position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(249,166,30,.12) 0%,transparent 70%);pointer-events:none"></div>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
+      <div id="home-avatar" style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,var(--accent),#e8920a);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:22px;font-weight:900;color:#000;flex-shrink:0;box-shadow:0 4px 16px rgba(249,166,30,.3)">?</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:2px" id="home-greeting">GOOD MORNING</div>
+        <div id="home-name" style="font-family:var(--cond);font-size:22px;font-weight:900;color:var(--text);line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Loading...</div>
+      </div>
     </div>
-    <div id="home-alerts"></div>
-    <div class="card">
-      <div class="card-title">QUICK ACTIONS</div>
-      <button class="action-btn" onclick="switchPage('submit')">
-        <div class="action-btn-icon">📋</div>
-        <div class="action-btn-text">
-          <div class="action-btn-title">Submit Test Report</div>
-          <div class="action-btn-sub">NEW TCEQ 290.47(f) REPORT</div>
-        </div>
-        <div class="action-btn-arrow">›</div>
-      </button>
-      <button class="action-btn" onclick="switchPage('search')">
-        <div class="action-btn-icon">🔍</div>
-        <div class="action-btn-text">
-          <div class="action-btn-title">Search Devices</div>
-          <div class="action-btn-sub">FIND BY ADDRESS OR SERIAL #</div>
-        </div>
-        <div class="action-btn-arrow">›</div>
-      </button>
-      <button class="action-btn" onclick="switchPage('history')">
-        <div class="action-btn-icon">📁</div>
-        <div class="action-btn-text">
-          <div class="action-btn-title">My Reports</div>
-          <div class="action-btn-sub">VIEW SUBMITTED HISTORY</div>
-        </div>
-        <div class="action-btn-arrow">›</div>
-      </button>
-      <button class="action-btn" onclick="switchPage('profile')">
-        <div class="action-btn-icon">👤</div>
-        <div class="action-btn-text">
-          <div class="action-btn-title">Profile & Documents</div>
-          <div class="action-btn-sub">CERT, LICENSE, GAUGE CAL</div>
-        </div>
-        <div class="action-btn-arrow">›</div>
-      </button>
-    </div>
-    <div class="card">
-      <div class="card-title">TESTER INFO</div>
-      <div id="tester-info-card" style="font-size:13px;color:var(--text)">Loading…</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:20px">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span id="home-cert" style="font-family:var(--mono);font-size:10px;color:var(--text);letter-spacing:.5px">CERT --</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:20px">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6495ed" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83"/></svg>
+        <span id="home-gauge" style="font-family:var(--mono);font-size:10px;color:var(--text);letter-spacing:.5px">GAUGE CAL --</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:20px">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+        <span id="home-company" style="font-family:var(--mono);font-size:10px;color:var(--text);letter-spacing:.5px">--</span>
+      </div>
     </div>
   </div>
 
-  <!-- ── SEARCH ── -->
+  <!-- STATS STRIP -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border)">
+    <div style="background:var(--surface);padding:16px 12px;text-align:center;position:relative;overflow:hidden">
+      <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 100%,rgba(168,179,196,.06) 0%,transparent 70%);pointer-events:none"></div>
+      <div id="stat-total" style="font-family:var(--cond);font-size:32px;font-weight:900;color:var(--text);line-height:1;margin-bottom:4px">--</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase">Total Tests</div>
+    </div>
+    <div style="background:var(--surface);padding:16px 12px;text-align:center;position:relative;overflow:hidden">
+      <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 100%,rgba(61,184,112,.08) 0%,transparent 70%);pointer-events:none"></div>
+      <div id="stat-pass" style="font-family:var(--cond);font-size:32px;font-weight:900;color:var(--green);line-height:1;margin-bottom:4px">--</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase">Passed</div>
+    </div>
+    <div style="background:var(--surface);padding:16px 12px;text-align:center;position:relative;overflow:hidden">
+      <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 100%,rgba(224,82,82,.08) 0%,transparent 70%);pointer-events:none"></div>
+      <div id="stat-fail" style="font-family:var(--cond);font-size:32px;font-weight:900;color:var(--red);line-height:1;margin-bottom:4px">--</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase">Failed</div>
+    </div>
+  </div>
+
+  <!-- PASS RATE BAR -->
+  <div style="background:var(--surface);padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);white-space:nowrap">PASS RATE</div>
+    <div style="flex:1;height:6px;background:var(--elevated);border-radius:3px;overflow:hidden">
+      <div id="home-pass-bar" style="height:100%;background:linear-gradient(90deg,var(--green),#52d48a);border-radius:3px;width:0%;transition:width 1s ease"></div>
+    </div>
+    <div id="home-pass-pct" style="font-family:var(--cond);font-size:14px;font-weight:700;color:var(--green);min-width:36px;text-align:right">--%</div>
+  </div>
+
+  <!-- HOME ALERTS -->
+  <div id="home-alerts"></div>
+
+  <!-- SCROLLABLE CONTENT -->
+  <div style="overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px">
+
+    <!-- Primary CTA -->
+    <button onclick="switchPage('submit')" style="width:100%;padding:18px 20px;background:linear-gradient(135deg,var(--accent),#e8920a);border:none;border-radius:16px;cursor:pointer;display:flex;align-items:center;gap:16px;box-shadow:0 8px 24px rgba(249,166,30,.3);transition:transform .15s,box-shadow .15s;text-align:left"
+      onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 12px 32px rgba(249,166,30,.4)'"
+      onmouseout="this.style.transform='';this.style.boxShadow='0 8px 24px rgba(249,166,30,.3)'">
+      <div style="width:44px;height:44px;background:rgba(0,0,0,.2);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+      </div>
+      <div style="flex:1">
+        <div style="font-family:var(--cond);font-size:19px;font-weight:900;color:#000;line-height:1">Submit Test Report</div>
+        <div style="font-family:var(--mono);font-size:10px;color:rgba(0,0,0,.6);letter-spacing:1px;margin-top:3px">NEW TCEQ 290.47(f) REPORT</div>
+      </div>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+
+    <!-- 2x2 grid -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button onclick="switchPage('search')" style="padding:16px;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;cursor:pointer;text-align:left;transition:all .15s;display:flex;flex-direction:column;gap:10px"
+        onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--elevated)'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
+        <div style="width:38px;height:38px;background:rgba(100,149,237,.14);border-radius:10px;display:flex;align-items:center;justify-content:center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6495ed" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <div><div style="font-family:var(--sans);font-size:14px;font-weight:700;color:var(--text)">Search</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.5px;margin-top:2px">FIND DEVICES</div></div>
+      </button>
+      <button onclick="switchPage('history')" style="padding:16px;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;cursor:pointer;text-align:left;transition:all .15s;display:flex;flex-direction:column;gap:10px"
+        onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--elevated)'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
+        <div style="width:38px;height:38px;background:rgba(61,184,112,.12);border-radius:10px;display:flex;align-items:center;justify-content:center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        </div>
+        <div><div style="font-family:var(--sans);font-size:14px;font-weight:700;color:var(--text)">My Reports</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.5px;margin-top:2px">HISTORY</div></div>
+      </button>
+      <button onclick="switchPage('profile')" style="padding:16px;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;cursor:pointer;text-align:left;transition:all .15s;display:flex;flex-direction:column;gap:10px"
+        onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--elevated)'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
+        <div style="width:38px;height:38px;background:rgba(249,166,30,.12);border-radius:10px;display:flex;align-items:center;justify-content:center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div><div style="font-family:var(--sans);font-size:14px;font-weight:700;color:var(--text)">Profile</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.5px;margin-top:2px">CERT &amp; DOCS</div></div>
+      </button>
+      <div style="padding:16px;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;display:flex;flex-direction:column;gap:10px">
+        <div style="width:38px;height:38px;background:rgba(224,82,82,.12);border-radius:10px;display:flex;align-items:center;justify-content:center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div><div style="font-family:var(--sans);font-size:14px;font-weight:700;color:var(--text)">Streak</div>
+        <div id="home-streak" style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.5px;margin-top:2px">-- CONSECUTIVE PASSES</div></div>
+      </div>
+    </div>
+
+    <!-- Recent tests -->
+    <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:14px;overflow:hidden">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase">Recent Tests</div>
+        <button onclick="switchPage('history')" style="font-family:var(--mono);font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;letter-spacing:.5px">View All</button>
+      </div>
+      <div id="home-recent"><div style="padding:16px;text-align:center;color:var(--muted);font-size:13px">Loading...</div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── SEARCH ── -->
   <div class="page-content" id="page-search" style="display:none">
     <div class="search-wrap">
       <span class="search-icon">🔍</span>
