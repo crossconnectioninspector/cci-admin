@@ -153,9 +153,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
   padding-bottom:8px;border-bottom:1px solid var(--border);
   display:flex;align-items:center;gap:6px;
 }
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;overflow:visible}
 .form-row.full{grid-template-columns:1fr}
-.form-field{display:flex;flex-direction:column;gap:6px}
+.form-field{overflow:visible;display:flex;flex-direction:column;gap:6px}
 .field-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
 .field-input{
   background:var(--elevated);border:1.5px solid var(--border);
@@ -569,6 +569,7 @@ select.field-input option{background:var(--elevated)}
 
 /* ── ADDRESS & DEVICE AUTOCOMPLETE ── */
 .ac-wrap { position: relative; width: 100%; z-index: 10; }
+.ac-wrap:focus-within { z-index: 300; }
 .ac-dropdown {
   position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 200;
   background: var(--elevated); border: 1.5px solid var(--accent);
@@ -809,7 +810,7 @@ select.field-input option{background:var(--elevated)}
       <div class="form-row">
         <div class="form-field">
           <span class="field-label">Manufacturer <span style="color:var(--red)">*</span></span>
-          <div class="ac-wrap">
+          <div class="ac-wrap" style="z-index:20">
             <input type="text" class="field-input" id="sub-mfr" placeholder="Watts, Febco…" autocomplete="off">
             <div class="ac-dropdown" id="sub-mfr-dropdown" style="display:none"></div>
           </div>
@@ -1525,29 +1526,41 @@ async function submitReport() {
   const reportDate=document.getElementById('sub-date').value||new Date().toISOString().split('T')[0];
 
   const row={
-    id:'BF'+Date.now(),
-    date:reportDate,
-    address:addr,
-    tester:testerName,
-    tester_email:currentUser.email,
-    cert_num:document.getElementById('sub-cert').value||testerProfile.cert||'',
-    firm:document.getElementById('sub-firm').value||testerProfile.company||'',
-    assembly:currentAsm,
-    manufacturer:document.getElementById('sub-mfr').value,
-    model:document.getElementById('sub-model').value,
-    serial:document.getElementById('sub-serial').value,
-    size:document.getElementById('sub-size').value,
-    result,
-    check1:fmtPsid(c1,'c1'),
-    check2:fmtPsid(c2,'c2'),
-    relief:fmtPsid(rv,'rv'),
-    psid_c1:c1, psid_c2:c2, psid_relief:rv,
-    fail_reasons:fails.join('; '),
-    repairs:repairsOn,
-    repair_details:document.getElementById('sub-repair-details').value,
-    remarks:document.getElementById('sub-remarks').value,
-    photo_urls:photoUrls,
-    pws_name: document.getElementById('wiz-pws-name')?.value || 'Abilene TX',
+    date: reportDate,
+    address: addr,
+    // Tester info
+    tester_name: testerName,
+    tester: testerName,
+    tester_email: currentUser.email,
+    tester_cert: document.getElementById('sub-cert').value||testerProfile.cert||'',
+    cert_num: document.getElementById('sub-cert').value||testerProfile.cert||'',
+    firm: document.getElementById('sub-firm').value||testerProfile.company||'',
+    // Assembly info
+    assembly_type: currentAsm,
+    assembly: currentAsm,
+    manufacturer: document.getElementById('sub-mfr').value,
+    model: document.getElementById('sub-model').value,
+    serial_number: document.getElementById('sub-serial').value,
+    serial: document.getElementById('sub-serial').value,
+    size: document.getElementById('sub-size').value,
+    // Results
+    result: result,
+    test_result: result,
+    check1: fmtPsid(c1,'c1'),
+    check2: fmtPsid(c2,'c2'),
+    relief: fmtPsid(rv,'rv'),
+    initial_check1: c1, initial_check2: c2,
+    psid_c1: c1, psid_c2: c2, psid_relief: rv,
+    fail_reasons: fails.join('; '),
+    repairs: repairsOn,
+    repair_details: document.getElementById('sub-repair-details').value,
+    notes: document.getElementById('sub-remarks').value,
+    remarks: document.getElementById('sub-remarks').value,
+    photo_urls: photoUrls,
+    city: 'Abilene',
+    state: 'TX',
+    pws_name: document.getElementById('wiz-pws-name')?.value || 'City of Abilene',
+    submitted_by_user: currentUser.id,
   };
 
   try {
