@@ -1351,7 +1351,7 @@ function switchPage(id) {
   el.style.overflow = flexPages.includes(id) ? 'hidden' : '';
   const bn = document.getElementById('bn-' + id);
   if (bn) bn.classList.add('active');
-  if (id === 'home') loadHomeData();
+  if (id === 'home') { loadHomeStats(); }
   if (id === 'history') loadHistory();
   if (id === 'profile') renderProfilePage();
   if (id === 'submit') { checkProfileWarning(); setTimeout(() => initPortalAutocompletes(), 100); }
@@ -3058,14 +3058,111 @@ function handleAvatarUpload(input){
   <div id="wiz-body" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
 
     <!-- STEP 0: HOME -->
-    <div id="wiz-step-home" style="display:flex;flex-direction:column;flex:1;overflow-y:auto;overflow-x:hidden;width:100%;box-sizing:border-box">
+    <div id="wiz-step-home" style="display:flex;flex-direction:column;flex:1;overflow-y:auto;overflow-x:hidden;width:100%;box-sizing:border-box;background:var(--bg)">
 
-      <!-- HEADER -->
-      <div style="padding:20px 16px 0;width:100%">
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:6px;text-transform:uppercase">Welcome Back</div>
-        <div style="font-family:var(--cond);font-size:28px;font-weight:900;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="wiz-greeting">—</div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:5px" id="wiz-cert-display">—</div>
+      <!-- HERO -->
+      <div style="background:linear-gradient(160deg,#1a1f27 0%,#111417 100%);padding:22px 18px 18px;border-bottom:1px solid var(--border);position:relative;overflow:hidden;flex-shrink:0">
+        <div style="position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(249,166,30,.12) 0%,transparent 70%);pointer-events:none"></div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+          <div id="wiz-home-avatar" style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--accent),#e8920a);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:20px;font-weight:900;color:#000;flex-shrink:0;box-shadow:0 4px 14px rgba(249,166,30,.3)">?</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:2px" id="wiz-greeting-label">GOOD MORNING</div>
+            <div id="wiz-greeting" style="font-family:var(--cond);font-size:20px;font-weight:900;color:var(--text);line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:20px">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span id="wiz-cert-display" style="font-family:var(--mono);font-size:9px;color:var(--text)">CERT —</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:20px">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6495ed" stroke-width="2.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+            <span id="wiz-company-display" style="font-family:var(--mono);font-size:9px;color:var(--text)">—</span>
+          </div>
+        </div>
       </div>
+
+      <!-- STATS -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);flex-shrink:0">
+        <div style="background:var(--surface);padding:14px 10px;text-align:center">
+          <div id="wiz-stat-total" style="font-family:var(--cond);font-size:28px;font-weight:900;color:var(--text);line-height:1;margin-bottom:3px">—</div>
+          <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Tests</div>
+        </div>
+        <div style="background:var(--surface);padding:14px 10px;text-align:center">
+          <div id="wiz-stat-pass" style="font-family:var(--cond);font-size:28px;font-weight:900;color:var(--green);line-height:1;margin-bottom:3px">—</div>
+          <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Passed</div>
+        </div>
+        <div style="background:var(--surface);padding:14px 10px;text-align:center">
+          <div id="wiz-stat-fail" style="font-family:var(--cond);font-size:28px;font-weight:900;color:var(--red);line-height:1;margin-bottom:3px">—</div>
+          <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Failed</div>
+        </div>
+      </div>
+
+      <!-- PASS RATE -->
+      <div style="background:var(--surface);padding:9px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);white-space:nowrap">PASS RATE</div>
+        <div style="flex:1;height:5px;background:var(--elevated);border-radius:3px;overflow:hidden">
+          <div id="wiz-pass-bar" style="height:100%;background:linear-gradient(90deg,var(--green),#52d48a);border-radius:3px;width:0%;transition:width 1s ease"></div>
+        </div>
+        <div id="wiz-pass-pct" style="font-family:var(--cond);font-size:13px;font-weight:700;color:var(--green);min-width:32px;text-align:right">—%</div>
+      </div>
+
+      <div id="wiz-alerts" style="flex-shrink:0"></div>
+
+      <!-- ACTIONS -->
+      <div style="padding:14px;display:flex;flex-direction:column;gap:10px">
+
+        <button onclick="wizShowStep('submit')" style="width:100%;padding:16px 18px;background:linear-gradient(135deg,var(--accent),#e8920a);border:none;border-radius:14px;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 6px 20px rgba(249,166,30,.3);text-align:left">
+          <div style="width:40px;height:40px;background:rgba(0,0,0,.2);border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+          </div>
+          <div style="flex:1">
+            <div style="font-family:var(--cond);font-size:18px;font-weight:900;color:#000;line-height:1">Submit Test Report</div>
+            <div style="font-family:var(--mono);font-size:9px;color:rgba(0,0,0,.6);letter-spacing:1px;margin-top:2px">NEW BACKFLOW TEST REPORT</div>
+          </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button onclick="wizShowStep('search')" style="padding:14px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:8px">
+            <div style="width:34px;height:34px;background:rgba(100,149,237,.14);border-radius:9px;display:flex;align-items:center;justify-content:center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6495ed" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+            <div><div style="font-family:var(--sans);font-size:13px;font-weight:700;color:var(--text)">Search</div>
+            <div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:1px">FIND DEVICES</div></div>
+          </button>
+          <button onclick="wizShowStep('history')" style="padding:14px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:8px">
+            <div style="width:34px;height:34px;background:rgba(61,184,112,.12);border-radius:9px;display:flex;align-items:center;justify-content:center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div><div style="font-family:var(--sans);font-size:13px;font-weight:700;color:var(--text)">My Reports</div>
+            <div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:1px">HISTORY</div></div>
+          </button>
+          <button onclick="wizShowStep('profile')" style="padding:14px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:8px">
+            <div style="width:34px;height:34px;background:rgba(249,166,30,.12);border-radius:9px;display:flex;align-items:center;justify-content:center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div><div style="font-family:var(--sans);font-size:13px;font-weight:700;color:var(--text)">Profile</div>
+            <div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:1px">CERT &amp; DOCS</div></div>
+          </button>
+          <div style="padding:14px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;display:flex;flex-direction:column;gap:8px">
+            <div style="width:34px;height:34px;background:rgba(224,82,82,.12);border-radius:9px;display:flex;align-items:center;justify-content:center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <div><div style="font-family:var(--sans);font-size:13px;font-weight:700;color:var(--text)">Streak</div>
+            <div id="wiz-streak" style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:1px">— PASSES</div></div>
+          </div>
+        </div>
+
+        <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:12px;overflow:hidden">
+          <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Recent Tests</div>
+            <button onclick="wizShowStep('history')" style="font-family:var(--mono);font-size:9px;color:var(--accent);background:none;border:none;cursor:pointer">View All</button>
+          </div>
+          <div id="wiz-home-recent"><div style="padding:14px;text-align:center;color:var(--muted);font-size:12px">Loading...</div></div>
+        </div>
+      </div>
+
 
       <!-- STATS — constrained 3-col grid -->
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:14px 16px;width:100%;box-sizing:border-box">
