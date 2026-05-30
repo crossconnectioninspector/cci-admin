@@ -44,9 +44,22 @@ function sanitize(str) {
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;display:flex;font-weight:400;font-size:15px;line-height:var(--lh)}
 ::-webkit-scrollbar{width:5px;height:5px}
-.lov-tab{padding:13px 18px;background:transparent;border:none;border-bottom:3px solid transparent;color:var(--muted);font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s;margin-bottom:-1px}
-.lov-tab:hover{color:var(--text)}
-.lov-tab.lov-active{color:var(--accent);border-bottom-color:var(--accent)}
+/* Location fullscreen mode */
+#locDetailPanel.fullscreen {
+  position: fixed !important;
+  top: 56px !important;
+  left: 170px !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: auto !important;
+  opacity: 1 !important;
+  z-index: 100;
+  border-left: 1px solid var(--border);
+  transition: none !important;
+}
+#locDetailPanel.fullscreen > div {
+  width: 100% !important;
+}
 
 .rpt-opt{display:flex;align-items:center;gap:10px;width:100%;padding:10px 13px;border-radius:10px;background:transparent;border:none;color:var(--text);font-family:var(--sans);font-size:15px;font-weight:500;cursor:pointer;text-align:left;transition:all .15s;position:relative}
 .rpt-opt:hover{background:rgba(255,255,255,.05);transform:translateX(2px)}
@@ -1187,6 +1200,19 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
     </div>
     <div id="locDetailPanel" style="width:0;overflow:hidden;border-left:1px solid var(--border);transition:width .25s ease,opacity .2s ease;opacity:0;flex-shrink:0;display:flex;flex-direction:column;background:var(--bg)">
       <div style="width:480px;display:flex;flex-direction:column;height:100%;overflow:hidden">
+        <!-- Back bar (only visible in fullscreen mode) -->
+        <div id="locBackBar" style="display:none;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0">
+          <button onclick="locExitFullscreen()" style="display:flex;align-items:center;gap:8px;padding:7px 14px;background:var(--elevated);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            Back to Locations
+          </button>
+          <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)">
+            <span>Locations</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            <span id="locFSBreadcrumb" style="color:var(--text);font-weight:600"></span>
+          </div>
+          <div id="locFSBadge" style="margin-left:auto"></div>
+        </div>
         <div style="padding:14px 18px 0;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
             <div style="min-width:0;flex:1"><div id="locDetailAddr" style="font-family:var(--cond);font-weight:900;font-size:22px;color:var(--text);line-height:1.1"></div><div id="locDetailSub" style="font-size:13px;color:var(--muted);margin-top:3px"></div></div>
@@ -1553,47 +1579,6 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
     </div>
   </div>
 
-
-<!-- Location Full-Screen Detail Overlay -->
-<div id="locFullOverlay" style="display:none;position:fixed;top:56px;left:170px;right:0;bottom:0;background:var(--bg);z-index:100;flex-direction:column;overflow:hidden;border-left:1px solid var(--border)">
-
-  <!-- Top bar -->
-  <div style="display:flex;align-items:center;gap:14px;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0">
-    <button onclick="locOverlayClose()" style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--elevated);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-      Back to Locations
-    </button>
-    <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)">
-      <span>Locations</span>
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-      <span id="locOverlayBreadcrumb" style="color:var(--text);font-weight:600"></span>
-    </div>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
-      <div id="locOverlayBadge"></div>
-      <button onclick="locToggleEdit()" id="locOverlayEditBtn" style="display:flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:9px;background:var(--elevated);border:1.5px solid var(--border);color:var(--muted);cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        Edit
-      </button>
-      <button onclick="locOverlayClose()" style="width:34px;height:34px;border-radius:8px;background:var(--elevated);border:1.5px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px">&#x2715;</button>
-    </div>
-  </div>
-
-  <!-- Summary strip -->
-  <div id="locOverlaySummary" style="display:flex;align-items:center;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto"></div>
-
-  <!-- Tab bar -->
-  <div style="display:flex;gap:0;padding:0 28px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0">
-    <button class="lov-tab lov-active" onclick="locOverlaySwitchTab('details',this)">Details</button>
-    <button class="lov-tab" onclick="locOverlaySwitchTab('assemblies',this)">Assemblies</button>
-    <button class="lov-tab" onclick="locOverlaySwitchTab('contacts',this)">Contacts</button>
-    <button class="lov-tab" onclick="locOverlaySwitchTab('communications',this)">Communications</button>
-    <button class="lov-tab" onclick="locOverlaySwitchTab('surveys',this)">Surveys</button>
-    <button class="lov-tab" onclick="locOverlaySwitchTab('compliance',this)">Compliance</button>
-  </div>
-
-  <!-- Tab body -->
-  <div id="locOverlayTabBody" style="flex:1;overflow-y:auto;padding:28px 32px"></div>
-</div>
 </main><!-- /main -->
 
 <!-- MOBILE BOTTOM NAV -->
@@ -4390,38 +4375,49 @@ function locPrevPage(){if(locCurrentPage>1){locCurrentPage--;locRenderTable();}}
 function locNextPage(){const rpp=parseInt(document.getElementById('locRowsPerPage')?.value||'10');if(locCurrentPage<Math.ceil(locFiltered.length/rpp)){locCurrentPage++;locRenderTable();}}
 function locLastPage(){const rpp=parseInt(document.getElementById('locRowsPerPage')?.value||'10');locCurrentPage=Math.ceil(locFiltered.length/rpp)||1;locRenderTable();}
 
-function locSelectRow(id){locActiveId=id;locDetailOpen=true;locEditMode=false;const loc=LOC_DATA.find(l=>l.id===id);if(!loc)return;
-  // Show full-screen overlay
-  const overlay=document.getElementById('locFullOverlay');
-  if(overlay){
-    overlay.dataset.locId=String(id);
-    // Breadcrumb
-    const bc=document.getElementById('locOverlayBreadcrumb');if(bc)bc.textContent=loc.address;
-    // Badge
-    const badge=document.getElementById('locOverlayBadge');
-    if(badge){const cc=loc.compliance==='Compliant'?'var(--green)':loc.compliance==='Overdue'?'var(--yellow)':'var(--red)';const cbg=loc.compliance==='Compliant'?'rgba(76,175,121,.14)':loc.compliance==='Overdue'?'rgba(240,192,64,.14)':'rgba(224,82,82,.14)';const cbr=loc.compliance==='Compliant'?'rgba(76,175,121,.3)':loc.compliance==='Overdue'?'rgba(240,192,64,.3)':'rgba(224,82,82,.3)';badge.style.cssText='font-family:var(--mono);font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;background:'+cbg+';color:'+cc+';border:1px solid '+cbr;badge.textContent=loc.compliance.toUpperCase();}
-    // Summary strip
-    const sum=document.getElementById('locOverlaySummary');
-    if(sum){const stats=[{l:'Account',v:loc.account||'—'},{l:'Hazard',v:loc.hazard+' ('+loc.hazardRating+'/10)'},{l:'Devices',v:(loc.assemblies||[]).length+' assemblies'},{l:'Connections',v:loc.connections||1},{l:'Last Survey',v:loc.lastSurvey||'—'},{l:'Contact',v:loc.contact||'—'}];sum.innerHTML=stats.map(s=>'<div style="padding:14px 24px;border-right:1px solid var(--border);flex-shrink:0"><div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">'+s.l+'</div><div style="font-size:15px;font-weight:600;color:var(--text)">'+s.v+'</div></div>').join('');}
-    // Reset to details tab
-    document.querySelectorAll('.lov-tab').forEach(b=>b.classList.remove('lov-active'));
-    const dt=document.querySelector('.lov-tab');if(dt)dt.classList.add('lov-active');
-    // Show overlay
-    overlay.style.display='flex';overlay.style.opacity='0';overlay.style.transform='translateX(16px)';overlay.style.transition='opacity .2s ease,transform .2s ease';
-    requestAnimationFrame(()=>{overlay.style.opacity='1';overlay.style.transform='translateX(0)';});
-    // Render details tab
-    const body=document.getElementById('locOverlayTabBody');if(body)body.innerHTML=locRenderDetails(loc);
-  }
-  // Keep side panel hidden
-  const panel=document.getElementById('locDetailPanel');if(panel){panel.style.width='0';panel.style.opacity='0';}const addr=document.getElementById('locDetailAddr');if(addr)addr.textContent=loc.address;const sub=document.getElementById('locDetailSub');if(sub)sub.textContent=loc.name+' \u2022 '+loc.city+', '+loc.state+' '+loc.zip;const cc=loc.compliance==='Compliant'?'var(--green)':loc.compliance==='Overdue'?'var(--yellow)':'var(--red)';const cbg=loc.compliance==='Compliant'?'rgba(76,175,121,.14)':loc.compliance==='Overdue'?'rgba(240,192,64,.14)':'rgba(224,82,82,.14)';const cbr=loc.compliance==='Compliant'?'rgba(76,175,121,.3)':loc.compliance==='Overdue'?'rgba(240,192,64,.3)':'rgba(224,82,82,.3)';const badge=document.getElementById('locDetailBadge');if(badge){badge.textContent=loc.compliance.toUpperCase();badge.style.cssText=`font-family:var(--cond);font-weight:700;font-size:13px;padding:4px 10px;border-radius:5px;background:${cbg};color:${cc};border:1px solid ${cbr}`;}const stats=document.getElementById('locDetailStats');if(stats)stats.innerHTML=[['Account',sanitize(loc.account)],['Hazard',loc.hazard],['Devices',loc.deviceCount],['Connections',loc.connections],['Risk','<span style="color:'+(loc.riskScore<30?'var(--green)':loc.riskScore<60?'var(--yellow)':'var(--red)')+'">'+loc.riskScore+'/100</span>']].map(([l,v])=>`<div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">${l}</div><div style="font-family:var(--cond);font-weight:700;font-size:15px;color:var(--text)">${v}</div></div>`).join('');const editBtn=document.getElementById('locEditBtn');if(editBtn){editBtn.style.cssText='height:26px;padding:0 10px;border-radius:6px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;transition:all .15s';editBtn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit';}document.querySelectorAll('#locDetailTabs .m-tab').forEach((b,i)=>b.classList.toggle('active',i===0));const body=document.getElementById('locTabBody');if(body)body.innerHTML=locRenderDetails(loc);locRenderTable();}
+function locSelectRow(id){
+  locActiveId=id;locDetailOpen=true;locEditMode=false;
+  const loc=LOC_DATA.find(l=>l.id===id);if(!loc)return;
+  const panel=document.getElementById('locDetailPanel');
+  if(panel){
+    // Go fullscreen
+    panel.classList.add('fullscreen');
+    panel.style.opacity='1';
+    // Show back bar
+    const backBar=document.getElementById('locBackBar');
+    if(backBar)backBar.style.display='flex';
+    // Update breadcrumb
+    const bc=document.getElementById('locFSBreadcrumb');
+    if(bc)bc.textContent=loc.address;
+    // Update badge
+    const badge=document.getElementById('locFSBadge');
+    if(badge){
+      const cc=loc.compliance==='Compliant'?'var(--green)':loc.compliance==='Overdue'?'var(--yellow)':'var(--red)';
+      const cbg=loc.compliance==='Compliant'?'rgba(76,175,121,.14)':loc.compliance==='Overdue'?'rgba(240,192,64,.14)':'rgba(224,82,82,.14)';
+      const cbr=loc.compliance==='Compliant'?'rgba(76,175,121,.3)':loc.compliance==='Overdue'?'rgba(240,192,64,.3)':'rgba(224,82,82,.3)';
+      badge.style.cssText='font-family:var(--mono);font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;background:'+cbg+';color:'+cc+';border:1px solid '+cbr;
+      badge.textContent=loc.compliance.toUpperCase();
+    }
+  }const addr=document.getElementById('locDetailAddr');if(addr)addr.textContent=loc.address;const sub=document.getElementById('locDetailSub');if(sub)sub.textContent=loc.name+' \u2022 '+loc.city+', '+loc.state+' '+loc.zip;const cc=loc.compliance==='Compliant'?'var(--green)':loc.compliance==='Overdue'?'var(--yellow)':'var(--red)';const cbg=loc.compliance==='Compliant'?'rgba(76,175,121,.14)':loc.compliance==='Overdue'?'rgba(240,192,64,.14)':'rgba(224,82,82,.14)';const cbr=loc.compliance==='Compliant'?'rgba(76,175,121,.3)':loc.compliance==='Overdue'?'rgba(240,192,64,.3)':'rgba(224,82,82,.3)';const badge=document.getElementById('locDetailBadge');if(badge){badge.textContent=loc.compliance.toUpperCase();badge.style.cssText=`font-family:var(--cond);font-weight:700;font-size:13px;padding:4px 10px;border-radius:5px;background:${cbg};color:${cc};border:1px solid ${cbr}`;}const stats=document.getElementById('locDetailStats');if(stats)stats.innerHTML=[['Account',sanitize(loc.account)],['Hazard',loc.hazard],['Devices',loc.deviceCount],['Connections',loc.connections],['Risk','<span style="color:'+(loc.riskScore<30?'var(--green)':loc.riskScore<60?'var(--yellow)':'var(--red)')+'">'+loc.riskScore+'/100</span>']].map(([l,v])=>`<div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">${l}</div><div style="font-family:var(--cond);font-weight:700;font-size:15px;color:var(--text)">${v}</div></div>`).join('');const editBtn=document.getElementById('locEditBtn');if(editBtn){editBtn.style.cssText='height:26px;padding:0 10px;border-radius:6px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;transition:all .15s';editBtn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit';}document.querySelectorAll('#locDetailTabs .m-tab').forEach((b,i)=>b.classList.toggle('active',i===0));const body=document.getElementById('locTabBody');if(body)body.innerHTML=locRenderDetails(loc);locRenderTable();}
+
+function locExitFullscreen(){
+  const panel=document.getElementById('locDetailPanel');
+  if(panel){panel.classList.remove('fullscreen');}
+  const backBar=document.getElementById('locBackBar');
+  if(backBar)backBar.style.display='none';
+  locCloseDetail();
+}
 
 function locCloseDetail(){
-  const overlay=document.getElementById('locFullOverlay');
-  if(overlay&&overlay.style.display==='flex'){locOverlayClose();return;}
   locDetailOpen=false;locActiveId=null;locEditMode=false;
-  const p=document.getElementById('locDetailPanel');
-  if(p){p.style.opacity='0';setTimeout(()=>{p.style.width='0';setTimeout(()=>{locRenderTable();},260);},180);}
-  else{locRenderTable();}
+  const panel=document.getElementById('locDetailPanel');
+  if(panel){
+    panel.classList.remove('fullscreen');
+    panel.style.opacity='0';
+    setTimeout(()=>{panel.style.width='0';setTimeout(()=>{locRenderTable();},260);},180);
+  } else {locRenderTable();}
+  const backBar=document.getElementById('locBackBar');
+  if(backBar)backBar.style.display='none';
 }
 
 function locSwitchTab(tab,btn){document.querySelectorAll('#locDetailTabs .m-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');locEditMode=false;const editBtn=document.getElementById('locEditBtn');if(editBtn){editBtn.style.borderColor='';editBtn.style.color='';editBtn.style.background='';editBtn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit';editBtn.style.display=['details','assemblies','contacts'].includes(tab)?'flex':'none';}const loc=LOC_DATA.find(l=>l.id===locActiveId);const body=document.getElementById('locTabBody');if(!body||!loc)return;if(tab==='details')body.innerHTML=locRenderDetails(loc);else if(tab==='assemblies')body.innerHTML=locRenderAssemblies(loc);else if(tab==='contacts')body.innerHTML=locRenderContacts(loc);else if(tab==='communications')body.innerHTML=locRenderComms(loc);else if(tab==='surveys')body.innerHTML=locRenderSurveys(loc);else if(tab==='compliance')body.innerHTML=locRenderCompliance(loc);}
@@ -5630,46 +5626,6 @@ document.addEventListener('click',function(e){
     if(arrow)arrow.style.transform='';
     if(btn){btn.style.borderColor='var(--border)';btn.style.boxShadow='0 2px 8px rgba(0,0,0,.2)';}
   }
-},true);
-
-
-// ── LOCATION OVERLAY FUNCTIONS ────────────────────────────────────────────────
-function locOverlayClose(){
-  const overlay=document.getElementById('locFullOverlay');
-  if(overlay){overlay.style.opacity='0';overlay.style.transform='translateX(16px)';setTimeout(()=>{overlay.style.display='none';overlay.style.transform='';},220);}
-  locDetailOpen=false;locActiveId=null;locEditMode=false;
-  const p=document.getElementById('locDetailPanel');if(p){p.style.width='0';p.style.opacity='0';}
-  locRenderTable();
-}
-
-function locOverlaySwitchTab(tab, btn){
-  // Update active tab style
-  document.querySelectorAll('.lov-tab').forEach(b=>b.classList.remove('lov-active'));
-  if(btn)btn.classList.add('lov-active');
-  // Get location ID from overlay dataset
-  const overlay=document.getElementById('locFullOverlay');
-  const locId=overlay?parseInt(overlay.dataset.locId):locActiveId;
-  const loc=LOC_DATA.find(l=>l.id===locId);
-  if(!loc)return;
-  // Reset edit mode
-  locEditMode=false;
-  const eb=document.getElementById('locOverlayEditBtn');
-  if(eb){eb.style.display=['details','assemblies','contacts'].includes(tab)?'flex':'none';eb.style.color='';eb.style.borderColor='';eb.style.background='';}
-  // Render to overlay body - uses the EXACT same render functions as the side panel
-  const body=document.getElementById('locOverlayTabBody');
-  if(!body)return;
-  if(tab==='details')body.innerHTML=locRenderDetails(loc);
-  else if(tab==='assemblies')body.innerHTML=locRenderAssemblies(loc);
-  else if(tab==='contacts')body.innerHTML=locRenderContacts(loc);
-  else if(tab==='communications')body.innerHTML=locRenderComms(loc);
-  else if(tab==='surveys')body.innerHTML=locRenderSurveys(loc);
-  else if(tab==='compliance')body.innerHTML=locRenderCompliance(loc);
-}
-
-// Prevent overlay clicks from closing via click-outside listener
-document.addEventListener('click',function(e){
-  const overlay=document.getElementById('locFullOverlay');
-  if(overlay&&overlay.style.display==='flex'&&overlay.contains(e.target))return;
 },true);
 
 </script>
