@@ -1492,12 +1492,12 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
 
   <!-- Tab bar -->
   <div id="locOverlayTabBar" style="display:flex;gap:0;padding:0 28px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0">
-    <button data-tab="details"       class="lov-tab lov-active">Details</button>
-    <button data-tab="assemblies"    class="lov-tab">Assemblies</button>
-    <button data-tab="contacts"      class="lov-tab">Contacts</button>
-    <button data-tab="communications" class="lov-tab">Communications</button>
-    <button data-tab="surveys"       class="lov-tab">Surveys</button>
-    <button data-tab="compliance"    class="lov-tab">Compliance</button>
+    <button class="lov-tab lov-active" onclick="locOverlaySwitchTab('details',this)">Details</button>
+    <button class="lov-tab" onclick="locOverlaySwitchTab('assemblies',this)">Assemblies</button>
+    <button class="lov-tab" onclick="locOverlaySwitchTab('contacts',this)">Contacts</button>
+    <button class="lov-tab" onclick="locOverlaySwitchTab('communications',this)">Communications</button>
+    <button class="lov-tab" onclick="locOverlaySwitchTab('surveys',this)">Surveys</button>
+    <button class="lov-tab" onclick="locOverlaySwitchTab('compliance',this)">Compliance</button>
   </div>
 
   <!-- Tab body -->
@@ -5704,62 +5704,49 @@ function locOverlayClose(){
   locRenderTable();
 }
 
-// Wire up overlay buttons once DOM is ready
-document.addEventListener('DOMContentLoaded', function(){
-  // Back button
+// Wire overlay buttons after page loads
+window.addEventListener('load', function(){
   const backBtn = document.getElementById('locOverlayBackBtn');
-  if(backBtn) backBtn.addEventListener('click', locOverlayClose);
+  if(backBtn) backBtn.onclick = function(){ locOverlayClose(); };
 
-  // Close button
   const closeBtn = document.getElementById('locOverlayCloseBtn');
-  if(closeBtn) closeBtn.addEventListener('click', locOverlayClose);
+  if(closeBtn) closeBtn.onclick = function(){ locOverlayClose(); };
 
-  // Edit button
   const editBtn = document.getElementById('locOverlayEditBtn');
-  if(editBtn) editBtn.addEventListener('click', locToggleEdit);
-
-  // Tab buttons - using event delegation on the tab bar
-  const tabBar = document.getElementById('locOverlayTabBar');
-  if(tabBar){
-    tabBar.addEventListener('click', function(e){
-      const btn = e.target.closest('[data-tab]');
-      if(!btn) return;
-      const tab = btn.dataset.tab;
-
-      // Get location from overlay dataset
-      const overlay = document.getElementById('locFullOverlay');
-      const locId = overlay ? parseInt(overlay.dataset.locId) : locActiveId;
-      const loc = LOC_DATA.find(l => l.id === locId);
-      if(!loc) return;
-
-      // Update active tab
-      document.querySelectorAll('.lov-tab').forEach(b => b.classList.remove('lov-active'));
-      btn.classList.add('lov-active');
-
-      // Reset edit mode
-      locEditMode = false;
-      const editBtn = document.getElementById('locOverlayEditBtn');
-      if(editBtn){
-        editBtn.style.display = ['details','assemblies','contacts'].includes(tab) ? 'flex' : 'none';
-        editBtn.style.color=''; editBtn.style.borderColor=''; editBtn.style.background='';
-      }
-
-      // Render tab content
-      const body = document.getElementById('locOverlayTabBody');
-      if(!body) return;
-      try {
-        if(tab==='details')         body.innerHTML = locRenderDetails(loc);
-        else if(tab==='assemblies') body.innerHTML = locRenderAssemblies(loc);
-        else if(tab==='contacts')   body.innerHTML = locRenderContacts(loc);
-        else if(tab==='communications') body.innerHTML = locRenderComms(loc);
-        else if(tab==='surveys')    body.innerHTML = locRenderSurveys(loc);
-        else if(tab==='compliance') body.innerHTML = locRenderCompliance(loc);
-      } catch(err) {
-        body.innerHTML = '<div style="padding:20px;color:var(--red)">Error: '+err.message+'</div>';
-      }
-    });
-  }
+  if(editBtn) editBtn.onclick = function(){ locToggleEdit(); };
 });
+
+// Called by overlay tab buttons
+function locOverlaySwitchTab(tab, btn){
+  // Mark active
+  document.querySelectorAll('.lov-tab').forEach(b => b.classList.remove('lov-active'));
+  if(btn) btn.classList.add('lov-active');
+
+  // Get location - use overlay dataset as primary source
+  const overlay = document.getElementById('locFullOverlay');
+  const locId = overlay ? parseInt(overlay.dataset.locId) : locActiveId;
+  const loc = LOC_DATA.find(l => l.id === locId);
+  if(!loc) return;
+
+  // Edit button visibility
+  locEditMode = false;
+  const eb = document.getElementById('locOverlayEditBtn');
+  if(eb){
+    eb.style.display = ['details','assemblies','contacts'].includes(tab)?'flex':'none';
+    eb.style.color=''; eb.style.borderColor=''; eb.style.background='';
+    eb.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit';
+  }
+
+  // Render to overlay body
+  const body = document.getElementById('locOverlayTabBody');
+  if(!body) return;
+  if(tab==='details')          body.innerHTML = locRenderDetails(loc);
+  else if(tab==='assemblies')  body.innerHTML = locRenderAssemblies(loc);
+  else if(tab==='contacts')    body.innerHTML = locRenderContacts(loc);
+  else if(tab==='communications') body.innerHTML = locRenderComms(loc);
+  else if(tab==='surveys')     body.innerHTML = locRenderSurveys(loc);
+  else if(tab==='compliance')  body.innerHTML = locRenderCompliance(loc);
+}
 
 
 function locOverlaySwitchTab(tab, btn){
