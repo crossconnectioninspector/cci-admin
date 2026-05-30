@@ -842,8 +842,34 @@ select.field-input option{background:var(--elevated)}
     <div class="form-section">
       <div class="form-section-title">REPAIRS</div>
       <div class="toggle-row"><span class="toggle-label">Repairs were made</span><button class="toggle" id="repairs-toggle" onclick="toggleRepairs()"></button></div>
-      <div id="repair-details-wrap" style="display:none;margin-top:8px">
-        <div class="form-field"><span class="field-label">Repair Details</span><textarea class="field-input" id="sub-repair-details" rows="3" placeholder="Describe repairs made…" style="resize:vertical"></textarea></div>
+      <div id="repair-details-wrap" style="display:none;margin-top:10px">
+        <div class="form-field">
+          <span class="field-label" style="margin-bottom:8px;display:block">Repair Details — Select all that apply</span>
+          <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
+            <label style="display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:9px;cursor:pointer;font-size:13px;color:var(--text)">
+              <input type="checkbox" id="rep-cleaned" style="width:16px;height:16px;accent-color:var(--accent)"> Cleaned debris from check valve
+            </label>
+            <label style="display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:9px;cursor:pointer;font-size:13px;color:var(--text)">
+              <input type="checkbox" id="rep-replaced-cv" style="width:16px;height:16px;accent-color:var(--accent)"> Check valve replaced
+            </label>
+            <label style="display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:9px;cursor:pointer;font-size:13px;color:var(--text)">
+              <input type="checkbox" id="rep-springs" style="width:16px;height:16px;accent-color:var(--accent)"> Springs replaced
+            </label>
+            <label style="display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:9px;cursor:pointer;font-size:13px;color:var(--text)">
+              <input type="checkbox" id="rep-seats" style="width:16px;height:16px;accent-color:var(--accent)"> Seats/seals replaced
+            </label>
+            <label style="display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:9px;cursor:pointer;font-size:13px;color:var(--text)">
+              <input type="checkbox" id="rep-disc" style="width:16px;height:16px;accent-color:var(--accent)"> Disc replaced
+            </label>
+            <label style="display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:9px;cursor:pointer;font-size:13px;color:var(--text)">
+              <input type="checkbox" id="rep-rv" style="width:16px;height:16px;accent-color:var(--accent)"> Relief valve repaired / replaced
+            </label>
+            <label style="display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:9px;cursor:pointer;font-size:13px;color:var(--text)">
+              <input type="checkbox" id="rep-other" style="width:16px;height:16px;accent-color:var(--accent)"> Other (describe below)
+            </label>
+          </div>
+          <textarea class="field-input" id="sub-repair-details" rows="2" placeholder="Additional notes on repairs…" style="resize:vertical;font-size:13px"></textarea>
+        </div>
       </div>
     </div>
 
@@ -1459,23 +1485,60 @@ function updateResultBanner() {
   detail.innerHTML = fails.length ? fails.join('<br>') : '';
 }
 
-function calcResult(asm,c1,c2,rv) {
-  const fails=[];
-  if (asm==='RPZ') {
-    if (c1===null) return {result:null,fails:[]};
-    if (c1<5.0) fails.push(`1st Check ${c1} PSID — FAILS (min 5.0)`);
-    if (c2!==null&&c2<1.0) fails.push(`2nd Check ${c2} PSID — FAILS (min 1.0)`);
-    if (c1>=5.0&&rv!==null) { const t=c1-2.0; if(rv>t) fails.push(`Relief ${rv} PSID — FAILS (must open ≤${t.toFixed(1)})`); }
-  } else if (asm==='DCVA') {
-    if (c1===null) return {result:null,fails:[]};
-    if (c1<1.0) fails.push(`1st Check ${c1} PSID — FAILS (min 1.0)`);
-    if (c2!==null&&c2<1.0) fails.push(`2nd Check ${c2} PSID — FAILS (min 1.0)`);
+function calcResult(asm, c1, c2, rv) {
+  // TCEQ / USC standards for backflow prevention assembly testing
+  const fails = [];
+
+  if (asm === 'RPZ') {
+    // Reduced Pressure Zone — TCEQ criteria:
+    // 1st check: must hold ≥ 5.0 PSID differential
+    // 2nd check: must hold ≥ 1.0 PSID differential
+    // Relief valve: must open at ≥ 2.0 PSID BELOW 1st check reading
+    if (c1 === null) return { result: null, fails: [] };
+    if (c1 < 5.0)
+      fails.push(`1st Check Valve: ${c1} PSID — FAIL (minimum 5.0 PSID required)`);
+    if (c2 !== null && c2 < 1.0)
+      fails.push(`2nd Check Valve: ${c2} PSID — FAIL (minimum 1.0 PSID required)`);
+    if (c1 >= 5.0 && rv !== null) {
+      const maxRV = c1 - 2.0;
+      if (rv > maxRV)
+        fails.push(`Relief Valve: opened at ${rv} PSID — FAIL (must open ≤ ${maxRV.toFixed(1)} PSID, which is 2.0 below 1st check)`);
+      if (rv < 2.0)
+        fails.push(`Relief Valve: ${rv} PSID — FAIL (minimum opening pressure 2.0 PSID)`);
+    }
+  } else if (asm === 'DCVA') {
+    // Double Check Valve Assembly:
+    // Both checks must hold ≥ 1.0 PSID
+    if (c1 === null) return { result: null, fails: [] };
+    if (c1 < 1.0)
+      fails.push(`1st Check Valve: ${c1} PSID — FAIL (minimum 1.0 PSID required)`);
+    if (c2 !== null && c2 < 1.0)
+      fails.push(`2nd Check Valve: ${c2} PSID — FAIL (minimum 1.0 PSID required)`);
+  } else if (asm === 'PVB') {
+    // Pressure Vacuum Breaker:
+    // Check valve must hold ≥ 1.0 PSID
+    // Air inlet must open at ≥ 1.0 PSID
+    if (c1 === null) return { result: null, fails: [] };
+    if (c1 < 1.0)
+      fails.push(`Check Valve: ${c1} PSID — FAIL (minimum 1.0 PSID required)`);
+    if (rv !== null && rv < 1.0)
+      fails.push(`Air Inlet: ${rv} PSID — FAIL (must open at ≥ 1.0 PSID)`);
+  } else if (asm === 'SVB') {
+    // Spill-Resistant Vacuum Breaker:
+    // Check valve ≥ 1.0 PSID
+    // Air inlet ≥ 1.0 PSID
+    if (c1 === null) return { result: null, fails: [] };
+    if (c1 < 1.0)
+      fails.push(`Check Valve: ${c1} PSID — FAIL (minimum 1.0 PSID required)`);
+    if (rv !== null && rv < 1.0)
+      fails.push(`Air Inlet: ${rv} PSID — FAIL (must open at ≥ 1.0 PSID)`);
   } else {
-    if (c1===null) return {result:null,fails:[]};
-    if (c1<1.0) fails.push(`Check Valve ${c1} PSID — FAILS (min 1.0)`);
-    if (rv!==null&&rv<1.0) fails.push(`Air Inlet ${rv} PSID — FAILS (min 1.0)`);
+    if (c1 === null) return { result: null, fails: [] };
+    if (c1 < 1.0)
+      fails.push(`Check Valve: ${c1} PSID — FAIL (minimum 1.0 PSID required)`);
   }
-  return {result:fails.length===0?'PASS':'FAIL',fails};
+
+  return { result: fails.length === 0 ? 'PASS' : 'FAIL', fails };
 }
 
 function toggleRepairs() {
@@ -1553,7 +1616,20 @@ async function submitReport() {
     psid_c1: c1, psid_c2: c2, psid_relief: rv,
     fail_reasons: fails.join('; '),
     repairs: repairsOn,
-    repair_details: document.getElementById('sub-repair-details').value,
+    repair_details: (function(){
+      const boxes=[
+        ['rep-cleaned','Cleaned debris from check valve'],
+        ['rep-replaced-cv','Check valve replaced'],
+        ['rep-springs','Springs replaced'],
+        ['rep-seats','Seats/seals replaced'],
+        ['rep-disc','Disc replaced'],
+        ['rep-rv','Relief valve repaired/replaced'],
+        ['rep-other','Other'],
+      ];
+      const checked=boxes.filter(function(b){return document.getElementById(b[0])&&document.getElementById(b[0]).checked;}).map(function(b){return b[1];});
+      const notes=(document.getElementById('sub-repair-details')||{}).value||'';
+      return checked.concat(notes?[notes]:[]).join('; ');
+    })(),
     notes: document.getElementById('sub-remarks').value,
     remarks: document.getElementById('sub-remarks').value,
     photo_urls: photoUrls,
@@ -1584,6 +1660,7 @@ async function submitReport() {
 
 function clearForm() {
   ['sub-addr','sub-mfr','sub-model','sub-serial','sub-remarks','sub-repair-details'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['rep-cleaned','rep-replaced-cv','rep-springs','rep-seats','rep-disc','rep-rv','rep-other'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});;
   document.getElementById('photo-preview').innerHTML='';
   document.getElementById('photo-count').textContent='';
   document.getElementById('photo-input').value='';
