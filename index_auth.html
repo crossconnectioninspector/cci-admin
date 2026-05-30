@@ -1289,7 +1289,7 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
         <div style="display:flex;gap:4px"><button onclick="conChangePage(1)" class="btn btn-gh btn-sm" style="padding:4px 10px">&#x27E8;&#x27E8;</button><button onclick="conPrevPage()" class="btn btn-gh btn-sm" style="padding:4px 10px">&#x27E8;</button><button onclick="conNextPage()" class="btn btn-gh btn-sm" style="padding:4px 10px">&#x27E9;</button><button onclick="conLastPage()" class="btn btn-gh btn-sm" style="padding:4px 10px">&#x27E9;&#x27E9;</button></div>
       </div>
     </div>
-    <div id="conDetailPanel" style="width:0;overflow:hidden;border-left:1px solid var(--border);transition:width .25s ease,opacity .2s ease;opacity:0;flex-shrink:0;display:flex;flex-direction:column;background:var(--bg)">
+    <div id="conDetailPanel" style="width:0;overflow:hidden;border-left:1px solid var(--border);transition:width .25s ease,opacity .2s ease;opacity:0;flex-shrink:0;display:flex;flex-direction:column;background:var(--bg)" onclick="if(this.classList.contains('fullscreen')&&event.target===this)conExitFullscreen()">
       <div style="width:420px;display:flex;flex-direction:column;height:100%;overflow:hidden">
         <!-- Back bar (fullscreen mode only) -->
         <div id="conBackBar" style="display:none;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0">
@@ -1302,7 +1302,13 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
         <div style="padding:14px 18px 0;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">
             <div><div id="conDetailName" style="font-family:var(--cond);font-weight:900;font-size:24px;color:var(--text);line-height:1.1"></div><div id="conDetailRole" style="font-size:13px;color:var(--muted);margin-top:3px"></div></div>
-            <button onclick="conCloseDetail()" style="width:26px;height:26px;border-radius:6px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">&#x2715;</button>
+            <div style="display:flex;align-items:center;gap:6px">
+              <button id="conEditBtn" onclick="conStartEdit()" style="height:28px;padding:0 12px;border-radius:6px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Edit
+              </button>
+              <button onclick="conExitFullscreen()" style="width:26px;height:26px;border-radius:6px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">&#x2715;</button>
+            </div>
           </div>
           <div style="display:flex" id="conDetailTabs">
             <button class="m-tab active" onclick="conSwitchTab('info',this)">Contact Info</button>
@@ -2183,6 +2189,7 @@ function nav(id, btn) {
     'knowledge-page':'Knowledge Base'
   };
   document.getElementById('pageTitle').textContent = titles[id]||id;
+  conExitFullscreen();
   if(id==='dashboard') renderDashboard();
   if(id==='device-map-page') { setTimeout(()=>{ initDeviceMap(); }, 100); setTimeout(()=>{ if(deviceMap) deviceMap.invalidateSize(); },600); }
   if(id==='city-risk-page') { setTimeout(()=>{ initRiskMap(); }, 100); setTimeout(()=>{ if(riskMap) riskMap.invalidateSize(); },600); }
@@ -2190,7 +2197,7 @@ function nav(id, btn) {
   if(id==='backflow-page') renderBF();
   if(id==='csi-page') renderCSI();
   if(id==='locations-page') locInit();
-  if(id==='contacts-page') conInit();
+  if(id==='contacts-page'){ conExitFullscreen(); conInit(); }
   if(id==='providers-page') spInit();
   if(id==='comms-page') commsInit();
   if(id==='assemblies-page') asmInit();
@@ -4713,6 +4720,53 @@ function conChangePage(p){conCurrentPage=p;conRenderTable();}function conPrevPag
 function conSelectRow(id){conActiveId=id;conDetailOpen=true;const c=CON_DATA.find(x=>x.id===id);if(!c)return;const panel=document.getElementById('conDetailPanel');if(panel){panel.classList.add('fullscreen');panel.style.opacity='1';}const backBar=document.getElementById('conBackBar');if(backBar)backBar.style.display='flex';const bc=document.getElementById('conFSBreadcrumb');if(bc)bc.textContent=c.name;const nm=document.getElementById('conDetailName');if(nm)nm.textContent=c.name;const rl=document.getElementById('conDetailRole');if(rl)rl.textContent=c.role+' • '+c.city+', '+c.state;document.querySelectorAll('#conDetailTabs .m-tab').forEach((b,i)=>b.classList.toggle('active',i===0));const body=document.getElementById('conTabBody');if(body)body.innerHTML=conRenderInfo(c);conRenderTable();}
 
 function conExitFullscreen(){const panel=document.getElementById('conDetailPanel');if(panel){panel.classList.remove('fullscreen');panel.style.width='0';panel.style.opacity='0';}const backBar=document.getElementById('conBackBar');if(backBar)backBar.style.display='none';conDetailOpen=false;conActiveId=null;conRenderTable();}
+
+function conStartEdit(){
+  const c=CON_DATA.find(x=>x.id===conActiveId);if(!c)return;
+  const body=document.getElementById('conTabBody');if(!body)return;
+  // Switch to info tab
+  document.querySelectorAll('#conDetailTabs .m-tab').forEach((b,i)=>b.classList.toggle('active',i===0));
+  body.innerHTML=`<div style="display:flex;flex-direction:column;gap:14px;padding:4px 0">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:5px">FULL NAME</div><input id="ce-name" class="si" value="${sanitize(c.name)}" style="width:100%;box-sizing:border-box"></div>
+      <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:5px">ROLE / TITLE</div><input id="ce-role" class="si" value="${sanitize(c.role||'')}" style="width:100%;box-sizing:border-box"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:5px">PHONE</div><input id="ce-phone" class="si" value="${sanitize(c.phone||'')}" style="width:100%;box-sizing:border-box"></div>
+      <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:5px">EMAIL</div><input id="ce-email" class="si" value="${sanitize(c.email||'')}" style="width:100%;box-sizing:border-box"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:5px">ADDRESS</div><input id="ce-address" class="si" value="${sanitize(c.address||'')}" style="width:100%;box-sizing:border-box"></div>
+      <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:5px">CITY</div><input id="ce-city" class="si" value="${sanitize(c.city||'')}" style="width:100%;box-sizing:border-box"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:5px">STATE</div><input id="ce-state" class="si" value="${sanitize(c.state||'')}" style="width:100%;box-sizing:border-box"></div>
+      <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:5px">ZIP</div><input id="ce-zip" class="si" value="${sanitize(c.zip||'')}" style="width:100%;box-sizing:border-box"></div>
+    </div>
+    <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:5px">NOTES</div><textarea id="ce-notes" class="si" rows="3" style="width:100%;box-sizing:border-box;resize:vertical">${sanitize(c.notes||'')}</textarea></div>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button onclick="conSaveEdit()" class="btn btn-ac" style="flex:1">Save Changes</button>
+      <button onclick="conSwitchTab('info',document.querySelector('#conDetailTabs .m-tab'))" class="btn btn-gh" style="flex:1">Cancel</button>
+    </div>
+  </div>`;
+}
+
+function conSaveEdit(){
+  const c=CON_DATA.find(x=>x.id===conActiveId);if(!c)return;
+  const get=id=>(document.getElementById(id)||{}).value||'';
+  c.name=get('ce-name');c.role=get('ce-role');c.phone=get('ce-phone');
+  c.email=get('ce-email');c.address=get('ce-address');c.city=get('ce-city');
+  c.state=get('ce-state');c.zip=get('ce-zip');c.notes=get('ce-notes');
+  // Update header
+  const nm=document.getElementById('conDetailName');if(nm)nm.textContent=c.name;
+  const rl=document.getElementById('conDetailRole');if(rl)rl.textContent=c.role+' • '+c.city+', '+c.state;
+  const bc=document.getElementById('conFSBreadcrumb');if(bc)bc.textContent=c.name;
+  // Switch back to info view
+  const firstTab=document.querySelector('#conDetailTabs .m-tab');
+  conSwitchTab('info',firstTab);
+  conRenderTable();
+  toast('Contact updated','success');
+}
 function conCloseDetail(){conDetailOpen=false;conActiveId=null;const p=document.getElementById('conDetailPanel');if(p){p.style.opacity='0';setTimeout(()=>{p.style.width='0';setTimeout(()=>{conRenderTable();},260);},180);}else{conRenderTable();}}
 function conSwitchTab(tab,btn){document.querySelectorAll('#conDetailTabs .m-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');const c=CON_DATA.find(x=>x.id===conActiveId);const body=document.getElementById('conTabBody');if(!body||!c)return;if(tab==='info')body.innerHTML=conRenderInfo(c);else if(tab==='locations')body.innerHTML=conRenderLocations(c);else if(tab==='devices')body.innerHTML=conRenderDevices(c);}
 function _cc(title,html){return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px"><div style="font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:1.4px;text-transform:uppercase;margin-bottom:13px;font-weight:600">${title}</div>${html}</div>`;}
