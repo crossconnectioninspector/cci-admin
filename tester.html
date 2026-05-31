@@ -920,30 +920,8 @@ select.field-input option{background:var(--elevated)}
       <div class="toggle-row"><span class="toggle-label">Repairs were made</span><button class="toggle" id="repairs-toggle" onclick="toggleRepairs()"></button></div>
       <div id="repair-details-wrap" style="display:none;margin-top:10px">
         <div class="form-field">
-          <span class="field-label" style="margin-bottom:8px;display:block">Repair Details — Select all that apply</span>
-          <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
-            <label style="display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:9px;cursor:pointer;font-size:13px;color:var(--text)">
-              <input type="checkbox" id="rep-cleaned" style="width:16px;height:16px;accent-color:var(--accent)"> Cleaned debris from check valve
-            </label>
-            <label style="display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:9px;cursor:pointer;font-size:13px;color:var(--text)">
-              <input type="checkbox" id="rep-replaced-cv" style="width:16px;height:16px;accent-color:var(--accent)"> Check valve replaced
-            </label>
-            <label style="display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:9px;cursor:pointer;font-size:13px;color:var(--text)">
-              <input type="checkbox" id="rep-springs" style="width:16px;height:16px;accent-color:var(--accent)"> Springs replaced
-            </label>
-            <label style="display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:9px;cursor:pointer;font-size:13px;color:var(--text)">
-              <input type="checkbox" id="rep-seats" style="width:16px;height:16px;accent-color:var(--accent)"> Seats/seals replaced
-            </label>
-            <label style="display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:9px;cursor:pointer;font-size:13px;color:var(--text)">
-              <input type="checkbox" id="rep-disc" style="width:16px;height:16px;accent-color:var(--accent)"> Disc replaced
-            </label>
-            <label style="display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:9px;cursor:pointer;font-size:13px;color:var(--text)">
-              <input type="checkbox" id="rep-rv" style="width:16px;height:16px;accent-color:var(--accent)"> Relief valve repaired / replaced
-            </label>
-            <label style="display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:9px;cursor:pointer;font-size:13px;color:var(--text)">
-              <input type="checkbox" id="rep-other" style="width:16px;height:16px;accent-color:var(--accent)"> Other (describe below)
-            </label>
-          </div>
+          <span class="field-label" style="margin-bottom:8px;display:block">REPAIR DETAILS — SELECT ALL THAT APPLY</span>
+          <div id="repair-checklist" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
           <textarea class="field-input" id="sub-repair-details" rows="2" placeholder="Additional notes on repairs…" style="resize:vertical;font-size:13px"></textarea>
         </div>
       </div>
@@ -1755,6 +1733,7 @@ function selectAsm(asm) {
   });
   buildPsidFields(asm);
   updateResultBanner();
+  buildRepairChecklist(asm);
 }
 
 function buildPsidFields(asm) {
@@ -1778,52 +1757,92 @@ function buildPsidFields(asm) {
   buildRepairChecklist(asm);
 }
 
-// Repair options per valve/check
-const REPAIR_OPTS = [
-  'Cleaned debris',
+// ── Repair parts per component ─────────────────────────────────
+const CHECK_VALVE_PARTS = [
+  'Cleaned debris from check valve',
   'Check valve replaced',
   'Springs replaced',
   'Seats / seals replaced',
   'Disc replaced',
   'O-ring replaced',
-  'Relief valve repaired',
-  'Relief valve replaced',
+];
+const RELIEF_VALVE_PARTS = [
+  'Cleaned debris from relief valve',
+  'Diaphragm replaced',
+  'Springs replaced',
+  'Seat replaced',
+  'O-ring / gasket replaced',
+  'Relief valve assembly replaced',
+];
+const AIR_INLET_PARTS = [
+  'Cleaned debris from air inlet',
+  'Diaphragm replaced',
+  'Springs replaced',
+  'Seat replaced',
+  'Air inlet assembly replaced',
 ];
 
-function repairGroup(groupId, title) {
-  return '<div style="margin-bottom:12px">' +
-    '<div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">' + title + '</div>' +
-    REPAIR_OPTS.map(function(opt) {
-      const id = 'rep-' + groupId + '-' + opt.replace(/[^a-z]/gi,'').toLowerCase();
-      return '<label style="display:flex;align-items:center;gap:9px;padding:8px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:9px;cursor:pointer;font-size:13px;color:var(--text);margin-bottom:4px">' +
-        '<input type="checkbox" id="' + id + '" style="width:16px;height:16px;accent-color:var(--accent)"> ' + opt + '</label>';
-    }).join('') +
-  '</div>';
+// Map: assembly type -> array of {id, label, parts[]}
+const REPAIR_GROUPS = {
+  RPZ:  [
+    { id:'c1', label:'1st Check Valve', parts: CHECK_VALVE_PARTS },
+    { id:'c2', label:'2nd Check Valve', parts: CHECK_VALVE_PARTS },
+    { id:'rv', label:'Relief Valve',    parts: RELIEF_VALVE_PARTS },
+  ],
+  DCVA: [
+    { id:'c1', label:'1st Check Valve', parts: CHECK_VALVE_PARTS },
+    { id:'c2', label:'2nd Check Valve', parts: CHECK_VALVE_PARTS },
+  ],
+  PVB:  [
+    { id:'cv', label:'Check Valve', parts: CHECK_VALVE_PARTS },
+    { id:'ai', label:'Air Inlet',   parts: AIR_INLET_PARTS },
+  ],
+  SVB:  [
+    { id:'cv', label:'Check Valve', parts: CHECK_VALVE_PARTS },
+    { id:'ai', label:'Air Inlet',   parts: AIR_INLET_PARTS },
+  ],
+};
+
+function repairGroup(groupId, title, parts) {
+  return `<div style="margin-bottom:14px">
+    <div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;
+                padding:6px 0 8px;border-bottom:1px solid var(--border);margin-bottom:8px;
+                display:flex;align-items:center;gap:6px">
+      <div style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></div>${title}
+    </div>
+    ${parts.map(opt => {
+      const safeId = 'rep-' + groupId + '-' + opt.replace(/[^a-z0-9]/gi,'').toLowerCase();
+      return `<label style="display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--elevated);
+                border:1px solid var(--border);border-radius:9px;cursor:pointer;font-size:13px;
+                color:var(--text);margin-bottom:4px;transition:border-color .15s"
+                onmouseover="this.style.borderColor='var(--accent)'"
+                onmouseout="this.style.borderColor='var(--border)'">
+        <input type="checkbox" id="${safeId}" style="width:16px;height:16px;accent-color:var(--accent)"> ${opt}
+      </label>`;
+    }).join('')}
+  </div>`;
 }
 
 function buildRepairChecklist(asm) {
   const wrap = document.getElementById('repair-checklist');
   if (!wrap) return;
-  if (asm === 'RPZ') {
-    wrap.innerHTML =
-      repairGroup('c1', '1st Check Valve') +
-      repairGroup('c2', '2nd Check Valve') +
-      repairGroup('rv', 'Relief Valve');
-  } else if (asm === 'DCVA') {
-    wrap.innerHTML =
-      repairGroup('c1', '1st Check Valve') +
-      repairGroup('c2', '2nd Check Valve');
-  } else if (asm === 'PVB') {
-    wrap.innerHTML =
-      repairGroup('c1', 'Check Valve') +
-      repairGroup('rv', 'Air Inlet');
-  } else if (asm === 'SVB') {
-    wrap.innerHTML =
-      repairGroup('c1', 'Check Valve') +
-      repairGroup('rv', 'Air Inlet');
-  } else {
-    wrap.innerHTML = repairGroup('c1', 'Check Valve');
-  }
+  const groups = REPAIR_GROUPS[asm] || REPAIR_GROUPS['RPZ'];
+  wrap.innerHTML = groups.map(g => repairGroup(g.id, g.label, g.parts)).join('');
+}
+
+// Collect all checked repair items from the portal form
+function collectPortalRepairs() {
+  const asm = currentAsm;
+  const groups = REPAIR_GROUPS[asm] || REPAIR_GROUPS['RPZ'];
+  const items = [];
+  groups.forEach(g => {
+    g.parts.forEach(p => {
+      const safeId = 'rep-' + g.id + '-' + p.replace(/[^a-z0-9]/gi,'').toLowerCase();
+      const el = document.getElementById(safeId);
+      if (el && el.checked) items.push({ component: g.label, action: p });
+    });
+  });
+  return items;
 }
 
 function psidField(id, label, hint) {
@@ -1996,16 +2015,12 @@ async function submitReport() {
     psid_c1: c1, psid_c2: c2, psid_relief: rv,
     fail_reasons: fails.join('; '),
     repairs: repairsOn,
+    repair_items: repairsOn ? collectPortalRepairs() : [],
     repair_details: (function(){
-      // Collect all dynamically generated repair checkboxes
-      const allChecked = [];
-      const checkboxes = document.querySelectorAll('#repair-checklist input[type=checkbox]:checked');
-      checkboxes.forEach(function(cb) {
-        const label = cb.parentElement ? cb.parentElement.textContent.trim() : '';
-        if (label) allChecked.push(label);
-      });
+      const items = repairsOn ? collectPortalRepairs() : [];
       const notes = (document.getElementById('sub-repair-details') || {}).value || '';
-      return allChecked.concat(notes ? [notes] : []).join('; ');
+      const parts = items.map(i => i.component + ': ' + i.action);
+      return parts.concat(notes ? [notes] : []).join('; ');
     })(),
     notes: document.getElementById('sub-remarks').value,
     remarks: document.getElementById('sub-remarks').value,
@@ -2037,7 +2052,8 @@ async function submitReport() {
 
 function clearForm() {
   ['sub-addr','sub-mfr','sub-model','sub-serial','sub-remarks','sub-repair-details'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  ['rep-cleaned','rep-replaced-cv','rep-springs','rep-seats','rep-disc','rep-rv','rep-other'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});;
+  // Clear all dynamically generated repair checkboxes
+  document.querySelectorAll('#repair-checklist input[type=checkbox]').forEach(cb => cb.checked = false);
   document.getElementById('photo-preview').innerHTML='';
   document.getElementById('photo-count').textContent='';
   document.getElementById('photo-input').value='';
@@ -2048,151 +2064,257 @@ function clearForm() {
   selectAsm('RPZ');
 }
 
-// ── REPORT PDF GENERATOR ──────────────────────────
-
+// ── REPORT PDF GENERATOR — matches app dark style ─────────────
 function generateReportPDF(r) {
   try {
     const {jsPDF} = window.jspdf;
     const doc = new jsPDF({ orientation:'portrait', unit:'pt', format:'letter' });
-    const W=612, ml=45, mr=45, cw=W-ml-mr;
-    let y=40;
+    const W=612, H=792, ML=36, MR=36, CW=W-ML-MR;
+    let y=0;
 
-    const font = (size,style='normal') => { doc.setFontSize(size); doc.setFont('helvetica',style); };
-    const text = (t,x,yy,opts={}) => doc.text(t,x,yy,opts);
-    const line = (x1,y1,x2,y2) => { doc.setDrawColor(180); doc.line(x1,y1,x2,y2); };
-    const rect = (x,yy,w,h,fill) => { if(fill){doc.setFillColor(...fill);doc.rect(x,yy,w,h,'F');}else{doc.setDrawColor(180);doc.rect(x,yy,w,h,'S');} };
-    const label = (t,x,yy) => { font(7,'normal'); doc.setTextColor(100); text(t,x,yy); doc.setTextColor(0); };
-    const value = (t,x,yy,size=10) => { font(size,'bold'); text(t,x,yy); font(10,'normal'); };
+    // ── Color palette matching the app ──
+    const BG       = [15,17,20];      // --bg
+    const SURFACE  = [24,28,34];      // --surface
+    const ELEVATED = [31,36,45];      // --elevated
+    const ACCENT   = [249,166,30];    // --accent orange
+    const GREEN    = [61,184,112];
+    const RED      = [224,82,82];
+    const MUTED    = [122,132,148];
+    const TEXT     = [238,240,243];
+    const BORDER   = [37,43,54];
 
-    // HEADER
-    rect(ml, y-14, cw, 28, [249,166,30]);
-    font(14,'bold'); doc.setTextColor(0);
-    text('BACKFLOW PREVENTION ASSEMBLY TEST REPORT',W/2,y+4,{align:'center'});
-    font(8,'normal'); doc.setTextColor(60);
-    text('Form 20700 — Texas Commission on Environmental Quality 30 TAC §290.47(f)',W/2,y+16,{align:'center'});
-    doc.setTextColor(0); y+=40;
+    // Fill entire page dark
+    doc.setFillColor(...BG);
+    doc.rect(0,0,W,H,'F');
 
-    // RESULT BADGE
-    const passColor = r.result==='PASS' ? [76,175,121] : [224,82,82];
-    rect(W-mr-80, y-18, 80, 26, passColor);
-    font(14,'bold'); doc.setTextColor(255);
-    text(r.result==='PASS'?'✓ PASS':'✗ FAIL', W-mr-40, y-2, {align:'center'});
-    doc.setTextColor(0);
+    const setFill  = (...c) => doc.setFillColor(...c);
+    const setTxt   = (...c) => doc.setTextColor(...c);
+    const setDraw  = (...c) => doc.setDrawColor(...c);
+    const box      = (x,yy,w,h,col) => { setFill(...col); doc.rect(x,yy,w,h,'F'); };
+    const rbox     = (x,yy,w,h,col,r2=3) => { setFill(...col); doc.roundedRect(x,yy,w,h,r2,r2,'F'); };
+    const mono     = (sz,bold=false) => doc.setFont('courier', bold?'bold':'normal').setFontSize(sz);
+    const sans     = (sz,bold=false) => doc.setFont('helvetica', bold?'bold':'normal').setFontSize(sz);
+    const txt      = (t,x,yy,opts={}) => doc.text(String(t||''),x,yy,opts);
+    const hline    = (yy,col=BORDER) => { setDraw(...col); doc.setLineWidth(0.5); doc.line(ML,yy,W-MR,yy); };
 
-    // SECTION: PWS Info
-    font(8,'bold'); doc.setTextColor(80);
-    text('PUBLIC WATER SYSTEM', ml, y); doc.setTextColor(0);
-    line(ml, y+2, W-mr, y+2); y+=14;
+    // ── HEADER BAR ──────────────────────────────────────────────
+    box(0, 0, W, 52, SURFACE);
+    // Orange left accent stripe
+    box(0, 0, 5, 52, ACCENT);
+    // Shield icon area
+    rbox(ML, 8, 36, 36, ACCENT, 8);
+    mono(18, true); setTxt(...BG); txt('🛡', ML+7, 32);
 
-    const col2=W/2+10;
-    label('PWS Name',ml,y); value(r.pws_name||'City of Abilene',ml,y+10);
-    label('PWS ID',col2,y); value(r.pws_id||'',col2,y+10); y+=26;
-    label('Service Address',ml,y); value(r.address||'',ml,y+10,9);
-    label('Test Date',col2,y); value(fmtDate(r.date),col2,y+10); y+=30;
+    // Title
+    sans(13, true); setTxt(...TEXT);
+    txt('Backflow Prevention Assembly', ML+46, 22);
+    sans(8); setTxt(...MUTED);
+    txt('Test & Maintenance Report  ·  30 TAC §290.44(h)(4)(c)', ML+46, 34);
 
-    // SECTION: Assembly
-    font(8,'bold'); doc.setTextColor(80);
-    text('ASSEMBLY INFORMATION',ml,y); doc.setTextColor(0);
-    line(ml,y+2,W-mr,y+2); y+=14;
+    // Report ID chip
+    const rid = (r.id||('BF'+Date.now())).toString().slice(-10);
+    rbox(W-MR-80, 14, 80, 22, ELEVATED, 6);
+    mono(7); setTxt(...ACCENT);
+    txt('RPT #', W-MR-76, 26);
+    mono(8, true); setTxt(...TEXT);
+    txt(rid, W-MR-76+26, 26);
 
-    const c3=ml+(cw/4), c4=ml+(cw/2), c5=ml+(3*cw/4);
-    label('Type',ml,y);        value(r.assembly||'',ml,y+10);
-    label('Manufacturer',c3,y); value(r.manufacturer||'',c3,y+10);
-    label('Model',c4,y);        value(r.model||'',c4,y+10);
-    label('Size',c5,y);         value(r.size||'',c5,y+10); y+=26;
-    label('Serial #',ml,y);     value(r.serial||'',ml,y+10);
-    label('Installation Location',c3,y); value('See address above',c3,y+10); y+=30;
+    y = 64;
 
-    // SECTION: Gauge Info (from tester profile)
-    font(8,'bold'); doc.setTextColor(80);
-    text('TEST GAUGE INFORMATION',ml,y); doc.setTextColor(0);
-    line(ml,y+2,W-mr,y+2); y+=14;
+    // ── RESULT BADGE — full width ─────────────────────────────
+    const pass = (r.result === 'PASS');
+    rbox(ML, y, CW, 40, pass ? [21,50,35] : [50,22,22], 8);
+    // colored left bar
+    rbox(ML, y, 5, 40, pass ? GREEN : RED, 3);
+    sans(22, true); setTxt(...(pass ? GREEN : RED));
+    txt(pass ? '✓  PASS' : '✗  FAIL', ML+20, y+26);
+    mono(8); setTxt(...(pass ? [100,200,140] : [200,120,120]));
+    txt(pass ? 'All readings meet USC/AWWA standards' : (r.fail_reasons||'Assembly does not meet standards'), W-MR-4, y+26, {align:'right'});
+    y += 52;
 
-    label('Gauge Serial #',ml,y);      value(testerProfile.gaugeSerial||'',ml,y+10);
-    label('Calibration Date',c3,y);    value(testerProfile.gaugeDate?fmtDate(testerProfile.gaugeDate):'',c3,y+10);
-    label('Calibration Due',c4,y);     value(testerProfile.gaugeDue?fmtDate(testerProfile.gaugeDue):'',c4,y+10); y+=30;
-
-    // SECTION: Test Readings
-    font(8,'bold'); doc.setTextColor(80);
-    text('PRESSURE DIFFERENTIAL READINGS (PSID)',ml,y); doc.setTextColor(0);
-    line(ml,y+2,W-mr,y+2); y+=14;
-
-    const readings = [];
-    if (r.assembly==='RPZ') {
-      readings.push(['1st Check Valve (min 5.0 PSID)', r.check1||'—', r.psid_c1>=5.0?'PASS':'FAIL']);
-      readings.push(['2nd Check Valve (min 1.0 PSID)', r.check2||'—', r.psid_c2>=1.0?'PASS':'FAIL']);
-      readings.push(['Relief Valve (open ≤ C1−2.0)', r.relief||'—', r.psid_relief!==null&&r.psid_c1!==null&&r.psid_relief<=(r.psid_c1-2.0)?'PASS':'FAIL']);
-    } else if (r.assembly==='DCVA') {
-      readings.push(['1st Check Valve (min 1.0 PSID)', r.check1||'—', r.psid_c1>=1.0?'PASS':'FAIL']);
-      readings.push(['2nd Check Valve (min 1.0 PSID)', r.check2||'—', r.psid_c2>=1.0?'PASS':'FAIL']);
-    } else {
-      readings.push(['Check Valve (min 1.0 PSID)', r.check1||'—', r.psid_c1>=1.0?'PASS':'FAIL']);
-      readings.push(['Air Inlet (min 1.0 PSID)', r.relief||'—', r.psid_relief>=1.0?'PASS':'FAIL']);
+    // ── SECTION helper ────────────────────────────────────────
+    function section(title, icon='') {
+      y += 4;
+      rbox(ML, y, CW, 22, ELEVATED, 4);
+      // accent left pip
+      box(ML, y, 4, 22, ACCENT);
+      mono(7, true); setTxt(...ACCENT);
+      txt(title.toUpperCase(), ML+12, y+14);
+      y += 30;
     }
 
-    // Table header
-    rect(ml,y,cw,14,[240,240,240]);
-    font(7,'bold'); doc.setTextColor(60);
-    text('TEST POINT',ml+4,y+9); text('READING',ml+220,y+9); text('RESULT',ml+350,y+9); doc.setTextColor(0);
-    y+=14;
+    // ── Two-column field helper ───────────────────────────────
+    function field2(label1, val1, label2, val2, yy) {
+      const cx = ML + CW/2 + 8;
+      mono(6); setTxt(...MUTED);  txt(label1, ML, yy);
+      sans(9, true); setTxt(...TEXT); txt(String(val1||'—'), ML, yy+11);
+      if (label2 !== undefined) {
+        mono(6); setTxt(...MUTED); txt(label2, cx, yy);
+        sans(9, true); setTxt(...TEXT); txt(String(val2||'—'), cx, yy+11);
+      }
+      return yy + 24;
+    }
 
-    readings.forEach((row,i) => {
-      if(i%2===1) rect(ml,y,cw,18,[250,250,250]);
-      font(8,'normal'); text(row[0],ml+4,y+12);
-      font(9,'bold');   text(row[1],ml+220,y+12);
-      doc.setTextColor(row[2]==='PASS'?[76,175,121]:[224,82,82]);
-      font(8,'bold');   text(row[2],ml+350,y+12);
-      doc.setTextColor(0); y+=18;
+    // ── 1. PWS & LOCATION ─────────────────────────────────────
+    section('Public Water System & Location');
+    y = field2('PWS NAME', r.pws_name||'—', 'PWS ID #', r.pws_id||'—', y);
+    y = field2('SERVICE ADDRESS', r.address||'—', 'TEST DATE', fmtDate(r.date), y);
+    y += 4;
+
+    // ── 2. ASSEMBLY INFO ──────────────────────────────────────
+    section('Assembly Information');
+    const cq = CW/4;
+    // Row 1 — 4 columns
+    [[' TYPE',r.assembly],[' MANUFACTURER',r.manufacturer],[' MODEL',r.model],[' SIZE',r.size]].forEach(([lbl,val],i) => {
+      const x = ML + i*cq;
+      mono(6); setTxt(...MUTED); txt(lbl.trim(), x, y);
+      sans(9,true); setTxt(...TEXT); txt(String(val||'—'), x, y+11);
     });
-    y+=8;
+    y += 24;
+    y = field2('SERIAL NUMBER', r.serial||'—', 'LEAD FREE', r.lead_free===true?'YES — Compliant':r.lead_free===false?'NO — Not compliant':'—', y);
+    y += 4;
 
-    // Repairs
-    font(8,'bold'); doc.setTextColor(80);
-    text('REPAIRS / REMARKS',ml,y); doc.setTextColor(0);
-    line(ml,y+2,W-mr,y+2); y+=14;
-    label('Repairs Made',ml,y); value(r.repairs?'YES — See details below':'NO',ml,y+10); y+=20;
-    if (r.repairs && r.repair_details) {
-      font(8,'normal');
-      const lines=doc.splitTextToSize(r.repair_details, cw);
-      lines.forEach(l=>{ text(l,ml,y); y+=12; });
-      y+=4;
+    // ── 3. PRESSURE READINGS ──────────────────────────────────
+    section('Pressure Differential Readings (PSID)');
+
+    // Table header row
+    rbox(ML, y, CW, 18, ELEVATED, 3);
+    mono(6,true); setTxt(...MUTED);
+    txt('TEST POINT', ML+6, y+12);
+    txt('READING', ML+240, y+12);
+    txt('MIN REQ', ML+330, y+12);
+    txt('RESULT', ML+410, y+12);
+    y += 18;
+
+    const readingRows = [];
+    const c1=r.psid_c1, c2=r.psid_c2, rv=r.psid_relief;
+    if (r.assembly==='RPZ') {
+      readingRows.push(['1st Check Valve', c1!=null?c1+' psid':'—', '≥ 5.0 psid', c1!=null&&c1>=5.0]);
+      readingRows.push(['2nd Check Valve', c2!=null?c2+' psid':'—', '≥ 1.0 psid', c2!=null&&c2>=1.0]);
+      readingRows.push(['Relief Valve',    rv!=null?rv+' psid':'—', '≤ (C1 − 2.0)', rv!=null&&c1!=null&&rv<=(c1-2.0)]);
+    } else if (r.assembly==='DCVA') {
+      readingRows.push(['1st Check Valve', c1!=null?c1+' psid':'—', '≥ 1.0 psid', c1!=null&&c1>=1.0]);
+      readingRows.push(['2nd Check Valve', c2!=null?c2+' psid':'—', '≥ 1.0 psid', c2!=null&&c2>=1.0]);
+    } else {
+      readingRows.push(['Check Valve',     c1!=null?c1+' psid':'—', '≥ 1.0 psid', c1!=null&&c1>=1.0]);
+      readingRows.push(['Air Inlet',       rv!=null?rv+' psid':'—', '≥ 1.0 psid', rv!=null&&rv>=1.0]);
     }
+
+    readingRows.forEach((row, i) => {
+      const rowBg = i%2===0 ? ELEVATED : SURFACE;
+      rbox(ML, y, CW, 20, rowBg, 0);
+      sans(9); setTxt(...TEXT);     txt(row[0], ML+6, y+13);
+      mono(9,true); setTxt(...TEXT); txt(row[1], ML+240, y+13);
+      mono(8); setTxt(...MUTED);    txt(row[2], ML+330, y+13);
+      // pass/fail chip
+      const pf = row[3];
+      rbox(ML+400, y+3, 50, 14, pf?[21,50,35]:[50,22,22], 3);
+      mono(7,true); setTxt(...(pf?GREEN:RED));
+      txt(pf?'PASS':'FAIL', ML+425, y+13, {align:'center'});
+      y += 20;
+    });
+    y += 8;
+
+    // ── 4. GAUGE INFO ─────────────────────────────────────────
+    section('Differential Pressure Gauge');
+    y = field2('GAUGE SERIAL #', r.gauge_serial||testerProfile?.gaugeSerial||'—',
+               'CALIBRATION DATE', r.gauge_cal_date||testerProfile?.gaugeDate ? fmtDate(r.gauge_cal_date||testerProfile?.gaugeDate) : '—', y);
+    y += 4;
+
+    // ── 5. REPAIRS ────────────────────────────────────────────
+    section('Repairs');
+
+    if (!r.repairs) {
+      rbox(ML, y, CW, 24, ELEVATED, 4);
+      mono(8); setTxt(...MUTED);
+      txt('NO REPAIRS MADE — TESTED AS-FOUND', ML+CW/2, y+15, {align:'center'});
+      y += 32;
+    } else {
+      // Repairs made — show grouped items
+      rbox(ML, y, CW, 20, [35,25,10], 4);
+      box(ML, y, 4, 20, ACCENT);
+      mono(7,true); setTxt(...ACCENT);
+      txt('REPAIRS WERE MADE — MANUFACTURER PARTS USED', ML+12, y+13);
+      y += 26;
+
+      // Group items by component
+      const items = r.repair_items || [];
+      if (items.length > 0) {
+        // Group by component
+        const grouped = {};
+        items.forEach(item => {
+          if (!grouped[item.component]) grouped[item.component] = [];
+          grouped[item.component].push(item.action);
+        });
+
+        Object.entries(grouped).forEach(([comp, actions]) => {
+          // Component label row
+          rbox(ML, y, CW, 16, ELEVATED, 3);
+          mono(6,true); setTxt(...ACCENT);
+          txt('▸ ' + comp.toUpperCase(), ML+8, y+11);
+          y += 16;
+
+          actions.forEach(action => {
+            mono(8); setTxt(...TEXT);
+            txt('  • ' + action, ML+8, y+10);
+            hline(y+13, BORDER);
+            y += 16;
+          });
+          y += 4;
+        });
+      }
+
+      // Notes
+      const notes = (r.repair_details||'').split('; ').filter(n => !items.some(i => n.includes(i.action))).join(' ').trim();
+      if (notes) {
+        mono(6); setTxt(...MUTED); txt('ADDITIONAL NOTES', ML, y); y += 10;
+        sans(8); setTxt(...TEXT);
+        const noteLines = doc.splitTextToSize(notes, CW-8);
+        noteLines.forEach(l => { txt(l, ML+4, y); y += 12; });
+      }
+      y += 4;
+    }
+
+    // ── 6. REMARKS ────────────────────────────────────────────
     if (r.remarks) {
-      label('Remarks',ml,y); y+=10;
-      font(8,'normal');
-      const lines=doc.splitTextToSize(r.remarks,cw);
-      lines.forEach(l=>{ text(l,ml,y); y+=12; });
+      section('Remarks');
+      sans(8); setTxt(...TEXT);
+      const remLines = doc.splitTextToSize(r.remarks, CW-8);
+      remLines.forEach(l => { txt(l, ML+4, y); y += 12; });
+      y += 4;
     }
-    y+=16;
 
-    // SECTION: Tester Certification
-    font(8,'bold'); doc.setTextColor(80);
-    text('TESTER CERTIFICATION',ml,y); doc.setTextColor(0);
-    line(ml,y+2,W-mr,y+2); y+=14;
+    // ── 7. TESTER CERTIFICATION ───────────────────────────────
+    section('Licensed Tester Certification');
 
-    label('Licensed Tester Name',ml,y);  value(r.tester||testerProfile.name||'',ml,y+10);
-    label('Certification #',c3,y);       value(r.cert_num||testerProfile.cert||'',c3,y+10);
-    label('Cert Expiration',c4,y);       value(testerProfile.certExp?fmtDate(testerProfile.certExp):'',c4,y+10); y+=26;
-    label('Company / Firm',ml,y);        value(r.firm||testerProfile.company||'',ml,y+10);
-    label('License #',c3,y);             value(testerProfile.license||'',c3,y+10); y+=30;
+    y = field2('TESTER NAME', r.tester||testerProfile?.name||'—',
+               'BPAT LICENSE #', r.cert_num||testerProfile?.cert||'—', y);
+    y = field2('COMPANY / FIRM', r.firm||testerProfile?.company||'—',
+               'LICENSE EXPIRATION', testerProfile?.certExp ? fmtDate(testerProfile.certExp) : '—', y);
+    y += 8;
 
-    // Signature line
-    line(ml, y, ml+200, y);
-    line(ml+220, y, ml+350, y);
-    font(7,'normal'); doc.setTextColor(100);
-    text('Tester Signature',ml,y+10);
-    text('Date',ml+220,y+10); doc.setTextColor(0); y+=30;
+    // Signature boxes
+    const sigW = CW/2 - 10;
+    rbox(ML, y, sigW, 36, ELEVATED, 4);
+    mono(6); setTxt(...MUTED); txt('TESTER SIGNATURE', ML+6, y+12);
+    hline(y+30, ELEVATED);
 
-    // FOOTER
-    rect(ml,y,cw,20,[240,240,240]);
-    font(7,'normal'); doc.setTextColor(100);
-    text(`Generated by Cross Connection Inspector — ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}`,W/2,y+13,{align:'center'});
-    text('City of Abilene Cross-Connection Control Program — Test Reportntrol Program',W/2,y+22,{align:'center'});
+    rbox(ML+sigW+16, y, sigW, 36, ELEVATED, 4);
+    mono(6); setTxt(...MUTED); txt('DATE SIGNED', ML+sigW+22, y+12);
+    y += 48;
+
+    // ── FOOTER ────────────────────────────────────────────────
+    const footY = H - 36;
+    box(0, footY, W, 36, SURFACE);
+    box(0, footY, W, 1, BORDER);
+    mono(6); setTxt(...MUTED);
+    txt('Test records must be retained for a minimum of 3 years  [30 TAC §290.46(b)]  ·  Use only manufacturer-approved replacement parts', W/2, footY+14, {align:'center'});
+    txt(`Generated by Backflow Check Pro  ·  ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}`, W/2, footY+26, {align:'center'});
 
     // Save
-    const filename=`BCP_Report_${(r.address||'report').replace(/[^a-z0-9]/gi,'_').slice(0,30)}_${r.date}.pdf`;
-    doc.save(filename);
-    toast('📄 Report PDF downloaded!','success');
+    const fname = `BCP_${(r.assembly||'RPT')}_${(r.address||'report').replace(/[^a-z0-9]/gi,'_').slice(0,24)}_${(r.date||'').replace(/-/g,'')}.pdf`;
+    doc.save(fname);
+    toast('📄 PDF downloaded!', 'success');
   } catch(e) {
     console.error('PDF error:',e);
     toast('PDF generation failed: '+e.message,'error');
