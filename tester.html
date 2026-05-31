@@ -921,7 +921,7 @@ select.field-input option{background:var(--elevated)}
       <div id="repair-details-wrap" style="display:none;margin-top:10px">
         <div class="form-field">
           <span class="field-label" style="margin-bottom:8px;display:block">REPAIR DETAILS — SELECT ALL THAT APPLY</span>
-          <div id="repair-checklist" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:10px;align-items:start"></div>
+          <div id="repair-checklist" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
           <textarea class="field-input" id="sub-repair-details" rows="2" placeholder="Additional notes on repairs…" style="resize:vertical;font-size:13px"></textarea>
         </div>
       </div>
@@ -1804,20 +1804,20 @@ const REPAIR_GROUPS = {
 };
 
 function repairGroup(groupId, title, parts) {
-  return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:0">
-    <div style="font-family:var(--mono);font-size:8.5px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;
-                padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:8px;
-                display:flex;align-items:center;gap:5px">
-      <div style="width:5px;height:5px;border-radius:50%;background:var(--accent);flex-shrink:0"></div>${title}
+  return `<div style="margin-bottom:14px">
+    <div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;
+                padding:6px 0 8px;border-bottom:1px solid var(--border);margin-bottom:8px;
+                display:flex;align-items:center;gap:6px">
+      <div style="width:5px;height:5px;border-radius:50%;background:var(--accent)"></div>${title}
     </div>
     ${parts.map(opt => {
       const safeId = 'rep-' + groupId + '-' + opt.replace(/[^a-z0-9]/gi,'').toLowerCase();
-      return `<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--elevated);
-                border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:12.5px;
-                color:var(--text);margin-bottom:4px;transition:border-color .15s;line-height:1.3"
+      return `<label style="display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--elevated);
+                border:1px solid var(--border);border-radius:9px;cursor:pointer;font-size:13px;
+                color:var(--text);margin-bottom:4px;transition:border-color .15s"
                 onmouseover="this.style.borderColor='var(--accent)'"
                 onmouseout="this.style.borderColor='var(--border)'">
-        <input type="checkbox" id="${safeId}" style="width:15px;height:15px;flex-shrink:0;accent-color:var(--accent)"> ${opt}
+        <input type="checkbox" id="${safeId}" style="width:16px;height:16px;accent-color:var(--accent)"> ${opt}
       </label>`;
     }).join('')}
   </div>`;
@@ -2225,54 +2225,119 @@ function generateReportPDF(r) {
     section('Repairs');
 
     if (!r.repairs) {
-      rbox(ML, y, CW, 24, ELEVATED, 4);
+      rbox(ML, y, CW, 28, ELEVATED, 6);
       mono(8); setTxt(...MUTED);
-      txt('NO REPAIRS MADE — TESTED AS-FOUND', ML+CW/2, y+15, {align:'center'});
-      y += 32;
+      txt('NO REPAIRS MADE — TESTED AS-FOUND', ML + CW/2, y+17, {align:'center'});
+      y += 38;
     } else {
-      // Repairs made — show grouped items
-      rbox(ML, y, CW, 20, [35,25,10], 4);
+      // "Repairs made" banner
+      rbox(ML, y, CW, 20, [40,28,8], 4);
       box(ML, y, 4, 20, ACCENT);
-      mono(7,true); setTxt(...ACCENT);
-      txt('REPAIRS WERE MADE — MANUFACTURER PARTS USED', ML+12, y+13);
+      mono(7, true); setTxt(...ACCENT);
+      txt('REPAIRS WERE MADE — MANUFACTURER-APPROVED PARTS USED', ML+12, y+13);
       y += 26;
 
-      // Group items by component
+      // Build grouped data: { componentLabel -> [actions] }
       const items = r.repair_items || [];
-      if (items.length > 0) {
-        // Group by component
-        const grouped = {};
-        items.forEach(item => {
-          if (!grouped[item.component]) grouped[item.component] = [];
-          grouped[item.component].push(item.action);
-        });
+      const grouped = {};
+      // Preserve insertion order by tracking keys
+      const compOrder = [];
+      items.forEach(item => {
+        if (!grouped[item.component]) {
+          grouped[item.component] = [];
+          compOrder.push(item.component);
+        }
+        grouped[item.component].push(item.action);
+      });
 
-        Object.entries(grouped).forEach(([comp, actions]) => {
-          // Component label row
-          rbox(ML, y, CW, 16, ELEVATED, 3);
-          mono(6,true); setTxt(...ACCENT);
-          txt('▸ ' + comp.toUpperCase(), ML+8, y+11);
-          y += 16;
+      if (compOrder.length > 0) {
+        const numCols  = compOrder.length;           // 1, 2, or 3
+        const GAP      = 8;
+        const colW     = (CW - GAP * (numCols - 1)) / numCols;
+        const ITEM_H   = 16;   // height per checkbox row
+        const HEAD_H   = 20;   // component header height
+        const PAD      = 6;    // inner padding top/bottom
+        const TICK_SZ  = 5;    // filled checkbox square size
 
+        // Calculate tallest column so all cards are the same height
+        const maxItems = Math.max(...compOrder.map(c => grouped[c].length));
+        const cardH    = HEAD_H + PAD + maxItems * ITEM_H + PAD;
+
+        compOrder.forEach((comp, ci) => {
+          const cx = ML + ci * (colW + GAP);
+          const actions = grouped[comp];
+
+          // Card background
+          rbox(cx, y, colW, cardH, SURFACE, 6);
+          // Card border (simulated with draw)
+          setDraw(...BORDER); doc.setLineWidth(0.5);
+          doc.roundedRect(cx, y, colW, cardH, 6, 6, 'S');
+
+          // Component header row inside card
+          rbox(cx, y, colW, HEAD_H, ELEVATED, 0);
+          // Top-only rounded — fake by drawing a full rounded rect then covering bottom corners
+          rbox(cx, y, colW, HEAD_H, ELEVATED, 0);
+
+          // Orange dot + component name
+          setFill(...ACCENT);
+          doc.circle(cx + 10, y + HEAD_H/2, 2.5, 'F');
+          mono(7, true); setTxt(...ACCENT);
+          txt(comp.toUpperCase(), cx + 18, y + HEAD_H/2 + 2.5);
+
+          // Divider under header
+          setDraw(...BORDER); doc.setLineWidth(0.4);
+          doc.line(cx, y + HEAD_H, cx + colW, y + HEAD_H);
+
+          // Checkbox rows
+          let iy = y + HEAD_H + PAD;
           actions.forEach(action => {
-            mono(8); setTxt(...TEXT);
-            txt('  • ' + action, ML+8, y+10);
-            hline(y+13, BORDER);
-            y += 16;
+            // Checked filled square
+            rbox(cx + 8, iy + 1, TICK_SZ, TICK_SZ, ACCENT, 1);
+            // Checkmark lines
+            setDraw(...BG); doc.setLineWidth(0.8);
+            doc.line(cx+9, iy+3.5, cx+10.5, iy+5);
+            doc.line(cx+10.5, iy+5, cx+13, iy+2);
+
+            // Action text — wrap if needed
+            sans(7.5); setTxt(...TEXT);
+            const wrapped = doc.splitTextToSize(action, colW - 22);
+            wrapped.forEach((line, li) => {
+              txt(line, cx + 16, iy + 5 + li * 9);
+            });
+
+            // Light separator
+            setDraw(...BORDER); doc.setLineWidth(0.3);
+            doc.line(cx + 8, iy + ITEM_H - 1, cx + colW - 8, iy + ITEM_H - 1);
+
+            iy += ITEM_H;
           });
-          y += 4;
+
+          // Empty rows for shorter columns (visual alignment)
+          while (iy < y + HEAD_H + PAD + maxItems * ITEM_H) {
+            setDraw(...[37,43,54]); doc.setLineWidth(0.2);
+            doc.roundedRect(cx + 8, iy + 2, TICK_SZ, TICK_SZ, 1, 1, 'S');
+            iy += ITEM_H;
+          }
         });
+
+        y += cardH + 10;
       }
 
-      // Notes
-      const notes = (r.repair_details||'').split('; ').filter(n => !items.some(i => n.includes(i.action))).join(' ').trim();
-      if (notes) {
-        mono(6); setTxt(...MUTED); txt('ADDITIONAL NOTES', ML, y); y += 10;
+      // Additional notes
+      const notesRaw = document.getElementById ? '' : (r.repair_details||'');
+      const notesVal = (r.repair_details||'').split('; ')
+        .filter(n => n && !items.some(i => n.trim() === i.component + ': ' + i.action))
+        .join(' ').trim();
+      if (notesVal) {
+        rbox(ML, y, CW, 14, ELEVATED, 3);
+        mono(6, true); setTxt(...MUTED);
+        txt('ADDITIONAL NOTES', ML+8, y+10);
+        y += 18;
         sans(8); setTxt(...TEXT);
-        const noteLines = doc.splitTextToSize(notes, CW-8);
-        noteLines.forEach(l => { txt(l, ML+4, y); y += 12; });
+        const noteLines = doc.splitTextToSize(notesVal, CW - 12);
+        noteLines.forEach(l => { txt(l, ML+6, y); y += 12; });
       }
-      y += 4;
+      y += 6;
     }
 
     // ── 6. REMARKS ────────────────────────────────────────────
