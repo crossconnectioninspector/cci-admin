@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Backflow Check Pro — Staff Portal</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg:#111417; --surface:#1a1f27; --elevated:#222833;
+  --accent:#f9a61e; --accent2:#e8870a;
+  --text:#edf0f5; --muted:#a8b3c4; --border:#343d4d;
+  --red:#e05252; --green:#3db870; --yellow:#f0c040; --blue:#6495ed;
+  --mono:'Share Tech Mono',monospace;
+  --sans:'Barlow',sans-serif;
+  --cond:'Barlow Condensed',sans-serif;
+  --lh:1.55;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;900&family=Barlow:wght@400;600;700&family=Share+Tech+Mono&display=swap');
+
+/* ── LOGIN SCREEN ── */
+#screen-login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,rgba(249,166,30,.08) 0%,transparent 60%),var(--bg)}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:24px;width:100%;max-width:420px;padding:40px 32px;box-shadow:0 12px 48px rgba(0,0,0,.6)}
+.login-icon{width:64px;height:64px;background:var(--accent);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 32px rgba(249,166,30,.35)}
+.login-title{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;text-align:center;line-height:1.1;margin-bottom:6px;color:var(--text)}
+.login-sub{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);text-align:center;margin-bottom:28px;letter-spacing:.5px}
+.field-label{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:6px}
+.si{width:100%;padding:11px 14px;background:var(--elevated);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;outline:none;transition:border-color .15s}
+.si:focus{border-color:var(--accent)}
+.btn-acc{width:100%;padding:13px;background:var(--accent);border:none;border-radius:12px;color:#000;font-weight:700;font-size:15px;cursor:pointer;margin-top:8px}
+.err{background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.3);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--red);margin-top:10px;display:none}
+.notice{background:rgba(249,166,30,.08);border:1px solid rgba(249,166,30,.2);border-radius:10px;padding:12px 14px;font-size:12px;color:var(--muted);margin-top:16px;text-align:center;line-height:1.5}
+
+/* ── APP LAYOUT ── */
+#screen-app{display:none;flex-direction:column;height:100vh;overflow:hidden}
+.topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
+.topbar-logo{width:28px;height:28px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.topbar-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:var(--text);flex:1}
+.staff-badge{background:rgba(100,149,237,.15);border:1px solid rgba(100,149,237,.3);border-radius:20px;padding:4px 12px;font-family:'Share Tech Mono',monospace;font-size:10px;color:#6495ed;letter-spacing:.5px}
+.ro-badge{background:rgba(249,166,30,.12);border:1px solid rgba(249,166,30,.3);border-radius:20px;padding:4px 10px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:.5px}
+.btn-signout{background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);padding:5px 12px;font-size:12px;cursor:pointer}
+
+/* App body */
+.app-body{display:flex;flex:1;overflow:hidden}
+
+/* Sidebar */
+.sidebar{width:200px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+.sb-logo{padding:16px 14px 10px;border-bottom:1px solid var(--border)}
+.sb-name{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:900;color:var(--text);line-height:1.2}
+.sb-sub{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.5px;margin-top:3px}
+nav{padding:8px 0;flex:1}
+.sb-sec{padding:8px 14px 4px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase}
+.nb{display:flex;align-items:center;gap:8px;width:100%;padding:8px 14px;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;text-align:left;border-right:2px solid transparent;transition:all .15s}
+.nb:hover{background:var(--elevated);color:var(--accent)}
+.nb.active{background:rgba(249,166,30,.1);color:var(--accent);border-right-color:var(--accent);font-weight:700}
+.nb:hover svg,.nb.active svg{stroke:var(--accent)}
+.nb-icon{width:18px;height:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-foot{padding:12px 14px;border-top:1px solid var(--border);font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);line-height:1.6}
+
+/* Main content */
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.page{display:none;flex:1;overflow-y:auto;padding:24px 28px}
+.page.active{display:flex;flex-direction:column}
+
+/* Read-only banner */
+.ro-banner{background:rgba(100,149,237,.08);border:1px solid rgba(100,149,237,.2);border-radius:10px;padding:10px 16px;display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-shrink:0}
+.ro-banner svg{flex-shrink:0}
+.ro-banner-text{font-family:'Share Tech Mono',monospace;font-size:11px;color:#6495ed;letter-spacing:.3px}
+
+/* Access denied */
+.access-denied{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:12px;color:var(--muted);padding:40px}
+.access-denied svg{opacity:.3}
+.access-denied-title{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:var(--muted)}
+
+/* Pending approval screen */
+#screen-pending{display:none;min-height:100vh;align-items:center;justify-content:center;padding:24px;background:var(--bg)}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div id="screen-login">
+  <div class="login-card">
+    <div class="login-icon">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="#000" stroke="none"><path d="M12 3L2 11v1h2v9h6v-6h4v6h6v-9h2v-1L12 3z"/></svg>
+    </div>
+    <div class="login-title">Backflow Check Pro</div>
+    <div class="login-sub">CITY STAFF PORTAL</div>
+
+    <label class="field-label">City Email</label>
+    <input class="si" type="email" id="staff-email" placeholder="you@abilenetx.gov" style="margin-bottom:14px">
+    <label class="field-label">Password</label>
+    <input class="si" type="password" id="staff-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doStaffLogin()">
+    <button class="btn-acc" onclick="doStaffLogin()" id="login-btn" style="margin-top:16px">Sign In</button>
+    <div class="err" id="login-err"></div>
+    <div class="notice">Access is granted by your program administrator.<br>Contact <strong>matt@backflowcheckpro.com</strong> to request access.</div>
+  </div>
+</div>
+
+<!-- ── PENDING APPROVAL ── -->
+<div id="screen-pending" style="display:none">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:24px;max-width:400px;width:100%;padding:40px 32px;text-align:center;box-shadow:0 12px 48px rgba(0,0,0,.6)">
+    <div style="width:64px;height:64px;background:rgba(249,166,30,.12);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+    </div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;margin-bottom:8px">Access Pending</div>
+    <div style="font-size:13px;color:var(--muted);line-height:1.6">Your account is waiting for administrator approval. You will be notified when access is granted.</div>
+    <button onclick="doStaffLogout()" style="margin-top:24px;padding:10px 24px;background:var(--elevated);border:1px solid var(--border);border-radius:10px;color:var(--muted);cursor:pointer;font-size:13px">Sign Out</button>
+  </div>
+</div>
+
+<!-- ── APP ── -->
+<div id="screen-app">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="#000"><path d="M12 3L2 11v1h2v9h6v-6h4v6h6v-9h2v-1L12 3z"/></svg>
+    </div>
+    <div class="topbar-title">Backflow Check Pro</div>
+    <span class="staff-badge">CITY STAFF</span>
+    <span class="ro-badge" id="access-mode-badge">👁 READ ONLY</span>
+    <span id="staff-user-name" style="font-family:monospace;font-size:11px;color:var(--muted)"></span>
+    <button class="btn-signout" onclick="doStaffLogout()">Sign Out</button>
+  </div>
+
+  <div class="app-body">
+    <aside class="sidebar">
+      <div class="sb-logo">
+        <div class="sb-name">Backflow Check Pro</div>
+        <div class="sb-sub">STAFF PORTAL</div>
+      </div>
+      <nav id="staff-nav"></nav>
+      <div class="sb-foot">City of Abilene<br>Cross-Connection Control</div>
+    </aside>
+
+    <div class="main" id="staff-main">
+      <!-- Pages built dynamically based on permissions -->
+      <div class="page active" id="staff-page-dashboard">
+        <div class="ro-banner" id="ro-banner" style="display:none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6495ed" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span class="ro-banner-text">READ ONLY — You can view data but cannot make changes. Contact your administrator to request write access.</span>
+        </div>
+        <div id="staff-dashboard-content" style="flex:1">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;margin-bottom:20px">Dashboard</div>
+          <div id="staff-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px"></div>
+          <div id="staff-recent"></div>
+        </div>
+      </div>
+
+      <div class="page" id="staff-page-denied">
+        <div class="access-denied">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <div class="access-denied-title">Access Restricted</div>
+          <div style="font-size:13px;color:var(--muted)">You don't have permission to view this section.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPA_URL = 'https://reondjywvejywbfhohgm.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJlb25kanl3dmVqeXdiZmhvaGdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5OTMzNjYsImV4cCI6MjA5NDU2OTM2Nn0.xpjq6ccrAB6yHUCH-q6X58CZbsg-DSTV_nh96MQ5eGM';
+const supaClient = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+let staffUser = null;
+let staffPerms = null; // {write: bool, pages: []}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+async function doStaffLogin() {
+  const email = document.getElementById('staff-email').value.trim();
+  const pass  = document.getElementById('staff-pass').value;
+  const errEl = document.getElementById('login-err');
+  const btn   = document.getElementById('login-btn');
+  errEl.style.display='none';
+  btn.textContent='Signing in…'; btn.disabled=true;
+  try {
+    const {data,error} = await supaClient.auth.signInWithPassword({email,password:pass});
+    if(error) throw error;
+    staffUser = data.user;
+    await checkStaffAccess();
+  } catch(e) {
+    errEl.textContent = e.message || 'Sign in failed';
+    errEl.style.display='block';
+  } finally {
+    btn.textContent='Sign In'; btn.disabled=false;
+  }
+}
+
+async function checkStaffAccess() {
+  if(!staffUser) return;
+  // Check staff permissions stored in staff_access Supabase table
+  // Fallback: check localStorage set by admin
+  try {
+    const {data} = await supaClient.from('staff_access').select('*').eq('email', staffUser.email).single();
+    if(data && data.status==='active') {
+      staffPerms = {write: data.write_access||false, pages: data.pages||[]};
+      enterStaffApp();
+      return;
+    } else if(data && data.status==='pending') {
+      showScreen('pending'); return;
+    }
+  } catch(e) {
+    // Table may not exist — check localStorage backup (set by admin portal)
+    const localStaff = JSON.parse(localStorage.getItem('bcp_staff')||'[]');
+    const found = localStaff.find(function(s){return s.email===staffUser.email;});
+    if(found && found.status==='active') {
+      staffPerms = {write: found.write||false, pages: found.pages||[]};
+      enterStaffApp();
+      return;
+    }
+  }
+  showScreen('pending');
+}
+
+function showScreen(id) {
+  ['login','pending','app'].forEach(function(s){
+    const el = document.getElementById('screen-'+s);
+    if(el) el.style.display = s===id?(s==='app'?'flex':'flex'):'none';
+  });
+  if(id==='app') document.getElementById('screen-app').style.display='flex';
+}
+
+function enterStaffApp() {
+  showScreen('app');
+  // Set user name
+  const nameEl = document.getElementById('staff-user-name');
+  if(nameEl) nameEl.textContent = staffUser.user_metadata?.full_name || staffUser.email;
+  // Write badge
+  const badge = document.getElementById('access-mode-badge');
+  if(badge) {
+    badge.textContent = staffPerms.write ? '✏ WRITE ACCESS' : '👁 READ ONLY';
+    badge.style.background = staffPerms.write ? 'rgba(61,184,112,.12)' : 'rgba(249,166,30,.12)';
+    badge.style.borderColor = staffPerms.write ? 'rgba(61,184,112,.3)' : 'rgba(249,166,30,.3)';
+    badge.style.color = staffPerms.write ? 'var(--green)' : 'var(--accent)';
+  }
+  // Show read-only banner
+  const banner = document.getElementById('ro-banner');
+  if(banner) banner.style.display = staffPerms.write ? 'none' : 'flex';
+  buildStaffNav();
+  loadStaffDashboard();
+}
+
+function doStaffLogout() {
+  supaClient.auth.signOut();
+  staffUser=null; staffPerms=null;
+  showScreen('login');
+}
+
+// ── Nav ────────────────────────────────────────────────────────────────────────
+const STAFF_NAV_ITEMS = [
+  {page:'dashboard',         label:'Dashboard',    section:'Main',    icon:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>'},
+  {page:'locations-page',    label:'Locations',    section:'Main',    icon:'<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/>'},
+  {page:'contacts-page',     label:'Contacts',     section:'Main',    icon:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'},
+  {page:'assemblies-page',   label:'Assemblies',   section:'Main',    icon:'<circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M1 12h4M19 12h4"/>'},
+  {page:'backflow-page',     label:'Test Reports', section:'Reports', icon:'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/>'},
+  {page:'device-map-page',   label:'Device Map',   section:'Maps',    icon:'<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>'},
+  {page:'city-risk-page',    label:'City Risk',    section:'Maps',    icon:'<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>'},
+  {page:'notif-page',        label:'Notifications',section:'Admin',   icon:'<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>'},
+];
+
+function buildStaffNav() {
+  const nav = document.getElementById('staff-nav');
+  if(!nav) return;
+  const allowed = staffPerms.pages||[];
+  const sections = {};
+  STAFF_NAV_ITEMS.forEach(function(item){
+    if(!allowed.includes(item.page)) return;
+    if(!sections[item.section]) sections[item.section]=[];
+    sections[item.section].push(item);
+  });
+  nav.innerHTML = Object.keys(sections).map(function(sec){
+    return '<div class="sb-sec">'+sec+'</div>' +
+      sections[sec].map(function(item){
+        return '<button class="nb" data-page="'+item.page+'" onclick="staffNav(''+item.page+'',this)">' +
+          '<span class="nb-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'+item.icon+'</svg></span>' +
+          item.label+'</button>';
+      }).join('');
+  }).join('');
+  // Activate dashboard
+  const first = nav.querySelector('.nb');
+  if(first) first.classList.add('active');
+}
+
+function staffNav(page, btn) {
+  document.querySelectorAll('#staff-nav .nb').forEach(function(b){b.classList.remove('active');});
+  if(btn) btn.classList.add('active');
+  const allowed = staffPerms.pages||[];
+  if(page!=='dashboard' && !allowed.includes(page)) {
+    showPage('denied'); return;
+  }
+  showPage(page);
+}
+
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  const target = document.getElementById('staff-page-'+page.replace('-page',''));
+  const fallback = document.getElementById('staff-page-'+page);
+  const el = target || fallback || document.getElementById('staff-page-denied');
+  if(el) el.classList.add('active');
+}
+
+// ── Dashboard ──────────────────────────────────────────────────────────────────
+async function loadStaffDashboard() {
+  try {
+    const headers = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer '+((await supaClient.auth.getSession()).data.session?.access_token||SUPA_KEY) };
+    const [locsRes, reportsRes] = await Promise.all([
+      fetch(SUPA_URL+'/rest/v1/locations?select=id,compliance&limit=500', {headers}),
+      fetch(SUPA_URL+'/rest/v1/backflow_reports?select=result,date&order=date.desc&limit=500', {headers})
+    ]);
+    const locs = locsRes.ok ? await locsRes.json() : [];
+    const reports = reportsRes.ok ? await reportsRes.json() : [];
+
+    const compliant = locs.filter(function(l){return l.compliance==='Compliant';}).length;
+    const nonCompliant = locs.filter(function(l){return l.compliance==='Non-Compliant';}).length;
+    const passCount = reports.filter(function(r){return r.result==='PASS';}).length;
+    const recent = reports.slice(0,30);
+    const recentPass = recent.filter(function(r){return r.result==='PASS';}).length;
+
+    document.getElementById('staff-stats').innerHTML = [
+      {label:'Total Locations', val:locs.length, color:'var(--text)'},
+      {label:'Compliant', val:compliant, color:'var(--green)'},
+      {label:'Non-Compliant', val:nonCompliant, color:'var(--red)'},
+      {label:'Tests This Month', val:recentPass+' pass / '+(recent.length-recentPass)+' fail', color:'var(--accent)'},
+    ].map(function(s){
+      return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 16px">' +
+        '<div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:'+s.color+'">'+s.val+'</div>' +
+        '<div style="font-family:monospace;font-size:10px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.5px">'+s.label+'</div>' +
+        '</div>';
+    }).join('');
+
+    document.getElementById('staff-recent').innerHTML = '<div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;margin-bottom:12px">Recent Test Reports</div>' +
+      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">' +
+      (recent.slice(0,8).map(function(r){
+        const pass = r.result==='PASS';
+        return '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border)">' +
+          '<div style="width:8px;height:8px;border-radius:50%;background:'+(pass?'var(--green)':'var(--red)')+';flex-shrink:0"></div>' +
+          '<div style="flex:1;font-size:13px;color:var(--text)">'+(r.address||'—')+'</div>' +
+          '<div style="font-family:monospace;font-size:10px;color:var(--muted)">'+(r.date||'')+'</div>' +
+          '<div style="font-family:monospace;font-size:11px;font-weight:700;color:'+(pass?'var(--green)':'var(--red)')+'">'+r.result+'</div>' +
+          '</div>';
+      }).join('')) + '</div>';
+  } catch(e) {
+    console.error('Staff dashboard error:', e);
+  }
+}
+
+// ── Check session on load ──────────────────────────────────────────────────────
+(async function(){
+  const { data } = await supaClient.auth.getSession();
+  if(data.session) {
+    staffUser = data.session.user;
+    await checkStaffAccess();
+  }
+})();
+</script>
+</body>
+</html>
