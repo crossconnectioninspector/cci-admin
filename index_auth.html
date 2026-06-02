@@ -1589,11 +1589,36 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-5.06"/></svg>
       Refresh
     </button>
+    <!-- Delete button — only shown in edit view -->
+    <button id="staffMgmt-delete-btn" onclick="staffMgmt_confirmDelete()" style="display:none;align-items:center;gap:6px;padding:8px 14px;background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.3);border-radius:10px;color:var(--red);font-size:13px;font-weight:600;cursor:pointer">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+      Delete
+    </button>
     <!-- Save button — only shown in edit view -->
     <button id="staffMgmt-save-btn" onclick="staffMgmt_saveEdit()" style="display:none;align-items:center;gap:7px;padding:8px 18px;background:var(--accent);border:none;border-radius:10px;color:#000;font-weight:700;font-size:13px;cursor:pointer">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
       Save Changes
     </button>
+  </div>
+
+  <!-- Delete confirm modal -->
+  <div id="staffMgmt-delete-modal" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.7);align-items:center;justify-content:center">
+    <div style="background:var(--surface);border:1px solid rgba(224,82,82,.3);border-radius:20px;width:100%;max-width:400px;padding:28px;margin:20px;box-shadow:0 20px 60px rgba(0,0,0,.6)">
+      <div style="width:48px;height:48px;border-radius:14px;background:rgba(224,82,82,.12);display:flex;align-items:center;justify-content:center;margin-bottom:16px">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+      </div>
+      <div style="font-family:var(--cond);font-size:20px;font-weight:900;margin-bottom:8px">Delete Staff Account</div>
+      <div id="staffMgmt-delete-msg" style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px">
+        This will permanently remove their login access and delete their record. This cannot be undone.
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px">
+        <button onclick="staffMgmt_closeDeleteModal()" class="btn btn-gh">Cancel</button>
+        <button id="staffMgmt-delete-confirm-btn" onclick="staffMgmt_doDelete()" style="display:flex;align-items:center;gap:6px;padding:9px 18px;background:var(--red);border:none;border-radius:10px;color:#fff;font-weight:700;font-size:13px;cursor:pointer">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          Yes, Delete
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Status message -->
@@ -6998,9 +7023,10 @@ function staffMgmt_openEdit(id) {
   // Switch views
   document.getElementById('staffMgmt-list-view').style.display = 'none';
   document.getElementById('staffMgmt-edit-view').style.display = 'block';
-  document.getElementById('staffMgmt-back').style.display      = 'flex';
-  document.getElementById('staffMgmt-save-btn').style.display  = 'flex';
-  document.getElementById('staffMgmt-add-btn').style.display   = 'none';
+  document.getElementById('staffMgmt-back').style.display        = 'flex';
+  document.getElementById('staffMgmt-save-btn').style.display    = 'flex';
+  document.getElementById('staffMgmt-delete-btn').style.display  = 'flex';
+  document.getElementById('staffMgmt-add-btn').style.display     = 'none';
   document.getElementById('staffMgmt-refresh-btn').style.display = 'none';
   staffMgmt_hideMsg();
 }
@@ -7009,9 +7035,10 @@ function staffMgmt_showList() {
   staffEdit_id = null;
   document.getElementById('staffMgmt-list-view').style.display = 'block';
   document.getElementById('staffMgmt-edit-view').style.display = 'none';
-  document.getElementById('staffMgmt-back').style.display      = 'none';
-  document.getElementById('staffMgmt-save-btn').style.display  = 'none';
-  document.getElementById('staffMgmt-add-btn').style.display   = 'flex';
+  document.getElementById('staffMgmt-back').style.display        = 'none';
+  document.getElementById('staffMgmt-save-btn').style.display    = 'none';
+  document.getElementById('staffMgmt-delete-btn').style.display  = 'none';
+  document.getElementById('staffMgmt-add-btn').style.display     = 'flex';
   document.getElementById('staffMgmt-refresh-btn').style.display = 'flex';
   document.getElementById('staffMgmt-title').textContent = 'Staff Access';
   document.getElementById('staffMgmt-sub').textContent   = 'Manage city staff portal permissions';
@@ -7134,15 +7161,22 @@ async function staffMgmt_saveInvite() {
   const email = document.getElementById('staffMgmt-inv-email').value.trim().toLowerCase();
   const name  = document.getElementById('staffMgmt-inv-name').value.trim();
   if(!email || !email.includes('@')) { staffMgmt_showMsg('Please enter a valid email.','error'); return; }
+
+  const saveBtn = document.querySelector('#staffMgmt-modal .btn-ac');
+  if(saveBtn) { saveBtn.textContent='Sending invite…'; saveBtn.disabled=true; }
+
   try {
     const headers = await getHeaders();
     headers['Content-Type'] = 'application/json';
-    headers['Prefer'] = 'return=representation';
-    const body = JSON.stringify({email, name: name||null, status:'pending', write_access:false, pages:[]});
-    const res = await fetch(SUPA_URL+'/rest/v1/staff_access', {method:'POST', headers, body});
-    if(!res.ok) throw new Error('HTTP '+res.status+': '+await res.text());
-    const [newRec] = await res.json();
-    staffMgmt_records.unshift(newRec);
+
+    // Call Edge Function — it sends the invite email and creates the staff_access row
+    const res = await fetch(SUPA_URL+'/functions/v1/invite-staff', {
+      method:'POST', headers, body: JSON.stringify({email, name: name||null})
+    });
+    const result = await res.json();
+    if(!res.ok) throw new Error(result.error || 'HTTP '+res.status);
+
+    staffMgmt_records.unshift(result);
     staffMgmt_closeModal();
     const list  = document.getElementById('staffMgmt-list');
     const empty = document.getElementById('staffMgmt-empty');
@@ -7150,13 +7184,71 @@ async function staffMgmt_saveInvite() {
     if(empty) empty.style.display='none';
     if(head)  head.style.display='grid';
     if(list)  { list.style.display='flex'; list.innerHTML = staffMgmt_records.map(staffMgmt_renderRow).join(''); }
-    if(typeof toast==='function') toast('Staff account created — click their row to configure','success');
+    if(typeof toast==='function') toast('Invite sent to '+email+' — they\'ll get an email to set their password','success');
   } catch(e) {
-    staffMgmt_showMsg('Could not create account: '+e.message,'error');
+    staffMgmt_showMsg('Could not send invite: '+e.message,'error');
+  } finally {
+    if(saveBtn) { saveBtn.textContent='Create Account'; saveBtn.disabled=false; }
   }
 }
 
-// ── Msg helpers ────────────────────────────────────────────────────────────────
+// ── Delete staff ───────────────────────────────────────────────────────────────
+function staffMgmt_confirmDelete() {
+  const rec = staffMgmt_records.find(r=>r.id===staffEdit_id);
+  if(!rec) return;
+  const msg = document.getElementById('staffMgmt-delete-msg');
+  if(msg) msg.innerHTML = `This will permanently remove <strong style="color:var(--text)">${rec.name||rec.email}</strong>'s login access and delete their record. This cannot be undone.`;
+  const modal = document.getElementById('staffMgmt-delete-modal');
+  if(modal) modal.style.display='flex';
+}
+
+function staffMgmt_closeDeleteModal() {
+  const modal = document.getElementById('staffMgmt-delete-modal');
+  if(modal) modal.style.display='none';
+}
+
+async function staffMgmt_doDelete() {
+  if(!staffEdit_id) return;
+  const rec = staffMgmt_records.find(r=>r.id===staffEdit_id);
+  if(!rec) return;
+  const btn = document.getElementById('staffMgmt-delete-confirm-btn');
+  if(btn) { btn.textContent='Deleting…'; btn.disabled=true; }
+
+  try {
+    const headers = await getHeaders();
+    headers['Content-Type'] = 'application/json';
+
+    // Call Edge Function to delete auth user + staff_access row
+    const res = await fetch(SUPA_URL+'/functions/v1/delete-staff', {
+      method:'POST', headers, body: JSON.stringify({email: rec.email})
+    });
+    const result = await res.json();
+    if(!res.ok) throw new Error(result.error || 'HTTP '+res.status);
+
+    // Remove from local list
+    staffMgmt_records = staffMgmt_records.filter(r=>r.id!==staffEdit_id);
+    staffMgmt_closeDeleteModal();
+    staffMgmt_showList();
+    const list = document.getElementById('staffMgmt-list');
+    const empty = document.getElementById('staffMgmt-empty');
+    const head  = document.getElementById('staffMgmt-table-head');
+    if(!staffMgmt_records.length) {
+      if(list)  { list.style.display='none'; list.innerHTML=''; }
+      if(head)  head.style.display='none';
+      if(empty) empty.style.display='block';
+    } else {
+      if(list) list.innerHTML = staffMgmt_records.map(staffMgmt_renderRow).join('');
+    }
+    if(typeof toast==='function') toast('Staff account deleted','success');
+  } catch(e) {
+    staffMgmt_closeDeleteModal();
+    staffMgmt_showMsg('Delete failed: '+e.message, 'error');
+  } finally {
+    if(btn) { btn.textContent='Yes, Delete'; btn.disabled=false; }
+  }
+}
+
+
 function staffMgmt_showMsg(msg, type) {
   const el = document.getElementById('staffMgmt-msg');
   if(!el) return;
