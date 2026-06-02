@@ -1569,46 +1569,113 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
 <div class="page" id="page-state-reports-page"><div class="es"><div class="es-icon">&#x1F4CB;</div><div class="es-title">State Reports</div><div class="es-sub">Annual compliance report export coming soon.</div></div></div>
 
 <div class="page" id="page-users-page" style="padding:0;display:none;height:calc(100vh - 56px);flex-direction:column;overflow:hidden">
-  <!-- Header bar -->
-  <div style="padding:18px 24px 14px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:12px">
+
+  <!-- Header -->
+  <div style="padding:16px 24px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:10px">
+    <!-- Back button — only shown in edit view -->
+    <button id="staffMgmt-back" onclick="staffMgmt_showList()" style="display:none;align-items:center;gap:6px;padding:7px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;cursor:pointer">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      All Staff
+    </button>
     <div style="flex:1">
-      <div style="font-family:var(--cond);font-size:24px;font-weight:900">Staff Access</div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;letter-spacing:.5px">Manage city staff portal permissions</div>
+      <div id="staffMgmt-title" style="font-family:var(--cond);font-size:22px;font-weight:900">Staff Access</div>
+      <div id="staffMgmt-sub" style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:1px;letter-spacing:.5px">Manage city staff portal permissions</div>
     </div>
-    <button onclick="staffMgmt_invite()" style="display:flex;align-items:center;gap:7px;padding:9px 16px;background:var(--accent);border:none;border-radius:10px;color:#000;font-weight:700;font-size:13px;cursor:pointer">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    <button id="staffMgmt-add-btn" onclick="staffMgmt_invite()" style="display:flex;align-items:center;gap:7px;padding:8px 15px;background:var(--accent);border:none;border-radius:10px;color:#000;font-weight:700;font-size:13px;cursor:pointer">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Add Staff
     </button>
-    <button onclick="staffMgmt_load()" style="display:flex;align-items:center;gap:6px;padding:9px 13px;background:var(--elevated);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-size:12px;cursor:pointer">
+    <button id="staffMgmt-refresh-btn" onclick="staffMgmt_load()" style="display:flex;align-items:center;gap:6px;padding:8px 13px;background:var(--elevated);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-size:12px;cursor:pointer">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-5.06"/></svg>
       Refresh
+    </button>
+    <!-- Save button — only shown in edit view -->
+    <button id="staffMgmt-save-btn" onclick="staffMgmt_saveEdit()" style="display:none;align-items:center;gap:7px;padding:8px 18px;background:var(--accent);border:none;border-radius:10px;color:#000;font-weight:700;font-size:13px;cursor:pointer">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Save Changes
     </button>
   </div>
 
   <!-- Status message -->
-  <div id="staffMgmt-msg" style="display:none;margin:14px 24px 0;padding:10px 14px;border-radius:8px;font-family:var(--mono);font-size:12px"></div>
+  <div id="staffMgmt-msg" style="display:none;margin:12px 24px 0;padding:10px 14px;border-radius:8px;font-family:var(--mono);font-size:12px;flex-shrink:0"></div>
 
-  <!-- Staff list -->
-  <div style="flex:1;overflow-y:auto;padding:16px 24px 24px">
-    <!-- Empty/loading state -->
-    <div id="staffMgmt-loading" style="text-align:center;padding:48px;color:var(--muted)">
+  <!-- ── LIST VIEW ── -->
+  <div id="staffMgmt-list-view" style="flex:1;overflow-y:auto;padding:16px 24px 24px">
+    <div id="staffMgmt-loading" style="text-align:center;padding:56px;color:var(--muted)">
       <div style="font-family:var(--mono);font-size:12px;letter-spacing:.5px">Loading staff accounts…</div>
     </div>
-    <div id="staffMgmt-empty" style="display:none;text-align:center;padding:48px;color:var(--muted)">
-      <div style="font-size:32px;margin-bottom:12px;opacity:.3">👥</div>
-      <div style="font-family:var(--cond);font-size:20px;font-weight:900;color:var(--muted)">No Staff Accounts</div>
+    <div id="staffMgmt-empty" style="display:none;text-align:center;padding:56px;color:var(--muted)">
+      <div style="font-size:36px;margin-bottom:14px;opacity:.25">👥</div>
+      <div style="font-family:var(--cond);font-size:22px;font-weight:900;color:var(--muted)">No Staff Accounts</div>
       <div style="font-size:13px;margin-top:6px">Click "Add Staff" to invite a city staff member.</div>
     </div>
-    <div id="staffMgmt-list" style="display:none;display:flex;flex-direction:column;gap:12px"></div>
+    <!-- Table header -->
+    <div id="staffMgmt-table-head" style="display:none;display:grid;grid-template-columns:1fr 180px 120px 100px 36px;gap:0;padding:0 16px 8px;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">
+      <div>Name / Email</div><div>Access</div><div>Pages</div><div>Status</div><div></div>
+    </div>
+    <div id="staffMgmt-list" style="display:none;flex-direction:column;gap:4px"></div>
   </div>
 
-  <!-- Invite Modal -->
+  <!-- ── EDIT VIEW ── -->
+  <div id="staffMgmt-edit-view" style="display:none;flex:1;overflow-y:auto;padding:20px 24px 32px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:780px">
+
+      <!-- Left: identity + status + access level -->
+      <div style="display:flex;flex-direction:column;gap:14px">
+
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">Identity</div>
+          <label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:4px">Full Name</label>
+          <input id="staffEdit-name" class="si" type="text" style="margin-bottom:12px">
+          <label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:4px">Email</label>
+          <input id="staffEdit-email" class="si" type="email" style="margin-bottom:12px">
+          <label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:4px">Department</label>
+          <input id="staffEdit-dept" class="si" type="text" placeholder="e.g. Public Works">
+        </div>
+
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">Account Status</div>
+          <div id="staffEdit-status-btns" style="display:flex;gap:8px">
+            <button onclick="staffEdit_setStatus('active')"   class="se-status-btn" data-val="active"   style="flex:1;padding:9px 6px;border-radius:8px;border:1px solid var(--border);background:var(--elevated);color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;font-weight:600;transition:all .15s">Active</button>
+            <button onclick="staffEdit_setStatus('pending')"  class="se-status-btn" data-val="pending"  style="flex:1;padding:9px 6px;border-radius:8px;border:1px solid var(--border);background:var(--elevated);color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;font-weight:600;transition:all .15s">Pending</button>
+            <button onclick="staffEdit_setStatus('disabled')" class="se-status-btn" data-val="disabled" style="flex:1;padding:9px 6px;border-radius:8px;border:1px solid var(--border);background:var(--elevated);color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;font-weight:600;transition:all .15s">Disabled</button>
+          </div>
+        </div>
+
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">Access Level</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--elevated);border-radius:8px">
+            <div>
+              <div id="staffEdit-write-label" style="font-size:13px;font-weight:600;color:var(--text)">Read Only</div>
+              <div id="staffEdit-write-sub" style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px">View only — no changes</div>
+            </div>
+            <div id="staffEdit-write-toggle" class="sm-toggle" onclick="staffEdit_toggleWrite(this)"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: page toggles -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;align-self:start">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Visible Pages</div>
+          <div style="display:flex;gap:6px">
+            <button onclick="staffEdit_allPages(true)"  style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--elevated);color:var(--muted);font-family:var(--mono);font-size:10px;cursor:pointer">All</button>
+            <button onclick="staffEdit_allPages(false)" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--elevated);color:var(--muted);font-family:var(--mono);font-size:10px;cursor:pointer">None</button>
+          </div>
+        </div>
+        <div id="staffEdit-pages" style="display:flex;flex-direction:column;gap:2px"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Add Staff Modal -->
   <div id="staffMgmt-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.65);align-items:center;justify-content:center">
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:460px;padding:28px 28px 24px;margin:20px;box-shadow:0 20px 60px rgba(0,0,0,.6)">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:440px;padding:28px;margin:20px;box-shadow:0 20px 60px rgba(0,0,0,.6)">
       <div style="font-family:var(--cond);font-size:20px;font-weight:900;margin-bottom:18px">Add Staff Member</div>
       <label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px">City Email</label>
       <input id="staffMgmt-inv-email" class="si" type="email" placeholder="name@abilenetx.gov" style="margin-bottom:14px">
-      <label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px">Full Name (optional)</label>
+      <label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px">Full Name</label>
       <input id="staffMgmt-inv-name" class="si" type="text" placeholder="Jane Smith" style="margin-bottom:18px">
       <div style="display:flex;justify-content:flex-end;gap:8px">
         <button onclick="staffMgmt_closeModal()" class="btn btn-gh">Cancel</button>
@@ -1616,6 +1683,7 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
       </div>
     </div>
   </div>
+
 </div>
 
 <div class="page" id="page-comms-page" style="padding:0;display:none;height:calc(100vh - 56px);flex-direction:column;overflow:hidden">
@@ -6820,16 +6888,24 @@ const STAFF_PAGE_OPTIONS = [
   {id:'notif-page',       label:'Notifications'},
 ];
 
-let staffMgmt_records = [];
+let staffMgmt_records  = [];
+let staffEdit_id       = null;   // UUID of record currently being edited
+let staffEdit_status   = 'pending';
+let staffEdit_write    = false;
+let staffEdit_pages    = [];
 
+// ── Load & render list ─────────────────────────────────────────────────────────
 async function staffMgmt_load() {
+  staffMgmt_showList();
+  staffMgmt_hideMsg();
   const loading = document.getElementById('staffMgmt-loading');
   const empty   = document.getElementById('staffMgmt-empty');
+  const head    = document.getElementById('staffMgmt-table-head');
   const list    = document.getElementById('staffMgmt-list');
   if(loading) loading.style.display='block';
   if(empty)   empty.style.display='none';
-  if(list)    list.style.display='none';
-  staffMgmt_hideMsg();
+  if(head)    head.style.display='none';
+  if(list)  { list.style.display='none'; list.innerHTML=''; }
 
   try {
     const headers = await getHeaders();
@@ -6837,9 +6913,8 @@ async function staffMgmt_load() {
     if(!res.ok) throw new Error('HTTP '+res.status+': '+await res.text());
     staffMgmt_records = await res.json();
   } catch(e) {
-    // Table may not exist yet — start with empty
     staffMgmt_records = [];
-    staffMgmt_showMsg('Could not load from Supabase (table may not exist yet). '+ e.message, 'warn');
+    staffMgmt_showMsg('Could not load from Supabase — run the SQL script first. ('+e.message+')', 'warn');
   }
 
   if(loading) loading.style.display='none';
@@ -6847,146 +6922,208 @@ async function staffMgmt_load() {
     if(empty) empty.style.display='block';
     return;
   }
-  if(list) { list.style.display='flex'; list.innerHTML = staffMgmt_records.map(staffMgmt_renderCard).join(''); }
+  if(head) head.style.display='grid';
+  if(list) {
+    list.style.display='flex';
+    list.innerHTML = staffMgmt_records.map(staffMgmt_renderRow).join('');
+  }
 }
 
-function staffMgmt_renderCard(r) {
-  const pages   = Array.isArray(r.pages) ? r.pages : [];
-  const isWrite = r.write_access === true;
-  const isPending = r.status === 'pending';
-  const isDisabled = r.status === 'disabled';
+function staffMgmt_renderRow(r) {
+  const pages     = Array.isArray(r.pages) ? r.pages : [];
+  const isWrite   = r.write_access === true;
+  const statusColor = r.status==='active'?'var(--green)':r.status==='disabled'?'var(--red)':'var(--yellow)';
+  const statusBg    = r.status==='active'?'rgba(61,184,112,.12)':r.status==='disabled'?'rgba(224,82,82,.12)':'rgba(240,192,64,.12)';
+  const statusBrd   = r.status==='active'?'rgba(61,184,112,.3)':r.status==='disabled'?'rgba(224,82,82,.3)':'rgba(240,192,64,.3)';
+  const initials  = (r.name||r.email||'?').substring(0,1).toUpperCase();
 
-  const statusColor = isPending ? 'var(--yellow)' : isDisabled ? 'var(--red)' : 'var(--green)';
-  const statusLabel = isPending ? 'PENDING' : isDisabled ? 'DISABLED' : 'ACTIVE';
-  const statusBg    = isPending ? 'rgba(240,192,64,.12)' : isDisabled ? 'rgba(224,82,82,.12)' : 'rgba(61,184,112,.12)';
-  const statusBrd   = isPending ? 'rgba(240,192,64,.3)' : isDisabled ? 'rgba(224,82,82,.3)' : 'rgba(61,184,112,.3)';
-
-  const pageToggles = STAFF_PAGE_OPTIONS.map(pg => {
-    const on = pages.includes(pg.id);
-    return `<label style="display:flex;align-items:center;gap:7px;cursor:pointer;padding:5px 0;border-bottom:1px solid var(--border)">
-      <div class="sm-toggle ${on?'on':''}" onclick="staffMgmt_togglePage('${r.id}','${pg.id}',this)" title="${on?'Click to hide':'Click to show'}"></div>
-      <span style="font-size:13px;color:${on?'var(--text)':'var(--muted)'}">${pg.label}</span>
-    </label>`;
-  }).join('');
-
-  return `<div id="staffCard-${r.id}" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px">
-    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px">
-      <div style="width:42px;height:42px;border-radius:50%;background:var(--elevated);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--cond);font-weight:900;font-size:17px;color:var(--accent)">
-        ${(r.name||r.email||'?').substring(0,1).toUpperCase()}
+  return `<div onclick="staffMgmt_openEdit('${r.id}')"
+    style="display:grid;grid-template-columns:1fr 180px 120px 100px 36px;align-items:center;gap:0;
+           padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;
+           cursor:pointer;transition:border-color .15s"
+    onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+    <div style="display:flex;align-items:center;gap:10px;min-width:0">
+      <div style="width:34px;height:34px;border-radius:50%;background:var(--elevated);border:1px solid var(--border);
+                  display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;
+                  font-size:15px;color:var(--accent);flex-shrink:0">${initials}</div>
+      <div style="min-width:0">
+        <div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.name||'—'}</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.email||''}</div>
       </div>
-      <div style="flex:1;min-width:0">
-        <div style="font-family:var(--cond);font-size:17px;font-weight:900;color:var(--text)">${r.name||'—'}</div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.email||''}</div>
-      </div>
-      <span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${statusColor};background:${statusBg};border:1px solid ${statusBrd};padding:3px 9px;border-radius:20px;white-space:nowrap">${statusLabel}</span>
     </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-      <!-- Left: Access level + status controls -->
-      <div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">Access Level</div>
-
-        <!-- Read / Write toggle -->
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--elevated);border-radius:8px;margin-bottom:8px">
-          <div>
-            <div style="font-size:13px;font-weight:600;color:var(--text)">${isWrite?'Write Access':'Read Only'}</div>
-            <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px">${isWrite?'Can submit & edit data':'View only — no changes'}</div>
-          </div>
-          <div class="sm-toggle ${isWrite?'on':''}" onclick="staffMgmt_toggleWrite('${r.id}',this)" title="Toggle read/write"></div>
-        </div>
-
-        <!-- Status buttons -->
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin:12px 0 8px">Account Status</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button onclick="staffMgmt_setStatus('${r.id}','active')" style="flex:1;padding:7px 6px;border-radius:7px;border:1px solid ${!isPending&&!isDisabled?'var(--green)':'var(--border)'};background:${!isPending&&!isDisabled?'rgba(61,184,112,.12)':'var(--elevated)'};color:${!isPending&&!isDisabled?'var(--green)':'var(--muted)'};font-family:var(--mono);font-size:10px;cursor:pointer;font-weight:600">Active</button>
-          <button onclick="staffMgmt_setStatus('${r.id}','pending')" style="flex:1;padding:7px 6px;border-radius:7px;border:1px solid ${isPending?'var(--yellow)':'var(--border)'};background:${isPending?'rgba(240,192,64,.12)':'var(--elevated)'};color:${isPending?'var(--yellow)':'var(--muted)'};font-family:var(--mono);font-size:10px;cursor:pointer;font-weight:600">Pending</button>
-          <button onclick="staffMgmt_setStatus('${r.id}','disabled')" style="flex:1;padding:7px 6px;border-radius:7px;border:1px solid ${isDisabled?'var(--red)':'var(--border)'};background:${isDisabled?'rgba(224,82,82,.12)':'var(--elevated)'};color:${isDisabled?'var(--red)':'var(--muted)'};font-family:var(--mono);font-size:10px;cursor:pointer;font-weight:600">Disable</button>
-        </div>
-      </div>
-
-      <!-- Right: Page toggles -->
-      <div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">
-          Visible Pages
-          <span style="margin-left:8px;color:var(--accent)">${pages.length}/${STAFF_PAGE_OPTIONS.length}</span>
-        </div>
-        <div style="display:flex;flex-direction:column">${pageToggles}</div>
-        <div style="display:flex;gap:6px;margin-top:10px">
-          <button onclick="staffMgmt_allPages('${r.id}',true)" style="flex:1;padding:5px;border-radius:6px;border:1px solid var(--border);background:var(--elevated);color:var(--muted);font-family:var(--mono);font-size:10px;cursor:pointer">All</button>
-          <button onclick="staffMgmt_allPages('${r.id}',false)" style="flex:1;padding:5px;border-radius:6px;border:1px solid var(--border);background:var(--elevated);color:var(--muted);font-family:var(--mono);font-size:10px;cursor:pointer">None</button>
-        </div>
-      </div>
+    <div style="font-size:13px;color:${isWrite?'var(--green)':'var(--muted)'}">
+      ${isWrite?'✏ Write':'👁 Read Only'}
+    </div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${pages.length} / ${STAFF_PAGE_OPTIONS.length} pages</div>
+    <div>
+      <span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${statusColor};
+                   background:${statusBg};border:1px solid ${statusBrd};padding:3px 9px;border-radius:20px">
+        ${(r.status||'pending').toUpperCase()}
+      </span>
+    </div>
+    <div style="color:var(--muted);display:flex;align-items:center;justify-content:center">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
     </div>
   </div>`;
 }
 
-// Toggle a single page on/off
-async function staffMgmt_togglePage(id, pageId, btn) {
+// ── Open edit panel ────────────────────────────────────────────────────────────
+function staffMgmt_openEdit(id) {
   const rec = staffMgmt_records.find(r=>r.id===id);
   if(!rec) return;
-  const pages = Array.isArray(rec.pages) ? [...rec.pages] : [];
-  const idx = pages.indexOf(pageId);
-  if(idx>=0) pages.splice(idx,1); else pages.push(pageId);
-  rec.pages = pages;
-  await staffMgmt_patch(id, {pages});
-  staffMgmt_refreshCard(id);
+  staffEdit_id     = id;
+  staffEdit_status = rec.status || 'pending';
+  staffEdit_write  = rec.write_access === true;
+  staffEdit_pages  = Array.isArray(rec.pages) ? [...rec.pages] : [];
+
+  // Populate fields
+  document.getElementById('staffEdit-name').value  = rec.name  || '';
+  document.getElementById('staffEdit-email').value = rec.email || '';
+  document.getElementById('staffEdit-dept').value  = rec.dept  || '';
+
+  // Status buttons
+  staffEdit_setStatus(staffEdit_status);
+
+  // Write toggle
+  const wt = document.getElementById('staffEdit-write-toggle');
+  if(wt) { wt.classList.toggle('on', staffEdit_write); staffEdit_updateWriteLabel(); }
+
+  // Page toggles
+  staffEdit_renderPages();
+
+  // Update header
+  document.getElementById('staffMgmt-title').textContent = rec.name || rec.email || 'Edit Staff';
+  document.getElementById('staffMgmt-sub').textContent   = rec.email || '';
+
+  // Switch views
+  document.getElementById('staffMgmt-list-view').style.display = 'none';
+  document.getElementById('staffMgmt-edit-view').style.display = 'block';
+  document.getElementById('staffMgmt-back').style.display      = 'flex';
+  document.getElementById('staffMgmt-save-btn').style.display  = 'flex';
+  document.getElementById('staffMgmt-add-btn').style.display   = 'none';
+  document.getElementById('staffMgmt-refresh-btn').style.display = 'none';
+  staffMgmt_hideMsg();
 }
 
-// Toggle write access
-async function staffMgmt_toggleWrite(id, btn) {
-  const rec = staffMgmt_records.find(r=>r.id===id);
-  if(!rec) return;
-  rec.write_access = !rec.write_access;
-  await staffMgmt_patch(id, {write_access: rec.write_access});
-  staffMgmt_refreshCard(id);
+function staffMgmt_showList() {
+  staffEdit_id = null;
+  document.getElementById('staffMgmt-list-view').style.display = 'block';
+  document.getElementById('staffMgmt-edit-view').style.display = 'none';
+  document.getElementById('staffMgmt-back').style.display      = 'none';
+  document.getElementById('staffMgmt-save-btn').style.display  = 'none';
+  document.getElementById('staffMgmt-add-btn').style.display   = 'flex';
+  document.getElementById('staffMgmt-refresh-btn').style.display = 'flex';
+  document.getElementById('staffMgmt-title').textContent = 'Staff Access';
+  document.getElementById('staffMgmt-sub').textContent   = 'Manage city staff portal permissions';
+  staffMgmt_hideMsg();
 }
 
-// Set active/pending/disabled
-async function staffMgmt_setStatus(id, status) {
-  const rec = staffMgmt_records.find(r=>r.id===id);
-  if(!rec) return;
-  rec.status = status;
-  await staffMgmt_patch(id, {status});
-  staffMgmt_refreshCard(id);
+// ── Edit panel helpers ─────────────────────────────────────────────────────────
+function staffEdit_setStatus(val) {
+  staffEdit_status = val;
+  document.querySelectorAll('.se-status-btn').forEach(function(btn) {
+    const isActive = btn.getAttribute('data-val') === val;
+    const colors = {
+      active:  {c:'var(--green)', bg:'rgba(61,184,112,.12)',  bd:'rgba(61,184,112,.3)'},
+      pending: {c:'var(--yellow)',bg:'rgba(240,192,64,.12)', bd:'rgba(240,192,64,.3)'},
+      disabled:{c:'var(--red)',   bg:'rgba(224,82,82,.12)',  bd:'rgba(224,82,82,.3)'},
+    };
+    const k = btn.getAttribute('data-val');
+    btn.style.borderColor  = isActive ? colors[k].bd  : 'var(--border)';
+    btn.style.background   = isActive ? colors[k].bg  : 'var(--elevated)';
+    btn.style.color        = isActive ? colors[k].c   : 'var(--muted)';
+  });
 }
 
-// Grant/revoke all pages
-async function staffMgmt_allPages(id, grantAll) {
-  const rec = staffMgmt_records.find(r=>r.id===id);
-  if(!rec) return;
-  rec.pages = grantAll ? STAFF_PAGE_OPTIONS.map(p=>p.id) : [];
-  await staffMgmt_patch(id, {pages: rec.pages});
-  staffMgmt_refreshCard(id);
+function staffEdit_toggleWrite(el) {
+  staffEdit_write = !staffEdit_write;
+  el.classList.toggle('on', staffEdit_write);
+  staffEdit_updateWriteLabel();
 }
 
-// Re-render a single card in place
-function staffMgmt_refreshCard(id) {
-  const rec = staffMgmt_records.find(r=>r.id===id);
-  if(!rec) return;
-  const card = document.getElementById('staffCard-'+id);
-  if(card) card.outerHTML = staffMgmt_renderCard(rec);
+function staffEdit_updateWriteLabel() {
+  const lbl = document.getElementById('staffEdit-write-label');
+  const sub = document.getElementById('staffEdit-write-sub');
+  if(lbl) lbl.textContent = staffEdit_write ? 'Write Access' : 'Read Only';
+  if(sub) sub.textContent = staffEdit_write ? 'Can submit & edit data' : 'View only — no changes';
 }
 
-// PATCH to Supabase
-async function staffMgmt_patch(id, fields) {
+function staffEdit_renderPages() {
+  const container = document.getElementById('staffEdit-pages');
+  if(!container) return;
+  container.innerHTML = STAFF_PAGE_OPTIONS.map(function(pg) {
+    const on = staffEdit_pages.includes(pg.id);
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:13px;color:${on?'var(--text)':'var(--muted)'}">${pg.label}</span>
+      <div class="sm-toggle ${on?'on':''}" onclick="staffEdit_togglePage('${pg.id}',this)"></div>
+    </div>`;
+  }).join('');
+}
+
+function staffEdit_togglePage(pageId, el) {
+  const idx = staffEdit_pages.indexOf(pageId);
+  if(idx>=0) staffEdit_pages.splice(idx,1); else staffEdit_pages.push(pageId);
+  el.classList.toggle('on', staffEdit_pages.includes(pageId));
+  // Update label color
+  const label = el.previousElementSibling;
+  if(label) label.style.color = staffEdit_pages.includes(pageId) ? 'var(--text)' : 'var(--muted)';
+}
+
+function staffEdit_allPages(grantAll) {
+  staffEdit_pages = grantAll ? STAFF_PAGE_OPTIONS.map(function(p){return p.id;}) : [];
+  staffEdit_renderPages();
+}
+
+// ── Save ───────────────────────────────────────────────────────────────────────
+async function staffMgmt_saveEdit() {
+  if(!staffEdit_id) return;
+  const btn = document.getElementById('staffMgmt-save-btn');
+  if(btn) { btn.textContent='Saving…'; btn.disabled=true; }
+
+  const fields = {
+    name:         document.getElementById('staffEdit-name').value.trim() || null,
+    email:        document.getElementById('staffEdit-email').value.trim().toLowerCase(),
+    dept:         document.getElementById('staffEdit-dept').value.trim() || null,
+    status:       staffEdit_status,
+    write_access: staffEdit_write,
+    pages:        staffEdit_pages,
+  };
+
   try {
     const headers = await getHeaders();
     headers['Content-Type'] = 'application/json';
-    headers['Prefer'] = 'return=minimal';
-    const res = await fetch(SUPA_URL+'/rest/v1/staff_access?id=eq.'+encodeURIComponent(id), {
+    headers['Prefer'] = 'return=representation';
+    const res = await fetch(SUPA_URL+'/rest/v1/staff_access?id=eq.'+encodeURIComponent(staffEdit_id), {
       method:'PATCH', headers, body: JSON.stringify(fields)
     });
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    if(typeof toast==='function') toast('Staff access updated','success');
+    if(!res.ok) throw new Error('HTTP '+res.status+': '+await res.text());
+    // Update local record
+    const idx = staffMgmt_records.findIndex(function(r){return r.id===staffEdit_id;});
+    if(idx>=0) Object.assign(staffMgmt_records[idx], fields);
+    if(typeof toast==='function') toast('Staff access saved','success');
+    staffMgmt_showList();
+    // Refresh list rows
+    const list = document.getElementById('staffMgmt-list');
+    if(list) list.innerHTML = staffMgmt_records.map(staffMgmt_renderRow).join('');
   } catch(e) {
     staffMgmt_showMsg('Save failed: '+e.message, 'error');
+  } finally {
+    if(btn) {
+      btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Save Changes';
+      btn.disabled = false;
+    }
   }
 }
 
-// Invite modal
+// ── Add staff modal ────────────────────────────────────────────────────────────
 function staffMgmt_invite() {
   const modal = document.getElementById('staffMgmt-modal');
-  if(modal) { modal.style.display='flex'; document.getElementById('staffMgmt-inv-email').value=''; document.getElementById('staffMgmt-inv-name').value=''; document.getElementById('staffMgmt-inv-email').focus(); }
+  if(modal) {
+    modal.style.display='flex';
+    document.getElementById('staffMgmt-inv-email').value='';
+    document.getElementById('staffMgmt-inv-name').value='';
+    document.getElementById('staffMgmt-inv-email').focus();
+  }
 }
 function staffMgmt_closeModal() {
   const modal = document.getElementById('staffMgmt-modal');
@@ -7007,24 +7144,27 @@ async function staffMgmt_saveInvite() {
     const [newRec] = await res.json();
     staffMgmt_records.unshift(newRec);
     staffMgmt_closeModal();
-    const list = document.getElementById('staffMgmt-list');
+    const list  = document.getElementById('staffMgmt-list');
     const empty = document.getElementById('staffMgmt-empty');
+    const head  = document.getElementById('staffMgmt-table-head');
     if(empty) empty.style.display='none';
-    if(list) { list.style.display='flex'; list.insertAdjacentHTML('afterbegin', staffMgmt_renderCard(newRec)); }
-    if(typeof toast==='function') toast('Staff account created — set to Pending','success');
+    if(head)  head.style.display='grid';
+    if(list)  { list.style.display='flex'; list.innerHTML = staffMgmt_records.map(staffMgmt_renderRow).join(''); }
+    if(typeof toast==='function') toast('Staff account created — click their row to configure','success');
   } catch(e) {
     staffMgmt_showMsg('Could not create account: '+e.message,'error');
   }
 }
 
+// ── Msg helpers ────────────────────────────────────────────────────────────────
 function staffMgmt_showMsg(msg, type) {
   const el = document.getElementById('staffMgmt-msg');
   if(!el) return;
   el.textContent = msg;
   el.style.display = 'block';
-  el.style.background = type==='error' ? 'rgba(224,82,82,.1)' : type==='warn' ? 'rgba(240,192,64,.1)' : 'rgba(61,184,112,.1)';
-  el.style.border = '1px solid '+(type==='error' ? 'rgba(224,82,82,.3)' : type==='warn' ? 'rgba(240,192,64,.3)' : 'rgba(61,184,112,.3)');
-  el.style.color = type==='error' ? 'var(--red)' : type==='warn' ? 'var(--yellow)' : 'var(--green)';
+  el.style.background = type==='error'?'rgba(224,82,82,.1)':type==='warn'?'rgba(240,192,64,.1)':'rgba(61,184,112,.1)';
+  el.style.border     = '1px solid '+(type==='error'?'rgba(224,82,82,.3)':type==='warn'?'rgba(240,192,64,.3)':'rgba(61,184,112,.3)');
+  el.style.color      = type==='error'?'var(--red)':type==='warn'?'var(--yellow)':'var(--green)';
 }
 function staffMgmt_hideMsg() {
   const el = document.getElementById('staffMgmt-msg');
