@@ -35,7 +35,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 .notice{background:rgba(249,166,30,.08);border:1px solid rgba(249,166,30,.2);border-radius:10px;padding:12px 14px;font-size:12px;color:var(--muted);margin-top:16px;text-align:center;line-height:1.5}
 
 /* ── APP LAYOUT ── */
-#screen-app{display:none;flex-direction:column;height:100vh;overflow:hidden}
+#screen-app{display:none;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
 .topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
 .topbar-logo{width:28px;height:28px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .topbar-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:var(--text);flex:1}
@@ -44,7 +44,19 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 .btn-signout{background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);padding:5px 12px;font-size:12px;cursor:pointer}
 
 /* App body */
-.app-body{display:flex;flex:1;overflow:hidden}
+.app-body{display:flex;flex:1;overflow:hidden;min-height:0}
+
+/* Sidebar — hidden on mobile */
+.sidebar{width:200px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+
+@media(max-width:640px){
+  .sidebar{display:none}
+  #screen-app{height:100dvh}
+  .topbar{padding:0 14px;gap:8px}
+  .topbar-title{font-size:15px}
+  .staff-badge,.ro-badge{display:none}
+  .page{padding:16px !important}
+}
 
 /* Sidebar */
 .sidebar{width:200px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
@@ -218,9 +230,15 @@ async function checkStaffAccess() {
 function showScreen(id) {
   ['login','pending','app'].forEach(function(s){
     const el = document.getElementById('screen-'+s);
-    if(el) el.style.display = s===id?(s==='app'?'flex':'flex'):'none';
+    if(!el) return;
+    el.style.display = 'none';
   });
-  if(id==='app') document.getElementById('screen-app').style.display='flex';
+  const target = document.getElementById('screen-'+id);
+  if(target) target.style.display = (id==='login'||id==='pending') ? 'flex' : 'flex';
+  if(id==='app') {
+    const app = document.getElementById('screen-app');
+    if(app) { app.style.display='flex'; app.style.flexDirection='column'; }
+  }
 }
 
 function enterStaffApp() {
@@ -355,6 +373,60 @@ async function loadStaffDashboard() {
     await checkStaffAccess();
   }
 })();
+</script>
+
+<!-- Mobile bottom nav — only visible on small screens -->
+<div id="staff-mob-nav" style="display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:var(--surface);border-top:1px solid var(--border);z-index:200;align-items:stretch;justify-content:space-around"></div>
+
+<style>
+@media(max-width:640px){
+  #staff-mob-nav{display:flex !important}
+  .main{padding-bottom:56px}
+  .page{padding-bottom:72px !important}
+}
+.mob-nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:var(--muted);font-family:var(--mono);font-size:8px;letter-spacing:.5px;cursor:pointer;padding:4px 2px;transition:color .15s}
+.mob-nb.active{color:var(--accent)}
+.mob-nb svg{opacity:.7}
+.mob-nb.active svg{opacity:1;stroke:var(--accent)}
+</style>
+
+<script>
+// Build mobile nav after staff nav is built
+const _origBuildNav = buildStaffNav;
+buildStaffNav = function() {
+  _origBuildNav();
+  buildMobileNav();
+};
+
+function buildMobileNav() {
+  const mob = document.getElementById('staff-mob-nav');
+  if(!mob) return;
+  const allowed = staffPerms ? (staffPerms.pages||[]) : [];
+  // Show up to 5 most relevant pages as bottom tabs
+  const navItems = [
+    {page:'dashboard',       label:'Home',     icon:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>'},
+    {page:'locations-page',  label:'Locations',icon:'<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/>'},
+    {page:'backflow-page',   label:'Reports',  icon:'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/>'},
+    {page:'device-map-page', label:'Map',      icon:'<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>'},
+    {page:'notif-page',      label:'Alerts',   icon:'<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>'},
+  ].filter(function(item){ return item.page==='dashboard' || allowed.includes(item.page); }).slice(0,5);
+
+  mob.innerHTML = navItems.map(function(item, i){
+    return '<button class="mob-nb'+(i===0?' active':'')+'" data-page="'+item.page+'" onclick="staffMobNav(\''+item.page+'\',this)">'+
+      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'+item.icon+'</svg>'+
+      '<span>'+item.label+'</span>'+
+      '</button>';
+  }).join('');
+}
+
+function staffMobNav(page, btn) {
+  document.querySelectorAll('.mob-nb').forEach(function(b){ b.classList.remove('active'); });
+  if(btn) btn.classList.add('active');
+  // Also sync desktop nav
+  const desktopBtn = document.querySelector('#staff-nav .nb[data-page="'+page+'"]');
+  if(desktopBtn) staffNav(page, desktopBtn);
+  else staffNav(page, null);
+}
 </script>
 </body>
 </html>
