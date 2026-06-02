@@ -527,27 +527,6 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
   font-size:12px !important;
   letter-spacing:1px;
 }
-
-/* ── STAFF ACCESS MANAGEMENT ─────────────────────────────────────────── */
-.staff-access-row{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px}
-.staff-avatar{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#e8920a);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:15px;font-weight:900;color:#000;flex-shrink:0}
-.staff-info{flex:1;min-width:0}
-.staff-name{font-size:14px;font-weight:700;color:var(--text)}
-.staff-email{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:1px}
-.staff-toggles{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.toggle-pill{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.5px;cursor:pointer;border:1.5px solid;transition:all .15s;white-space:nowrap}
-.toggle-pill.on{background:rgba(61,184,112,.12);border-color:rgba(61,184,112,.4);color:var(--green)}
-.toggle-pill.off{background:var(--elevated);border-color:var(--border);color:var(--muted)}
-.toggle-pill:hover{border-color:var(--accent);color:var(--accent)}
-.perm-section-toggle{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--elevated);border-radius:8px;margin-bottom:6px}
-.perm-section-label{font-family:var(--mono);font-size:11px;color:var(--text);font-weight:700}
-/* iOS-style toggle */
-.ios-toggle{position:relative;display:inline-block;width:36px;height:20px;flex-shrink:0}
-.ios-toggle input{opacity:0;width:0;height:0}
-.ios-slider{position:absolute;cursor:pointer;inset:0;background:var(--border);border-radius:20px;transition:.2s}
-.ios-slider:before{content:"";position:absolute;height:14px;width:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
-.ios-toggle input:checked + .ios-slider{background:var(--accent)}
-.ios-toggle input:checked + .ios-slider:before{transform:translateX(16px)}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
@@ -624,7 +603,6 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
     <button class="nb" onclick="nav('city-risk-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>City Risk</button>
     <div class="sb-sec">Admin</div>
     <button class="nb" onclick="nav('users-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Users</button>
-    <button class="nb" onclick="nav('staff-access-page',this)" id="nb-staff-access" style="position:relative"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>Staff Access<span id="staff-pending-badge" style="display:none;position:absolute;top:4px;right:8px;background:var(--red);color:#fff;font-size:9px;font-weight:700;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center"></span></button>
     <button class="nb" onclick="nav('comms-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.86 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.77 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>Communications</button>
     <button class="nb" onclick="nav('notif-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>Notifications</button>
     <button class="nb" onclick="nav('settings-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M6.34 17.66l-1.41 1.41M2 12h2M20 12h2M17.66 17.66l1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2"/></svg></span>Settings</button>
@@ -1099,155 +1077,7 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
 </div>
 
 <!-- ── ADD REPORT ── -->
-<div class="page" id="page-import-page" style="padding:24px 28px;overflow-y:auto;height:calc(100vh-56px)">
-  <div style="max-width:900px">
-
-  <!-- ── CAD PROPERTY IMPORTER ── -->
-  <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:24px">
-    <div style="padding:18px 22px;border-bottom:1px solid var(--border);background:var(--elevated);display:flex;align-items:center;justify-content:space-between">
-      <div>
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <div style="font-family:var(--cond);font-size:20px;font-weight:900;color:var(--text)">Taylor CAD Property Import</div>
-        </div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.5px">Upload a CSV export from Taylor CAD to bulk-import locations into your program</div>
-      </div>
-      <a href="https://taylor-cad.org/data-downloads/" target="_blank" style="font-family:var(--mono);font-size:10px;color:var(--accent);text-decoration:none;border:1px solid rgba(249,166,30,.3);border-radius:8px;padding:6px 12px">Get CAD Data ↗</a>
-    </div>
-
-    <div style="padding:20px 22px;display:flex;flex-direction:column;gap:16px">
-
-      <!-- Format selector -->
-      <div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">File Format</div>
-        <div style="display:flex;gap:8px">
-          <label style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--elevated);border:1.5px solid var(--accent);border-radius:10px;cursor:pointer;flex:1">
-            <input type="radio" name="cad-format" value="cad-csv" checked onchange="cadFormatChange(this.value)" style="accent-color:var(--accent)">
-            <div>
-              <div style="font-size:13px;font-weight:700;color:var(--text)">Taylor CAD Export</div>
-              <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">Standard appraisal roll CSV</div>
-            </div>
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--elevated);border:1.5px solid var(--border);border-radius:10px;cursor:pointer;flex:1">
-            <input type="radio" name="cad-format" value="generic-csv" onchange="cadFormatChange(this.value)" style="accent-color:var(--accent)">
-            <div>
-              <div style="font-size:13px;font-weight:700;color:var(--text)">Generic CSV</div>
-              <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">Custom column mapping</div>
-            </div>
-          </label>
-        </div>
-      </div>
-
-      <!-- Taylor CAD expected columns info -->
-      <div id="cad-format-info" style="background:var(--elevated);border-radius:10px;padding:12px 14px">
-        <div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:1px;margin-bottom:6px">EXPECTED COLUMNS (Taylor CAD Appraisal Roll)</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px">
-          <span style="font-family:var(--mono);font-size:10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:3px 8px;color:var(--text)">Prop_ID</span>
-          <span style="font-family:var(--mono);font-size:10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:3px 8px;color:var(--text)">Situs_Addr</span>
-          <span style="font-family:var(--mono);font-size:10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:3px 8px;color:var(--text)">Situs_City</span>
-          <span style="font-family:var(--mono);font-size:10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:3px 8px;color:var(--text)">Situs_Zip</span>
-          <span style="font-family:var(--mono);font-size:10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:3px 8px;color:var(--text)">Owner_Name</span>
-          <span style="font-family:var(--mono);font-size:10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:3px 8px;color:var(--text)">State_Code</span>
-          <span style="font-family:var(--mono);font-size:10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:3px 8px;color:var(--text)">Land_Value</span>
-          <span style="font-family:var(--mono);font-size:10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:3px 8px;color:var(--text)">Appraised_Value</span>
-          <span style="font-family:var(--mono);font-size:10px;background:rgba(249,166,30,.15);border:1px solid rgba(249,166,30,.3);border-radius:6px;padding:3px 8px;color:var(--accent)">+ any column layout</span>
-        </div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:8px">State Code A=Residential · B/C/D/E/F=Commercial · J/K/L=Industrial/Utility · Other=Special</div>
-      </div>
-
-      <!-- Generic column mapper (hidden by default) -->
-      <div id="generic-format-info" style="display:none;background:var(--elevated);border-radius:10px;padding:12px 14px">
-        <div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:1px;margin-bottom:10px">MAP YOUR COLUMNS</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="generic-col-map">
-          <div style="display:flex;flex-direction:column;gap:4px">
-            <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">ADDRESS COLUMN</div>
-            <input class="si" id="map-addr" placeholder="e.g. Address or Situs_Addr" style="font-size:12px;padding:7px 10px">
-          </div>
-          <div style="display:flex;flex-direction:column;gap:4px">
-            <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">OWNER COLUMN</div>
-            <input class="si" id="map-owner" placeholder="e.g. Owner_Name" style="font-size:12px;padding:7px 10px">
-          </div>
-          <div style="display:flex;flex-direction:column;gap:4px">
-            <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">CITY COLUMN</div>
-            <input class="si" id="map-city" placeholder="e.g. Situs_City" style="font-size:12px;padding:7px 10px">
-          </div>
-          <div style="display:flex;flex-direction:column;gap:4px">
-            <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">TYPE/CLASS COLUMN</div>
-            <input class="si" id="map-type" placeholder="e.g. State_Code or Use_Code" style="font-size:12px;padding:7px 10px">
-          </div>
-        </div>
-      </div>
-
-      <!-- Filters -->
-      <div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Import Filters</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
-            <input type="checkbox" id="filter-commercial" checked style="accent-color:var(--accent)"> Commercial
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
-            <input type="checkbox" id="filter-residential" style="accent-color:var(--accent)"> Residential
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
-            <input type="checkbox" id="filter-industrial" checked style="accent-color:var(--accent)"> Industrial/Utility
-          </label>
-          <div style="margin-left:auto;display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;color:var(--muted)">
-            City filter:
-            <input class="si" id="filter-city" placeholder="Abilene" value="Abilene" style="font-size:12px;padding:5px 10px;width:100px">
-          </div>
-        </div>
-      </div>
-
-      <!-- File drop zone -->
-      <div id="cad-dropzone" style="border:2px dashed var(--border);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:all .2s"
-        onclick="document.getElementById('cad-file-input').click()"
-        ondragover="event.preventDefault();this.style.borderColor='var(--accent)';this.style.background='rgba(249,166,30,.05)'"
-        ondragleave="this.style.borderColor='var(--border)';this.style.background=''"
-        ondrop="event.preventDefault();this.style.borderColor='var(--border)';this.style.background='';cadHandleDrop(event)">
-        <input type="file" id="cad-file-input" accept=".csv,.txt" style="display:none" onchange="cadReadFile(this)">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" style="margin:0 auto 10px;display:block"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <div style="font-family:var(--mono);font-size:12px;color:var(--muted)">DROP CSV FILE HERE or click to browse</div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);opacity:.6;margin-top:4px">Accepts .csv or .txt from Taylor CAD appraisal roll export</div>
-      </div>
-
-      <!-- Preview table -->
-      <div id="cad-preview" style="display:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.5px" id="cad-preview-count">0 records ready to import</div>
-          <div style="display:flex;gap:8px">
-            <button onclick="cadImportAll()" style="padding:8px 18px;background:var(--accent);border:none;border-radius:8px;color:#000;font-weight:700;font-size:13px;cursor:pointer" id="cad-import-btn">Import All</button>
-            <button onclick="cadClearPreview()" style="padding:8px 14px;background:var(--elevated);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;cursor:pointer">Clear</button>
-          </div>
-        </div>
-        <div style="overflow-x:auto;border-radius:10px;border:1px solid var(--border)">
-          <table style="width:100%;border-collapse:collapse;font-size:12px">
-            <thead>
-              <tr style="background:var(--elevated)">
-                <th style="padding:8px 12px;text-align:left;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;border-bottom:1px solid var(--border)">ADDRESS</th>
-                <th style="padding:8px 12px;text-align:left;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;border-bottom:1px solid var(--border)">CITY</th>
-                <th style="padding:8px 12px;text-align:left;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;border-bottom:1px solid var(--border)">OWNER</th>
-                <th style="padding:8px 12px;text-align:left;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;border-bottom:1px solid var(--border)">TYPE</th>
-                <th style="padding:8px 12px;text-align:left;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;border-bottom:1px solid var(--border)">CLASS</th>
-                <th style="padding:8px 12px;text-align:left;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;border-bottom:1px solid var(--border)">VALUE</th>
-              </tr>
-            </thead>
-            <tbody id="cad-preview-body" style="max-height:300px;overflow-y:auto"></tbody>
-          </table>
-        </div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:8px">Showing first 20 rows · All rows will be imported</div>
-      </div>
-
-      <!-- Progress -->
-      <div id="cad-progress" style="display:none">
-        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:6px" id="cad-progress-label">Importing...</div>
-        <div style="height:6px;background:var(--elevated);border-radius:3px;overflow:hidden">
-          <div id="cad-progress-bar" style="height:100%;background:var(--accent);border-radius:3px;width:0%;transition:width .3s"></div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
+<div class="page" id="page-import-page">
   <div style="max-width:680px">
     <div class="import-box">
       <div class="import-icon">📱→🖥️</div>
@@ -1361,7 +1191,6 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
       📧 <strong style="color:var(--accent)">Right Now</strong> — When you save a report on the app, it emails to backflowcheckpro@outlook.com. You paste the details here to see them on the dashboard.
     </div>
   </div>
-</div>
 </div>
 
 
@@ -1739,7 +1568,55 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
 
 <div class="page" id="page-state-reports-page"><div class="es"><div class="es-icon">&#x1F4CB;</div><div class="es-title">State Reports</div><div class="es-sub">Annual compliance report export coming soon.</div></div></div>
 
-<div class="page" id="page-users-page"><div class="es"><div class="es-icon">&#x1F465;</div><div class="es-title">Users</div><div class="es-sub">User management coming soon.</div></div></div>
+<div class="page" id="page-users-page" style="padding:0;display:none;height:calc(100vh - 56px);flex-direction:column;overflow:hidden">
+  <!-- Header bar -->
+  <div style="padding:18px 24px 14px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:12px">
+    <div style="flex:1">
+      <div style="font-family:var(--cond);font-size:24px;font-weight:900">Staff Access</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;letter-spacing:.5px">Manage city staff portal permissions</div>
+    </div>
+    <button onclick="staffMgmt_invite()" style="display:flex;align-items:center;gap:7px;padding:9px 16px;background:var(--accent);border:none;border-radius:10px;color:#000;font-weight:700;font-size:13px;cursor:pointer">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Staff
+    </button>
+    <button onclick="staffMgmt_load()" style="display:flex;align-items:center;gap:6px;padding:9px 13px;background:var(--elevated);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-size:12px;cursor:pointer">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-5.06"/></svg>
+      Refresh
+    </button>
+  </div>
+
+  <!-- Status message -->
+  <div id="staffMgmt-msg" style="display:none;margin:14px 24px 0;padding:10px 14px;border-radius:8px;font-family:var(--mono);font-size:12px"></div>
+
+  <!-- Staff list -->
+  <div style="flex:1;overflow-y:auto;padding:16px 24px 24px">
+    <!-- Empty/loading state -->
+    <div id="staffMgmt-loading" style="text-align:center;padding:48px;color:var(--muted)">
+      <div style="font-family:var(--mono);font-size:12px;letter-spacing:.5px">Loading staff accounts…</div>
+    </div>
+    <div id="staffMgmt-empty" style="display:none;text-align:center;padding:48px;color:var(--muted)">
+      <div style="font-size:32px;margin-bottom:12px;opacity:.3">👥</div>
+      <div style="font-family:var(--cond);font-size:20px;font-weight:900;color:var(--muted)">No Staff Accounts</div>
+      <div style="font-size:13px;margin-top:6px">Click "Add Staff" to invite a city staff member.</div>
+    </div>
+    <div id="staffMgmt-list" style="display:none;display:flex;flex-direction:column;gap:12px"></div>
+  </div>
+
+  <!-- Invite Modal -->
+  <div id="staffMgmt-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.65);align-items:center;justify-content:center">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:460px;padding:28px 28px 24px;margin:20px;box-shadow:0 20px 60px rgba(0,0,0,.6)">
+      <div style="font-family:var(--cond);font-size:20px;font-weight:900;margin-bottom:18px">Add Staff Member</div>
+      <label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px">City Email</label>
+      <input id="staffMgmt-inv-email" class="si" type="email" placeholder="name@abilenetx.gov" style="margin-bottom:14px">
+      <label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px">Full Name (optional)</label>
+      <input id="staffMgmt-inv-name" class="si" type="text" placeholder="Jane Smith" style="margin-bottom:18px">
+      <div style="display:flex;justify-content:flex-end;gap:8px">
+        <button onclick="staffMgmt_closeModal()" class="btn btn-gh">Cancel</button>
+        <button onclick="staffMgmt_saveInvite()" class="btn btn-ac">Create Account</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="page" id="page-comms-page" style="padding:0;display:none;height:calc(100vh - 56px);flex-direction:column;overflow:hidden">
 
@@ -1911,113 +1788,7 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
 
 <div class="page" id="page-settings-page"><div class="es"><div class="es-icon">&#x2699;&#xFE0F;</div><div class="es-title">Settings</div><div class="es-sub">System settings coming soon.</div></div></div>
 
-<div class="page" id="page-knowledge-page"><div class="es"><div class="es-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div><div class="es-title">Knowledge Base</div><div class="es-sub">Program documentation and compliance resources coming soon.</div></div>
-
-<!-- ── STAFF ACCESS PAGE ── -->
-<div class="page" id="page-staff-access-page" style="padding:0;overflow-y:auto;height:calc(100vh - 56px)">
-  <div style="padding:24px 28px 28px">
-
-    <!-- Header -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-      <div>
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          <div style="font-family:var(--cond);font-size:26px;font-weight:900;color:var(--text)">Staff Access</div>
-        </div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.5px">Control who can access the system and what they can see or do</div>
-      </div>
-      <button onclick="staffShowInviteModal()" style="display:flex;align-items:center;gap:8px;padding:10px 18px;background:var(--accent);border:none;border-radius:10px;color:#000;font-weight:700;font-size:13px;cursor:pointer">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Invite Staff Member
-      </button>
-    </div>
-
-    <!-- Tabs -->
-    <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px">
-      <button id="staff-tab-pending" onclick="staffSwitchTab('pending')" style="padding:10px 20px;background:none;border:none;border-bottom:2.5px solid var(--accent);color:var(--accent);font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.5px;cursor:pointer">
-        PENDING REQUESTS <span id="staff-pending-count" style="background:var(--red);color:#fff;border-radius:10px;padding:1px 7px;margin-left:6px;font-size:10px">0</span>
-      </button>
-      <button id="staff-tab-active" onclick="staffSwitchTab('active')" style="padding:10px 20px;background:none;border:none;border-bottom:2.5px solid transparent;color:var(--muted);font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.5px;cursor:pointer">
-        ACTIVE STAFF
-      </button>
-    </div>
-
-    <!-- Pending requests panel -->
-    <div id="staff-panel-pending">
-      <div id="staff-pending-list">
-        <div style="text-align:center;padding:40px;color:var(--muted);font-size:13px">No pending requests</div>
-      </div>
-    </div>
-
-    <!-- Active staff panel -->
-    <div id="staff-panel-active" style="display:none">
-      <div id="staff-active-list">
-        <div style="text-align:center;padding:40px;color:var(--muted);font-size:13px">No active staff members</div>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- ── STAFF PERMISSIONS MODAL ── -->
-<div id="staffPermModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:2000;align-items:center;justify-content:center">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;width:580px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.6)">
-    <div style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-      <div style="font-family:var(--cond);font-size:20px;font-weight:900" id="staffPermTitle">Staff Permissions</div>
-      <button onclick="document.getElementById('staffPermModal').style.display='none'" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px">✕</button>
-    </div>
-    <div style="padding:20px 24px">
-
-      <!-- Write access toggle -->
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--elevated);border-radius:12px;margin-bottom:20px;border:1.5px solid var(--border)">
-        <div>
-          <div style="font-size:14px;font-weight:700;color:var(--text)">Write Access</div>
-          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px">Allow this staff member to edit, add, and delete records</div>
-        </div>
-        <label class="ios-toggle">
-          <input type="checkbox" id="perm-write" onchange="staffUpdatePermPreview()">
-          <span class="ios-slider"></span>
-        </label>
-      </div>
-
-      <!-- Nav sections -->
-      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">Sidebar Access — toggle sections on/off</div>
-      <div id="staffPermSections"></div>
-
-      <div style="display:flex;gap:10px;margin-top:20px">
-        <button onclick="staffSavePerms()" style="flex:1;padding:12px;background:var(--accent);border:none;border-radius:10px;color:#000;font-weight:700;font-size:14px;cursor:pointer">Save Permissions</button>
-        <button onclick="document.getElementById('staffPermModal').style.display='none'" style="flex:1;padding:12px;background:var(--elevated);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-size:14px;cursor:pointer">Cancel</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ── INVITE STAFF MODAL ── -->
-<div id="staffInviteModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:2000;align-items:center;justify-content:center">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;width:440px;box-shadow:0 20px 60px rgba(0,0,0,.6)">
-    <div style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-      <div style="font-family:var(--cond);font-size:20px;font-weight:900">Invite Staff Member</div>
-      <button onclick="document.getElementById('staffInviteModal').style.display='none'" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px">✕</button>
-    </div>
-    <div style="padding:20px 24px;display:flex;flex-direction:column;gap:14px">
-      <div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:6px">FULL NAME</div>
-        <input class="si" id="invite-name" placeholder="Jane Smith" style="width:100%;box-sizing:border-box">
-      </div>
-      <div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:6px">CITY EMAIL</div>
-        <input class="si" id="invite-email" type="email" placeholder="jsmith@abilenetx.gov" style="width:100%;box-sizing:border-box">
-      </div>
-      <div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:6px">DEPARTMENT / TITLE</div>
-        <input class="si" id="invite-dept" placeholder="Water Utilities" style="width:100%;box-sizing:border-box">
-      </div>
-      <button onclick="staffSendInvite()" style="padding:12px;background:var(--accent);border:none;border-radius:10px;color:#000;font-weight:700;font-size:14px;cursor:pointer;margin-top:4px">Send Invitation</button>
-    </div>
-  </div>
-</div>
-
-</div>
+<div class="page" id="page-knowledge-page"><div class="es"><div class="es-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div><div class="es-title">Knowledge Base</div><div class="es-sub">Program documentation and compliance resources coming soon.</div></div></div>
 
 <!-- Add Location Modal -->
 <div id="locAddModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;align-items:center;justify-content:center">
@@ -2545,8 +2316,8 @@ function nav(id, btn) {
   if(id==='providers-page'){ spExitFullscreen(); spInit(); }
   if(id==='comms-page') commsInit();
   if(id==='notif-page') setTimeout(notifInit, 100);
-  if(id==='staff-access-page') staffInit();
   if(id==='assemblies-page'){ asmExitFullscreen(); asmInit(); }
+  if(id==='users-page') staffMgmt_load();
 }
 
 // Dashboard theme handled below
@@ -7037,534 +6808,245 @@ async function generateReportPDF(r) {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-//  STAFF ACCESS MANAGEMENT
-// ══════════════════════════════════════════════════════════════════════════════
-
-const STAFF_NAV_ITEMS = [
-  {page:'dashboard',         label:'Dashboard',     section:'Main'},
-  {page:'locations-page',    label:'Locations',     section:'Main'},
-  {page:'contacts-page',     label:'Contacts',      section:'Main'},
-  {page:'providers-page',    label:'Testers',       section:'Main'},
-  {page:'assemblies-page',   label:'Assemblies',    section:'Main'},
-  {page:'backflow-page',     label:'Test Reports',  section:'Reports'},
-  {page:'csi-page',          label:'Surveys',       section:'Reports'},
-  {page:'inspections-page',  label:'Reporting',     section:'Reports'},
-  {page:'state-reports-page',label:'State Reports', section:'Reports'},
-  {page:'device-map-page',   label:'Device Map',    section:'Maps'},
-  {page:'city-risk-page',    label:'City Risk',     section:'Maps'},
-  {page:'users-page',        label:'Users',         section:'Admin'},
-  {page:'comms-page',        label:'Communications',section:'Admin'},
-  {page:'notif-page',        label:'Notifications', section:'Admin'},
-  {page:'settings-page',     label:'Settings',      section:'Admin'},
-  {page:'knowledge-page',    label:'Knowledge Base',section:'Admin'},
-  {page:'search-page',       label:'Search All',    section:'Admin'},
-  {page:'import-page',       label:'Add Report',    section:'Admin'},
+// ── STAFF ACCESS MANAGEMENT ────────────────────────────────────────────────────
+const STAFF_PAGE_OPTIONS = [
+  {id:'dashboard',        label:'Dashboard'},
+  {id:'locations-page',   label:'Locations'},
+  {id:'contacts-page',    label:'Contacts'},
+  {id:'assemblies-page',  label:'Assemblies'},
+  {id:'backflow-page',    label:'Test Reports'},
+  {id:'device-map-page',  label:'Device Map'},
+  {id:'city-risk-page',   label:'City Risk'},
+  {id:'notif-page',       label:'Notifications'},
 ];
 
-// Staff stored in localStorage (key: 'bcp_staff')
-// Each entry: { id, name, email, dept, status:'pending'|'active'|'revoked', write:bool, pages:[] }
+let staffMgmt_records = [];
 
-function staffLoad() {
-  try { return JSON.parse(localStorage.getItem('bcp_staff')||'[]'); } catch(e) { return []; }
-}
-function staffSave(data) {
-  try { localStorage.setItem('bcp_staff', JSON.stringify(data)); } catch(e) {}
-}
+async function staffMgmt_load() {
+  const loading = document.getElementById('staffMgmt-loading');
+  const empty   = document.getElementById('staffMgmt-empty');
+  const list    = document.getElementById('staffMgmt-list');
+  if(loading) loading.style.display='block';
+  if(empty)   empty.style.display='none';
+  if(list)    list.style.display='none';
+  staffMgmt_hideMsg();
 
-function staffInit() {
-  staffRenderPending();
-  staffRenderActive();
-  staffUpdateBadge();
-  staffSwitchTab('pending');
-  // Wire nav to Staff Access page
-  if(typeof nav === 'function') {
-    const btn = document.getElementById('nb-staff-access');
-    if(btn) btn.onclick = function(){ nav('staff-access-page', btn); };
+  try {
+    const headers = await getHeaders();
+    const res = await fetch(SUPA_URL+'/rest/v1/staff_access?select=*&order=created_at.desc', {headers});
+    if(!res.ok) throw new Error('HTTP '+res.status+': '+await res.text());
+    staffMgmt_records = await res.json();
+  } catch(e) {
+    // Table may not exist yet — start with empty
+    staffMgmt_records = [];
+    staffMgmt_showMsg('Could not load from Supabase (table may not exist yet). '+ e.message, 'warn');
   }
+
+  if(loading) loading.style.display='none';
+  if(!staffMgmt_records.length) {
+    if(empty) empty.style.display='block';
+    return;
+  }
+  if(list) { list.style.display='flex'; list.innerHTML = staffMgmt_records.map(staffMgmt_renderCard).join(''); }
 }
 
-function staffUpdateBadge() {
-  const staff = staffLoad();
-  const pending = staff.filter(s=>s.status==='pending').length;
-  const badge = document.getElementById('staff-pending-badge');
-  const count = document.getElementById('staff-pending-count');
-  if(badge){ badge.style.display = pending>0?'flex':'none'; badge.textContent = pending; }
-  if(count){ count.textContent = pending; count.style.display = pending>0?'inline':'none'; }
-}
+function staffMgmt_renderCard(r) {
+  const pages   = Array.isArray(r.pages) ? r.pages : [];
+  const isWrite = r.write_access === true;
+  const isPending = r.status === 'pending';
+  const isDisabled = r.status === 'disabled';
 
-function staffSwitchTab(tab) {
-  ['pending','active'].forEach(function(t){
-    const btn = document.getElementById('staff-tab-'+t);
-    const panel = document.getElementById('staff-panel-'+t);
-    if(btn){ btn.style.borderBottomColor = t===tab?'var(--accent)':'transparent'; btn.style.color = t===tab?'var(--accent)':'var(--muted)'; }
-    if(panel) panel.style.display = t===tab?'block':'none';
-  });
-}
+  const statusColor = isPending ? 'var(--yellow)' : isDisabled ? 'var(--red)' : 'var(--green)';
+  const statusLabel = isPending ? 'PENDING' : isDisabled ? 'DISABLED' : 'ACTIVE';
+  const statusBg    = isPending ? 'rgba(240,192,64,.12)' : isDisabled ? 'rgba(224,82,82,.12)' : 'rgba(61,184,112,.12)';
+  const statusBrd   = isPending ? 'rgba(240,192,64,.3)' : isDisabled ? 'rgba(224,82,82,.3)' : 'rgba(61,184,112,.3)';
 
-function staffRenderPending() {
-  const list = document.getElementById('staff-pending-list');
-  if(!list) return;
-  const pending = staffLoad().filter(s=>s.status==='pending');
-  if(!pending.length){ list.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px">No pending access requests</div>'; return; }
-  list.innerHTML = pending.map(function(s){
-    return '<div class="staff-access-row">' +
-      '<div class="staff-avatar">'+s.name.charAt(0).toUpperCase()+'</div>' +
-      '<div class="staff-info">' +
-        '<div class="staff-name">'+sanitize(s.name)+'</div>' +
-        '<div class="staff-email">'+sanitize(s.email)+' · '+sanitize(s.dept||'')+'</div>' +
-      '</div>' +
-      '<div style="display:flex;gap:8px">' +
-        '<button onclick="staffApprove(\''+s.id+'\')" style="padding:7px 16px;background:rgba(61,184,112,.12);border:1.5px solid rgba(61,184,112,.4);border-radius:8px;color:var(--green);font-weight:700;font-size:12px;cursor:pointer">Approve</button>' +
-        '<button onclick="staffOpenPerms(\''+s.id+'\')" style="padding:7px 14px;background:var(--elevated);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;cursor:pointer">Set Permissions</button>' +
-        '<button onclick="staffDeny(\''+s.id+'\')" style="padding:7px 14px;background:rgba(224,82,82,.1);border:1.5px solid rgba(224,82,82,.3);border-radius:8px;color:var(--red);font-size:12px;cursor:pointer">Deny</button>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-}
-
-function staffRenderActive() {
-  const list = document.getElementById('staff-active-list');
-  if(!list) return;
-  const active = staffLoad().filter(s=>s.status==='active');
-  if(!active.length){ list.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px">No active staff members</div>'; return; }
-  list.innerHTML = active.map(function(s){
-    const writeOn = s.write ? 'on' : 'off';
-    const pageCount = (s.pages||[]).length;
-    return '<div class="staff-access-row">' +
-      '<div class="staff-avatar" style="background:linear-gradient(135deg,#6495ed,#4a7fd4)">'+s.name.charAt(0).toUpperCase()+'</div>' +
-      '<div class="staff-info">' +
-        '<div class="staff-name">'+sanitize(s.name)+'</div>' +
-        '<div class="staff-email">'+sanitize(s.email)+' · '+sanitize(s.dept||'')+'</div>' +
-      '</div>' +
-      '<div class="staff-toggles">' +
-        '<span class="toggle-pill '+writeOn+'" onclick="staffToggleWrite(\''+s.id+'\')">' +
-          (s.write?'✏ Write On':'👁 Read Only') +
-        '</span>' +
-        '<span class="toggle-pill on" onclick="staffOpenPerms(\''+s.id+'\')" style="cursor:pointer">'+
-          '🔧 '+pageCount+' pages' +
-        '</span>' +
-        '<button onclick="staffOpenPerms(\''+s.id+'\')" style="padding:5px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:11px;cursor:pointer">Edit Permissions</button>' +
-        '<button onclick="staffRevoke(\''+s.id+'\')" style="padding:5px 12px;background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.25);border-radius:8px;color:var(--red);font-size:11px;cursor:pointer">Revoke</button>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-}
-
-let _staffPermId = null;
-
-function staffOpenPerms(id) {
-  _staffPermId = id;
-  const staff = staffLoad();
-  const s = staff.find(function(x){return x.id===id;});
-  if(!s) return;
-  const title = document.getElementById('staffPermTitle');
-  if(title) title.textContent = 'Permissions — '+s.name;
-  const writeEl = document.getElementById('perm-write');
-  if(writeEl) writeEl.checked = s.write||false;
-
-  // Build section toggles
-  const sections = {};
-  STAFF_NAV_ITEMS.forEach(function(item){ if(!sections[item.section]) sections[item.section]=[]; sections[item.section].push(item); });
-  const container = document.getElementById('staffPermSections');
-  if(!container) return;
-
-  const enabledPages = s.pages||STAFF_NAV_ITEMS.map(function(i){return i.page;});
-  container.innerHTML = Object.keys(sections).map(function(sec){
-    const items = sections[sec];
-    const allOn = items.every(function(i){return enabledPages.includes(i.page);});
-    return '<div style="margin-bottom:16px">' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">' +
-        '<div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:1px;font-weight:700">'+sec.toUpperCase()+'</div>' +
-        '<label class="ios-toggle"><input type="checkbox" data-section="'+sec+'" '+(allOn?'checked':'')+' onchange="staffToggleSection(this)"><span class="ios-slider"></span></label>' +
-      '</div>' +
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">' +
-        items.map(function(item){
-          const on = enabledPages.includes(item.page);
-          return '<div class="perm-section-toggle">' +
-            '<span class="perm-section-label">'+item.label+'</span>' +
-            '<label class="ios-toggle"><input type="checkbox" data-page="'+item.page+'" '+(on?'checked':'')+' onchange="staffUpdatePermPreview()"><span class="ios-slider"></span></label>' +
-          '</div>';
-        }).join('') +
-      '</div>' +
-    '</div>';
+  const pageToggles = STAFF_PAGE_OPTIONS.map(pg => {
+    const on = pages.includes(pg.id);
+    return `<label style="display:flex;align-items:center;gap:7px;cursor:pointer;padding:5px 0;border-bottom:1px solid var(--border)">
+      <div class="sm-toggle ${on?'on':''}" onclick="staffMgmt_togglePage('${r.id}','${pg.id}',this)" title="${on?'Click to hide':'Click to show'}"></div>
+      <span style="font-size:13px;color:${on?'var(--text)':'var(--muted)'}">${pg.label}</span>
+    </label>`;
   }).join('');
 
-  const modal = document.getElementById('staffPermModal');
-  if(modal){ modal.style.display='flex'; }
+  return `<div id="staffCard-${r.id}" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px">
+    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px">
+      <div style="width:42px;height:42px;border-radius:50%;background:var(--elevated);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--cond);font-weight:900;font-size:17px;color:var(--accent)">
+        ${(r.name||r.email||'?').substring(0,1).toUpperCase()}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:var(--cond);font-size:17px;font-weight:900;color:var(--text)">${r.name||'—'}</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.email||''}</div>
+      </div>
+      <span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${statusColor};background:${statusBg};border:1px solid ${statusBrd};padding:3px 9px;border-radius:20px;white-space:nowrap">${statusLabel}</span>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <!-- Left: Access level + status controls -->
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">Access Level</div>
+
+        <!-- Read / Write toggle -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--elevated);border-radius:8px;margin-bottom:8px">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text)">${isWrite?'Write Access':'Read Only'}</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px">${isWrite?'Can submit & edit data':'View only — no changes'}</div>
+          </div>
+          <div class="sm-toggle ${isWrite?'on':''}" onclick="staffMgmt_toggleWrite('${r.id}',this)" title="Toggle read/write"></div>
+        </div>
+
+        <!-- Status buttons -->
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin:12px 0 8px">Account Status</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button onclick="staffMgmt_setStatus('${r.id}','active')" style="flex:1;padding:7px 6px;border-radius:7px;border:1px solid ${!isPending&&!isDisabled?'var(--green)':'var(--border)'};background:${!isPending&&!isDisabled?'rgba(61,184,112,.12)':'var(--elevated)'};color:${!isPending&&!isDisabled?'var(--green)':'var(--muted)'};font-family:var(--mono);font-size:10px;cursor:pointer;font-weight:600">Active</button>
+          <button onclick="staffMgmt_setStatus('${r.id}','pending')" style="flex:1;padding:7px 6px;border-radius:7px;border:1px solid ${isPending?'var(--yellow)':'var(--border)'};background:${isPending?'rgba(240,192,64,.12)':'var(--elevated)'};color:${isPending?'var(--yellow)':'var(--muted)'};font-family:var(--mono);font-size:10px;cursor:pointer;font-weight:600">Pending</button>
+          <button onclick="staffMgmt_setStatus('${r.id}','disabled')" style="flex:1;padding:7px 6px;border-radius:7px;border:1px solid ${isDisabled?'var(--red)':'var(--border)'};background:${isDisabled?'rgba(224,82,82,.12)':'var(--elevated)'};color:${isDisabled?'var(--red)':'var(--muted)'};font-family:var(--mono);font-size:10px;cursor:pointer;font-weight:600">Disable</button>
+        </div>
+      </div>
+
+      <!-- Right: Page toggles -->
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">
+          Visible Pages
+          <span style="margin-left:8px;color:var(--accent)">${pages.length}/${STAFF_PAGE_OPTIONS.length}</span>
+        </div>
+        <div style="display:flex;flex-direction:column">${pageToggles}</div>
+        <div style="display:flex;gap:6px;margin-top:10px">
+          <button onclick="staffMgmt_allPages('${r.id}',true)" style="flex:1;padding:5px;border-radius:6px;border:1px solid var(--border);background:var(--elevated);color:var(--muted);font-family:var(--mono);font-size:10px;cursor:pointer">All</button>
+          <button onclick="staffMgmt_allPages('${r.id}',false)" style="flex:1;padding:5px;border-radius:6px;border:1px solid var(--border);background:var(--elevated);color:var(--muted);font-family:var(--mono);font-size:10px;cursor:pointer">None</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
 }
 
-function staffToggleSection(checkbox) {
-  const sec = checkbox.getAttribute('data-section');
-  const checked = checkbox.checked;
-  document.querySelectorAll('#staffPermSections input[data-page]').forEach(function(cb){
-    const item = STAFF_NAV_ITEMS.find(function(i){return i.page===cb.getAttribute('data-page');});
-    if(item && item.section===sec) cb.checked = checked;
-  });
+// Toggle a single page on/off
+async function staffMgmt_togglePage(id, pageId, btn) {
+  const rec = staffMgmt_records.find(r=>r.id===id);
+  if(!rec) return;
+  const pages = Array.isArray(rec.pages) ? [...rec.pages] : [];
+  const idx = pages.indexOf(pageId);
+  if(idx>=0) pages.splice(idx,1); else pages.push(pageId);
+  rec.pages = pages;
+  await staffMgmt_patch(id, {pages});
+  staffMgmt_refreshCard(id);
 }
 
-function staffUpdatePermPreview() {}
-
-function staffSavePerms() {
-  if(!_staffPermId) return;
-  const staff = staffLoad();
-  const s = staff.find(function(x){return x.id===_staffPermId;});
-  if(!s) return;
-  s.write = document.getElementById('perm-write').checked;
-  s.pages = [];
-  document.querySelectorAll('#staffPermSections input[data-page]:checked').forEach(function(cb){
-    s.pages.push(cb.getAttribute('data-page'));
-  });
-  // Auto-approve if was pending
-  if(s.status==='pending') s.status='active';
-  staffSave(staff);
-  document.getElementById('staffPermModal').style.display='none';
-  staffRenderPending();
-  staffRenderActive();
-  staffUpdateBadge();
-  toast('Permissions saved for '+s.name,'success');
+// Toggle write access
+async function staffMgmt_toggleWrite(id, btn) {
+  const rec = staffMgmt_records.find(r=>r.id===id);
+  if(!rec) return;
+  rec.write_access = !rec.write_access;
+  await staffMgmt_patch(id, {write_access: rec.write_access});
+  staffMgmt_refreshCard(id);
 }
 
-function staffApprove(id) {
-  const staff = staffLoad();
-  const s = staff.find(function(x){return x.id===id;});
-  if(!s) return;
-  // Open perms modal so admin sets permissions before approving
-  staffOpenPerms(id);
+// Set active/pending/disabled
+async function staffMgmt_setStatus(id, status) {
+  const rec = staffMgmt_records.find(r=>r.id===id);
+  if(!rec) return;
+  rec.status = status;
+  await staffMgmt_patch(id, {status});
+  staffMgmt_refreshCard(id);
 }
 
-function staffDeny(id) {
-  const staff = staffLoad().filter(function(s){return s.id!==id;});
-  staffSave(staff);
-  staffRenderPending();
-  staffUpdateBadge();
-  toast('Access request denied','info');
+// Grant/revoke all pages
+async function staffMgmt_allPages(id, grantAll) {
+  const rec = staffMgmt_records.find(r=>r.id===id);
+  if(!rec) return;
+  rec.pages = grantAll ? STAFF_PAGE_OPTIONS.map(p=>p.id) : [];
+  await staffMgmt_patch(id, {pages: rec.pages});
+  staffMgmt_refreshCard(id);
 }
 
-function staffRevoke(id) {
-  const staff = staffLoad();
-  const s = staff.find(function(x){return x.id===id;});
-  if(s){ s.status='revoked'; staffSave(staff); }
-  staffRenderActive();
-  staffUpdateBadge();
-  toast('Access revoked','info');
+// Re-render a single card in place
+function staffMgmt_refreshCard(id) {
+  const rec = staffMgmt_records.find(r=>r.id===id);
+  if(!rec) return;
+  const card = document.getElementById('staffCard-'+id);
+  if(card) card.outerHTML = staffMgmt_renderCard(rec);
 }
 
-function staffToggleWrite(id) {
-  const staff = staffLoad();
-  const s = staff.find(function(x){return x.id===id;});
-  if(!s) return;
-  s.write = !s.write;
-  staffSave(staff);
-  staffRenderActive();
-  toast((s.write?'Write access enabled':'Read-only mode enabled')+' for '+s.name,'success');
-}
-
-function staffShowInviteModal() {
-  const modal = document.getElementById('staffInviteModal');
-  if(modal){ modal.style.display='flex'; ['invite-name','invite-email','invite-dept'].forEach(function(id){const el=document.getElementById(id);if(el)el.value='';}); }
-}
-
-function staffSendInvite() {
-  const name = (document.getElementById('invite-name')||{}).value||'';
-  const email = (document.getElementById('invite-email')||{}).value||'';
-  const dept  = (document.getElementById('invite-dept')||{}).value||'';
-  if(!name||!email){ toast('Name and email required','error'); return; }
-  const staff = staffLoad();
-  if(staff.find(function(s){return s.email===email;})){ toast('This email already has access','error'); return; }
-  // Default permissions: all pages visible, write off
-  const newStaff = {
-    id: 'staff_'+Date.now(),
-    name, email, dept,
-    status: 'active',
-    write: false,
-    pages: STAFF_NAV_ITEMS.map(function(i){return i.page;})
-  };
-  staff.push(newStaff);
-  staffSave(staff);
-  document.getElementById('staffInviteModal').style.display='none';
-  staffRenderActive();
-  staffUpdateBadge();
-  staffSwitchTab('active');
-  toast('Staff member added: '+name,'success');
-}
-
-// Hook staffInit into the nav system
-const _origNav = nav;
-function nav(id, btn) {
-  _origNav(id, btn);
-  if(id==='staff-access-page') staffInit();
-}
-
-
-// ══════════════════════════════════════════════════════════════════════════════
-//  TAYLOR CAD CSV IMPORTER
-// ══════════════════════════════════════════════════════════════════════════════
-
-// Texas CAD State Use Codes → property type
-const CAD_TYPE_MAP = {
-  // Residential
-  'A': 'Residential', 'A1': 'Residential', 'A2': 'Residential',
-  'B': 'Residential', 'B1': 'Residential', 'B2': 'Residential',
-  // Commercial
-  'C': 'Commercial', 'C1': 'Commercial', 'C2': 'Commercial', 'C3': 'Commercial',
-  'D': 'Commercial', 'D1': 'Commercial',
-  'E': 'Commercial', 'F': 'Commercial', 'F1': 'Commercial', 'F2': 'Commercial',
-  // Industrial / Utility
-  'J': 'Industrial', 'J1': 'Industrial', 'J2': 'Industrial', 'J3': 'Industrial',
-  'J4': 'Industrial', 'J5': 'Industrial', 'J6': 'Industrial',
-  'K': 'Commercial', 'L': 'Commercial', 'L1': 'Commercial', 'L2': 'Commercial',
-  // Special
-  'M': 'Residential', 'O': 'Commercial', 'S': 'Commercial',
-  'X': 'Exempt', 'G': 'Industrial',
-};
-
-function cadTypeFromCode(code) {
-  if (!code) return 'Unknown';
-  const c = String(code).trim().toUpperCase();
-  // Try exact match first
-  if (CAD_TYPE_MAP[c]) return CAD_TYPE_MAP[c];
-  // Try first char
-  const first = c.charAt(0);
-  return CAD_TYPE_MAP[first] || 'Unknown';
-}
-
-// Hazard level based on property type (for backflow program)
-function cadHazardFromType(type) {
-  if (type === 'Industrial') return 'High';
-  if (type === 'Commercial') return 'Medium';
-  return 'Low';
-}
-
-let cadParsedRows = [];
-let cadFormat = 'cad-csv';
-
-function cadFormatChange(val) {
-  cadFormat = val;
-  document.getElementById('cad-format-info').style.display = val === 'cad-csv' ? 'block' : 'none';
-  document.getElementById('generic-format-info').style.display = val === 'generic-csv' ? 'block' : 'none';
-}
-
-function cadHandleDrop(e) {
-  const file = e.dataTransfer.files[0];
-  if (file) cadParseFile(file);
-}
-
-function cadReadFile(input) {
-  if (input.files[0]) cadParseFile(input.files[0]);
-}
-
-function cadParseFile(file) {
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      cadProcessCSV(e.target.result);
-    } catch(err) {
-      toast('Error reading file: ' + err.message, 'error');
-    }
-  };
-  reader.readAsText(file);
-}
-
-function cadProcessCSV(text) {
-  // Detect delimiter
-  const firstLine = text.split('\n')[0];
-  const delim = firstLine.includes('\t') ? '\t' : ',';
-
-  // Parse CSV respecting quoted fields
-  function parseCSVLine(line) {
-    const result = [];
-    let cur = '', inQ = false;
-    for (let i = 0; i < line.length; i++) {
-      const c = line[i];
-      if (c === '"') { inQ = !inQ; }
-      else if (c === delim && !inQ) { result.push(cur.trim()); cur = ''; }
-      else { cur += c; }
-    }
-    result.push(cur.trim());
-    return result;
-  }
-
-  const lines = text.split('\n').filter(function(l) { return l.trim(); });
-  if (lines.length < 2) { toast('File appears empty', 'error'); return; }
-
-  const headers = parseCSVLine(lines[0]).map(function(h) { return h.replace(/"/g,'').trim(); });
-
-  // Auto-detect column names (Taylor CAD uses various layouts)
-  function findCol(candidates) {
-    for (const c of candidates) {
-      const idx = headers.findIndex(function(h) { return h.toLowerCase().includes(c.toLowerCase()); });
-      if (idx >= 0) return idx;
-    }
-    return -1;
-  }
-
-  let addrCol, cityCol, zipCol, ownerCol, typeCol, valueCol, idCol;
-
-  if (cadFormat === 'cad-csv') {
-    addrCol  = findCol(['situs_addr','situs addr','prop_addr','property_address','address','addr']);
-    cityCol  = findCol(['situs_city','situs city','city']);
-    zipCol   = findCol(['situs_zip','zip','postal']);
-    ownerCol = findCol(['owner_name','owner name','owner','dba','taxpayer']);
-    typeCol  = findCol(['state_code','state code','use_code','use code','prop_type','class_cd','class code','category']);
-    valueCol = findCol(['appraised_value','appraised value','market_value','total_value','value']);
-    idCol    = findCol(['prop_id','account','parcel_id','account_num']);
-  } else {
-    // Generic: use user-mapped columns
-    const mapAddr  = (document.getElementById('map-addr')||{}).value||'';
-    const mapOwner = (document.getElementById('map-owner')||{}).value||'';
-    const mapCity  = (document.getElementById('map-city')||{}).value||'';
-    const mapType  = (document.getElementById('map-type')||{}).value||'';
-    addrCol  = headers.indexOf(mapAddr);
-    ownerCol = headers.indexOf(mapOwner);
-    cityCol  = headers.indexOf(mapCity);
-    typeCol  = headers.indexOf(mapType);
-  }
-
-  if (addrCol < 0) { toast('Could not find address column. Try Generic CSV and map columns manually.', 'error'); return; }
-
-  // Read filters
-  const wantCommercial   = document.getElementById('filter-commercial').checked;
-  const wantResidential  = document.getElementById('filter-residential').checked;
-  const wantIndustrial   = document.getElementById('filter-industrial').checked;
-  const cityFilter       = (document.getElementById('filter-city').value||'').trim().toLowerCase();
-
-  const rows = [];
-  for (let i = 1; i < lines.length; i++) {
-    const cols = parseCSVLine(lines[i]);
-    if (cols.length < 2) continue;
-
-    const addr  = addrCol >= 0  ? cols[addrCol]||''  : '';
-    const city  = cityCol >= 0  ? cols[cityCol]||''  : '';
-    const zip   = zipCol >= 0   ? cols[zipCol]||''   : '';
-    const owner = ownerCol >= 0 ? cols[ownerCol]||'' : '';
-    const code  = typeCol >= 0  ? cols[typeCol]||''  : '';
-    const value = valueCol >= 0 ? cols[valueCol]||'' : '';
-    const propId= idCol >= 0    ? cols[idCol]||''    : '';
-
-    if (!addr || addr.length < 3) continue;
-
-    // City filter
-    if (cityFilter && !city.toLowerCase().includes(cityFilter)) continue;
-
-    const propType = cadTypeFromCode(code);
-
-    // Type filter
-    if (propType === 'Residential'  && !wantResidential)  continue;
-    if (propType === 'Commercial'   && !wantCommercial)    continue;
-    if (propType === 'Industrial'   && !wantIndustrial)    continue;
-    if (propType === 'Exempt') continue; // skip exempt properties
-
-    const fullAddr = addr.trim() + (city ? ', ' + city.trim() : '') + (zip ? ' ' + zip.trim() : '');
-
-    rows.push({
-      propId, addr: fullAddr, city, zip, owner,
-      typeCode: code, propType, value,
-      hazard: cadHazardFromType(propType)
+// PATCH to Supabase
+async function staffMgmt_patch(id, fields) {
+  try {
+    const headers = await getHeaders();
+    headers['Content-Type'] = 'application/json';
+    headers['Prefer'] = 'return=minimal';
+    const res = await fetch(SUPA_URL+'/rest/v1/staff_access?id=eq.'+encodeURIComponent(id), {
+      method:'PATCH', headers, body: JSON.stringify(fields)
     });
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    if(typeof toast==='function') toast('Staff access updated','success');
+  } catch(e) {
+    staffMgmt_showMsg('Save failed: '+e.message, 'error');
   }
-
-  cadParsedRows = rows;
-  cadShowPreview(rows);
 }
 
-function cadShowPreview(rows) {
-  if (!rows.length) { toast('No matching records found after filtering', 'error'); return; }
-  const preview = document.getElementById('cad-preview');
-  const countEl = document.getElementById('cad-preview-count');
-  const body    = document.getElementById('cad-preview-body');
-  if (!preview || !body) return;
-
-  const typeColors = {
-    'Commercial': '#f0c040', 'Residential': '#6495ed',
-    'Industrial': '#e05252', 'Unknown': '#6b7280'
-  };
-
-  countEl.textContent = rows.length.toLocaleString() + ' records ready to import';
-  const show = rows.slice(0, 20);
-  body.innerHTML = show.map(function(r) {
-    const tc = typeColors[r.propType] || '#6b7280';
-    return '<tr style="border-bottom:1px solid var(--border)">' +
-      '<td style="padding:8px 12px;color:var(--text)">' + sanitize(r.addr) + '</td>' +
-      '<td style="padding:8px 12px;color:var(--muted);font-family:var(--mono);font-size:11px">' + sanitize(r.city) + '</td>' +
-      '<td style="padding:8px 12px;color:var(--muted);font-size:12px">' + sanitize(r.owner) + '</td>' +
-      '<td style="padding:8px 12px;font-family:var(--mono);font-size:10px;color:var(--muted)">' + sanitize(r.typeCode) + '</td>' +
-      '<td style="padding:8px 12px"><span style="background:' + tc + '22;border:1px solid ' + tc + '44;border-radius:6px;padding:2px 8px;font-family:var(--mono);font-size:10px;color:' + tc + '">' + r.propType + '</span></td>' +
-      '<td style="padding:8px 12px;font-family:var(--mono);font-size:11px;color:var(--muted)">' + (r.value ? '$' + Number(r.value.replace(/[^0-9.]/g,'')).toLocaleString() : '—') + '</td>' +
-    '</tr>';
-  }).join('');
-
-  preview.style.display = 'block';
-  document.getElementById('cad-dropzone').style.borderColor = 'var(--green)';
+// Invite modal
+function staffMgmt_invite() {
+  const modal = document.getElementById('staffMgmt-modal');
+  if(modal) { modal.style.display='flex'; document.getElementById('staffMgmt-inv-email').value=''; document.getElementById('staffMgmt-inv-name').value=''; document.getElementById('staffMgmt-inv-email').focus(); }
+}
+function staffMgmt_closeModal() {
+  const modal = document.getElementById('staffMgmt-modal');
+  if(modal) modal.style.display='none';
 }
 
-function cadClearPreview() {
-  cadParsedRows = [];
-  document.getElementById('cad-preview').style.display = 'none';
-  document.getElementById('cad-dropzone').style.borderColor = 'var(--border)';
-  document.getElementById('cad-file-input').value = '';
-}
-
-async function cadImportAll() {
-  if (!cadParsedRows.length) { toast('No records to import', 'error'); return; }
-  const btn = document.getElementById('cad-import-btn');
-  if (btn) { btn.textContent = 'Importing…'; btn.disabled = true; }
-
-  const progress = document.getElementById('cad-progress');
-  const progressBar = document.getElementById('cad-progress-bar');
-  const progressLabel = document.getElementById('cad-progress-label');
-  if (progress) progress.style.display = 'block';
-
-  let imported = 0, skipped = 0, errors = 0;
-  const total = cadParsedRows.length;
-
-  // Build Supabase upsert payload
-  // Map to locations table schema
-  const payload = cadParsedRows.map(function(r) {
-    return {
-      address: r.addr,
-      city: r.city || 'Abilene',
-      zip: r.zip,
-      owner: r.owner,
-      property_type: r.propType,
-      hazard_type: r.hazard,
-      cad_id: r.propId || null,
-      compliance: 'Unknown',
-      source: 'Taylor CAD Import ' + new Date().toISOString().substring(0,10),
-    };
-  });
-
-  // Batch upsert in chunks of 100
-  const CHUNK = 100;
-  for (let i = 0; i < payload.length; i += CHUNK) {
-    const chunk = payload.slice(i, i + CHUNK);
-    try {
-      const headers = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' };
-      const res = await fetch(SUPA_URL + '/rest/v1/locations', {
-        method: 'POST', headers, body: JSON.stringify(chunk)
-      });
-      if (res.ok) { imported += chunk.length; }
-      else { const err = await res.text(); console.warn('Chunk error:', err); errors += chunk.length; }
-    } catch(e) { errors += chunk.length; }
-
-    const pct = Math.round(((i + CHUNK) / total) * 100);
-    if (progressBar) progressBar.style.width = Math.min(pct, 100) + '%';
-    if (progressLabel) progressLabel.textContent = 'Importing ' + Math.min(i + CHUNK, total) + ' of ' + total + '…';
-    // Yield to browser
-    await new Promise(function(r) { setTimeout(r, 10); });
+async function staffMgmt_saveInvite() {
+  const email = document.getElementById('staffMgmt-inv-email').value.trim().toLowerCase();
+  const name  = document.getElementById('staffMgmt-inv-name').value.trim();
+  if(!email || !email.includes('@')) { staffMgmt_showMsg('Please enter a valid email.','error'); return; }
+  try {
+    const headers = await getHeaders();
+    headers['Content-Type'] = 'application/json';
+    headers['Prefer'] = 'return=representation';
+    const body = JSON.stringify({email, name: name||null, status:'pending', write_access:false, pages:[]});
+    const res = await fetch(SUPA_URL+'/rest/v1/staff_access', {method:'POST', headers, body});
+    if(!res.ok) throw new Error('HTTP '+res.status+': '+await res.text());
+    const [newRec] = await res.json();
+    staffMgmt_records.unshift(newRec);
+    staffMgmt_closeModal();
+    const list = document.getElementById('staffMgmt-list');
+    const empty = document.getElementById('staffMgmt-empty');
+    if(empty) empty.style.display='none';
+    if(list) { list.style.display='flex'; list.insertAdjacentHTML('afterbegin', staffMgmt_renderCard(newRec)); }
+    if(typeof toast==='function') toast('Staff account created — set to Pending','success');
+  } catch(e) {
+    staffMgmt_showMsg('Could not create account: '+e.message,'error');
   }
-
-  if (progress) progress.style.display = 'none';
-  if (btn) { btn.textContent = 'Import All'; btn.disabled = false; }
-
-  toast('Import complete: ' + imported + ' locations added' + (errors > 0 ? ', ' + errors + ' errors' : ''), errors > 0 ? 'error' : 'success');
-
-  // Refresh LOC_DATA if function exists
-  if (typeof locInit === 'function') { setTimeout(locInit, 500); }
-  cadClearPreview();
 }
 
+function staffMgmt_showMsg(msg, type) {
+  const el = document.getElementById('staffMgmt-msg');
+  if(!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.style.background = type==='error' ? 'rgba(224,82,82,.1)' : type==='warn' ? 'rgba(240,192,64,.1)' : 'rgba(61,184,112,.1)';
+  el.style.border = '1px solid '+(type==='error' ? 'rgba(224,82,82,.3)' : type==='warn' ? 'rgba(240,192,64,.3)' : 'rgba(61,184,112,.3)');
+  el.style.color = type==='error' ? 'var(--red)' : type==='warn' ? 'var(--yellow)' : 'var(--green)';
+}
+function staffMgmt_hideMsg() {
+  const el = document.getElementById('staffMgmt-msg');
+  if(el) el.style.display='none';
+}
+
+// staffMgmt_load() is called automatically from nav() when users-page is opened.
 </script>
+
+<!-- Staff toggle switch styles -->
+<style>
+.sm-toggle {
+  width:38px; height:22px; border-radius:11px; background:var(--elevated); border:1px solid var(--border);
+  position:relative; cursor:pointer; flex-shrink:0; transition:background .2s,border-color .2s;
+}
+.sm-toggle::after {
+  content:''; position:absolute; top:3px; left:3px;
+  width:14px; height:14px; border-radius:50%; background:var(--muted); transition:transform .2s,background .2s;
+}
+.sm-toggle.on { background:rgba(249,166,30,.2); border-color:var(--accent); }
+.sm-toggle.on::after { transform:translateX(16px); background:var(--accent); }
+</style>
 
 <!-- ══════════════════════════════════════════════════════
      MOBILE ADMIN — Activates on phones after login
