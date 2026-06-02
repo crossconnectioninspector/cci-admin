@@ -6634,7 +6634,7 @@ document.addEventListener('click',function(e){
 });
 
 
-// ── BACKFLOW TEST REPORT PDF — matches BCP_Report_Final / 30 TAC §290.44(h)(4)(c) ──
+// ── BACKFLOW TEST REPORT PDF — exact BCP_Report_Final.pdf layout ──────────────
 async function generateReportPDF(r) {
   if (!r) return;
   try {
@@ -6648,395 +6648,364 @@ async function generateReportPDF(r) {
       });
     }
     const jsPDF = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
-    if (!jsPDF) throw new Error('PDF library failed to load. Please try again.');
+    if (!jsPDF) throw new Error('PDF library failed to load.');
 
     const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'letter' });
-    const pw = 215.9;
-    const ph = 279.4;
-    const m  = 10;
-    const cw = pw - m*2;
+    const pw = 215.9, m = 10, cw = pw - m*2;
+
+    // ── Field normalisation — map all DB field variants to one name ──────────
+    const asmType  = (r.assembly||r.assembly_type||r.type||'').toUpperCase();
+    const c1Val    = r.psid_c1   ?? r.check1   ?? r.c1   ?? '';
+    const c2Val    = r.psid_c2   ?? r.check2   ?? r.c2   ?? '';
+    const rvVal    = r.psid_rv   ?? r.relief    ?? r.rv   ?? '';
+    const aiVal    = r.psid_ai   ?? r.air_inlet ?? r.ai   ?? '';
+    const mfrVal   = r.mfr       || r.manufacturer || '';
+    const modelVal = r.model     || '';
+    const serialVal= r.serial    || '';
+    const sizeVal  = r.size      || '';
+    const tester   = r.tester    || r.tester_name || '';
+    const certNum  = r.certNum   || r.cert_num || r.cert_number || '';
+    const certExp  = r.cert_exp  || r.license_exp || '';
+    const firmVal  = r.firm      || r.company || '';
+    const compAddr = r.company_address || '';
+    const compPhone= r.company_phone   || '';
+    const gaugeModel = r.gauge_model   || r.gauge_make  || '';
+    const gaugeSN    = r.gauge_serial  || r.gauge_sn    || '';
+    const gaugeCal   = r.gauge_cal_date || '';
+    const repairYes  = !!(r.repairs === 'Yes' || r.repaired || r.repair_details);
+    const repairNotes= r.repair_notes  || r.repair_details || r.repairDetails || '';
+    const repItems   = Array.isArray(r.repair_items) ? r.repair_items : [];
+    const result     = (r.result||'').toUpperCase();
+    const isFail     = result === 'FAIL';
 
     // ── Helpers ──────────────────────────────────────────────────────────────
-    function box(x,y,w,h,fill) {
+    function box(x,y,w,h,fill){
+      doc.setDrawColor(100); doc.setLineWidth(0.2);
       if(fill){ doc.setFillColor(...fill); doc.rect(x,y,w,h,'FD'); }
-      else { doc.setDrawColor(100); doc.setLineWidth(0.2); doc.rect(x,y,w,h); }
+      else { doc.rect(x,y,w,h); }
     }
-    function lbl(txt,x,y,sz) {
-      doc.setFontSize(sz||6); doc.setFont('helvetica','bold'); doc.setTextColor(60);
-      doc.text(String(txt||''),x,y);
-    }
-    function val(txt,x,y,sz) {
-      doc.setFontSize(sz||9); doc.setFont('helvetica','normal'); doc.setTextColor(0);
-      doc.text(String(txt||'—'),x,y);
-    }
-    function chk(on,x,y) {
-      doc.setDrawColor(80); doc.setLineWidth(0.25); doc.rect(x,y,3.5,3.5);
-      if(on){ doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(0); doc.text('X',x+0.5,y+3); }
-    }
-    function secHdr(txt,x,y,w,h) {
-      box(x,y,w,h,[220,220,220]);
-      doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(0);
-      doc.text(txt,x+2,y+h-1.5);
-    }
-    function hline(y2){ doc.setDrawColor(160); doc.setLineWidth(0.15); doc.line(m,y2,pw-m,y2); }
+    function lbl(t,x,y,sz){ doc.setFontSize(sz||5.5); doc.setFont('helvetica','bold'); doc.setTextColor(70); doc.text(String(t||''),x,y); }
+    function val(t,x,y,sz,maxW){ doc.setFontSize(sz||8.5); doc.setFont('helvetica','normal'); doc.setTextColor(0); if(maxW) doc.text(String(t||''),x,y,{maxWidth:maxW}); else doc.text(String(t||''),x,y); }
+    function chk(on,x,y){ doc.setDrawColor(80); doc.setLineWidth(0.2); doc.rect(x,y,3.2,3.2); if(on){doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(0);doc.text('X',x+0.4,y+2.8);} }
+    function secHdr(t,x,y,w,h){ box(x,y,w,h,[215,215,215]); doc.setFontSize(7.5);doc.setFont('helvetica','bold');doc.setTextColor(0);doc.text(t,x+2,y+h-1.8); }
+    function field(label2,value2,x,y,w,h){ box(x,y,w,h); lbl(label2,x+1,y+2.5); val(value2,x+1,y+h-1.5,8.5,w-2); }
 
     let y = m;
 
-    // ── TITLE BLOCK ───────────────────────────────────────────────────────────
-    // BFP badge top-left
-    doc.setFillColor(0,0,0); doc.rect(m,y,14,8,'F');
-    doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
-    doc.text('BFP',m+2,y+6);
-
-    // Title text
+    // ── TITLE ────────────────────────────────────────────────────────────────
+    doc.setFillColor(0); doc.rect(m,y,12,7,'F');
+    doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(255);
+    doc.text('BFP',m+1.5,y+5.2);
     doc.setTextColor(0);
-    doc.setFontSize(9); doc.setFont('helvetica','bold');
-    doc.text('Backflow Prevention Assembly',m+16,y+3.5);
-    doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(40);
-    doc.text('Test & Maintenance Report · 30 TAC §290.44(h)(4)(c)',m+16,y+7);
-
-    // PASS/FAIL stamp top-right
-    const overallResult = (r.result||'').toUpperCase();
-    const isFail = overallResult==='FAIL';
+    doc.setFontSize(8.5); doc.setFont('helvetica','bold');
+    doc.text('Backflow Prevention Assembly',m+14,y+3);
+    doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(50);
+    doc.text('Test & Maintenance Report · 30 TAC §290.44(h)(4)(c)',m+14,y+6.5);
+    // Pass/Fail stamp
     doc.setFillColor(...(isFail?[200,0,0]:[0,150,0]));
-    doc.rect(pw-m-22,y,22,8,'F');
-    doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
-    doc.text(overallResult||'—',pw-m-11,y+6,{align:'center'});
-    y += 10;
-
-    // Fail reason (if any)
-    if(isFail && (r.fail_reason||r.failReason)) {
+    doc.rect(pw-m-20,y,20,7,'F');
+    doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(255);
+    doc.text(result||'—',pw-m-10,y+5.2,{align:'center'});
+    y += 8;
+    // Fail reason
+    if(isFail && (r.fail_reason||r.failReason)){
       doc.setFontSize(7); doc.setFont('helvetica','italic'); doc.setTextColor(180,0,0);
-      doc.text('FAIL REASON: '+(r.fail_reason||r.failReason||''), m, y+4, {maxWidth:cw});
-      y += 6;
+      doc.text('FAIL REASON: '+(r.fail_reason||r.failReason),m,y+3,{maxWidth:cw});
+      y += 5;
     }
+    doc.setFontSize(6); doc.setFont('helvetica','normal'); doc.setTextColor(80);
+    doc.text('A signed and dated original must be submitted to the public water supplier for recordkeeping purposes.',m,y+2.5,{maxWidth:cw});
+    y += 5;
 
-    doc.setFontSize(6.5); doc.setFont('helvetica','normal'); doc.setTextColor(80);
-    doc.text('A signed and dated original must be submitted to the public water supplier for recordkeeping purposes.',m,y+3,{maxWidth:cw});
-    y += 6;
-
-    // ── SECTION 1: PUBLIC WATER SYSTEM ───────────────────────────────────────
-    secHdr('1  PUBLIC WATER SYSTEM INFORMATION',m,y,cw,5.5); y+=5.5;
-
-    const pwsName    = r.pws_name    || 'City of Abilene Water Dept.';
-    const pwsId      = r.pws_id      || 'TX1090001';
-    const pwsContact = r.pws_contact || 'John Williams';
-    const pwsAddr    = r.pws_address || 'PO Box 60, Abilene TX 79604';
-
-    // Row 1: PWS name | PWS ID | Contact
-    const r1=[cw*0.45, cw*0.2, cw*0.35];
-    const r1x=[m, m+r1[0], m+r1[0]+r1[1]];
-    r1.forEach(function(w,i){ box(r1x[i],y,w,9); });
-    lbl('NAME OF PUBLIC WATER SYSTEM (PWS)',r1x[0]+1,y+2.5); val(pwsName,r1x[0]+1,y+7.5,8);
-    lbl('PWS ID #',r1x[1]+1,y+2.5);                          val(pwsId,r1x[1]+1,y+7.5,8);
-    lbl('PWS CONTACT PERSON',r1x[2]+1,y+2.5);                val(pwsContact,r1x[2]+1,y+7.5,8);
-    y+=9;
-
-    // Row 2: PWS mailing address | Service address
-    box(m,y,cw*0.4,9); box(m+cw*0.4,y,cw*0.6,9);
-    lbl('PWS MAILING ADDRESS',m+1,y+2.5);          val(pwsAddr,m+1,y+7.5,8);
-    lbl('ADDRESS OF SERVICE / LOCATION',m+cw*0.4+1,y+2.5); val(r.address||'',m+cw*0.4+1,y+7.5,8);
-    y+=9;
+    // ── SECTION 1: PWS ───────────────────────────────────────────────────────
+    secHdr('1  PUBLIC WATER SYSTEM INFORMATION',m,y,cw,5); y+=5;
+    const pwsName    = r.pws_name    || r.pwsName    || 'City of Abilene Water Dept.';
+    const pwsId      = r.pws_id      || r.pwsId      || 'TX1090001';
+    const pwsContact = r.pws_contact || r.pwsContact  || 'John Williams';
+    const pwsAddr    = r.pws_address || r.pwsAddress  || 'PO Box 60, Abilene TX 79604';
+    const svcAddr    = r.address || '';
+    // Row 1
+    const w1=[cw*0.42,cw*0.2,cw*0.38];
+    [0,1,2].forEach(function(i){ box(m+w1.slice(0,i).reduce((a,b)=>a+b,0),y,w1[i],8); });
+    lbl('NAME OF PUBLIC WATER SYSTEM (PWS)',m+1,y+2.5); val(pwsName,m+1,y+7,8,w1[0]-2);
+    lbl('PWS ID #',m+w1[0]+1,y+2.5); val(pwsId,m+w1[0]+1,y+7,8);
+    lbl('PWS CONTACT PERSON',m+w1[0]+w1[1]+1,y+2.5); val(pwsContact,m+w1[0]+w1[1]+1,y+7,8,w1[2]-2);
+    y+=8;
+    // Row 2
+    box(m,y,cw*0.42,8); box(m+cw*0.42,y,cw*0.58,8);
+    lbl('PWS MAILING ADDRESS',m+1,y+2.5); val(pwsAddr,m+1,y+7,8,cw*0.42-2);
+    lbl('ADDRESS OF SERVICE / LOCATION',m+cw*0.42+1,y+2.5); val(svcAddr,m+cw*0.42+1,y+7,8,cw*0.58-2);
+    y+=8;
 
     // ── SECTION 2: ASSEMBLY TYPE ─────────────────────────────────────────────
-    secHdr('2  BACKFLOW PREVENTION ASSEMBLY TYPE',m,y,cw,5.5); y+=5.5;
-
-    const aType = (r.assembly_type||r.type||r.type_asm||'').toUpperCase();
-
+    secHdr('2  BACKFLOW PREVENTION ASSEMBLY TYPE',m,y,cw,5); y+=5;
     // Air gap row
-    box(m,y,cw,7);
-    chk(aType==='AG',m+1,y+1.8);
-    doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(0);
-    doc.text('Air Gap (AG)',m+6,y+5);
-    doc.setFontSize(6.5); doc.setTextColor(80);
-    doc.text('Select if assembly is an air gap — then complete the measurements below',m+35,y+5);
-    y+=7;
-
+    box(m,y,cw,6);
+    chk(asmType==='AG',m+1,y+1.5);
+    doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(0);
+    doc.text('Air Gap (AG)',m+5.5,y+4.5);
+    doc.setFontSize(6); doc.setTextColor(70);
+    doc.text('Select if assembly is an air gap — then complete the measurements below',m+30,y+4.5);
+    y+=6;
     // AG measurements
     const agW=cw/4;
-    ['SUPPLY / PIPE SIZE','MIN. REQUIRED AG (IN)','ACTUAL AG MEASURED (IN)','DRAIN / RECEPTOR TYPE'].forEach(function(l,i){
-      box(m+agW*i,y,agW,8);
-      lbl(l,m+agW*i+1,y+2.5);
-      val(aType==='AG'?(r['ag_'+i]||'—'):'—',m+agW*i+1,y+7,8);
+    ['SUPPLY / PIPE SIZE','MIN. REQUIRED AG (IN)','ACTUAL AG MEASURED (IN)','DRAIN / RECEPTOR TYPE'].forEach(function(l2,i){
+      box(m+agW*i,y,agW,7); lbl(l2,m+agW*i+1,y+2.5);
+      val(asmType==='AG'?(r['ag_'+i]||'—'):'—',m+agW*i+1,y+6,8);
     });
-    y+=8;
-
-    // Checkbox types row
-    box(m,y,cw,8);
+    y+=7;
+    // Checkbox types
+    box(m,y,cw,7);
     const typeOpts=[
-      {k:'RPZ',   l:'Reduced Pressure Principle (RPBA)'},
-      {k:'RPZD',  l:'RPBA-Detector (RPBA-D)'},
-      {k:'DCVA',  l:'Type II Double Check Valve (DCVA)'},
-      {k:'DCVAD', l:'Double Check-Detector (DCVA-D)'},
-      {k:'PVB',   l:'Type II Pressure Vacuum Breaker (PVB)'},
-      {k:'SVB',   l:'Spill-Resistant Vacuum Breaker (SVB)'},
+      {k:'RPZ',  l:'Reduced Pressure Principle (RPBA)'},
+      {k:'RPZD', l:'RPBA-Detector (RPBA-D)'},
+      {k:'DCVA', l:'Type II Double Check Valve (DCVA)'},
+      {k:'DCVAD',l:'Double Check-Detector (DCVA-D)'},
+      {k:'PVB',  l:'Type II Pressure Vacuum Breaker (PVB)'},
+      {k:'SVB',  l:'Spill-Resistant Vacuum Breaker (SVB)'},
     ];
     let tx=m+2;
-    typeOpts.forEach(function(t){
-      const on=aType.includes(t.k)&&!aType.includes('AG');
-      chk(on,tx,y+2.3);
-      doc.setFontSize(6.5); doc.setFont('helvetica','normal'); doc.setTextColor(0);
-      doc.text(t.l,tx+4.5,y+5.5);
+    typeOpts.forEach(function(t2){
+      const on = asmType.includes(t2.k) && !asmType.includes('AG');
+      chk(on,tx,y+2);
+      doc.setFontSize(6); doc.setFont('helvetica','normal'); doc.setTextColor(0);
+      doc.text(t2.l,tx+4.2,y+5);
       tx+=32;
     });
+    y+=7;
+    // Main asm fields
+    const col4=cw/4;
+    ['MANUFACTURER (MAIN)','MODEL # (MAIN)','SERIAL # (MAIN)','SIZE (MAIN)'].forEach(function(l2,i){ box(m+col4*i,y,col4,8); lbl(l2,m+col4*i+1,y+2.5); });
+    val(mfrVal,m+1,y+7,8.5,col4-2);
+    val(modelVal,m+col4+1,y+7,8.5,col4-2);
+    val(serialVal,m+col4*2+1,y+7,8.5,col4-2);
+    val(sizeVal,m+col4*3+1,y+7,8.5);
+    y+=8;
+    // BPA Serves / Location
+    box(m,y,cw/2,8); box(m+cw/2,y,cw/2,8);
+    lbl('BPA SERVES',m+1,y+2.5); val(r.hazard||r.bpa_serves||'',m+1,y+7,8.5,cw/2-2);
+    lbl('BPA LOCATION',m+cw/2+1,y+2.5); val(r.location||r.bpa_location||'',m+cw/2+1,y+7,8.5,cw/2-2);
+    y+=8;
+    // Bypass fields
+    ['MANUFACTURER (BYPASS)','MODEL # (BYPASS)','SERIAL # (BYPASS)','SIZE (BYPASS)'].forEach(function(l2,i){ box(m+col4*i,y,col4,8); lbl(l2,m+col4*i+1,y+2.5); });
+    val(r.bypass_mfr||'—',m+1,y+7,8.5); val(r.bypass_model||'—',m+col4+1,y+7,8.5);
+    val(r.bypass_serial||'—',m+col4*2+1,y+7,8.5); val(r.bypass_size||'—',m+col4*3+1,y+7,8.5);
     y+=8;
 
-    // Manufacturer / Model / Serial / Size — main assembly
-    const col4=cw/4;
-    ['MANUFACTURER (MAIN)','MODEL # (MAIN)','SERIAL # (MAIN)','SIZE (MAIN)'].forEach(function(l,i){
-      box(m+col4*i,y,col4,9); lbl(l,m+col4*i+1,y+2.5);
-    });
-    val(r.manufacturer||r.mfr||'',m+1,y+7.5,9);
-    val(r.model||'',m+col4+1,y+7.5,9);
-    val(r.serial||'',m+col4*2+1,y+7.5,9);
-    val(r.size||'',m+col4*3+1,y+7.5,9);
-    y+=9;
-
-    // BPA Serves | BPA Location
-    box(m,y,cw/2,9); box(m+cw/2,y,cw/2,9);
-    lbl('BPA SERVES',m+1,y+2.5);      val(r.hazard||r.bpa_serves||'',m+1,y+7.5,9);
-    lbl('BPA LOCATION',m+cw/2+1,y+2.5); val(r.location||r.bpa_location||'',m+cw/2+1,y+7.5,9);
-    y+=9;
-
-    // Bypass row (if any)
-    ['MANUFACTURER (BYPASS)','MODEL # (BYPASS)','SERIAL # (BYPASS)','SIZE (BYPASS)'].forEach(function(l,i){
-      box(m+col4*i,y,col4,9); lbl(l,m+col4*i+1,y+2.5);
-    });
-    val(r.bypass_mfr||'—',m+1,y+7.5,9);
-    val(r.bypass_model||'—',m+col4+1,y+7.5,9);
-    val(r.bypass_serial||'—',m+col4*2+1,y+7.5,9);
-    val(r.bypass_size||'—',m+col4*3+1,y+7.5,9);
-    y+=9;
-
     // ── SECTION 3: TEST RESULTS ───────────────────────────────────────────────
-    secHdr('3  TEST RESULTS',m,y,cw,5.5); y+=5.5;
-
-    // Date / Time / Reason row
+    secHdr('3  TEST RESULTS',m,y,cw,5); y+=5;
+    // Date / Time / Reason
     box(m,y,cw/3,8); box(m+cw/3,y,cw/3,8); box(m+cw*2/3,y,cw/3,8);
-    lbl('TEST DATE',m+1,y+2.5);           val(r.date||'',m+1,y+7,9);
-    lbl('TIME',m+cw/3+1,y+2.5);           val(r.time||'',m+cw/3+1,y+7,9);
+    lbl('TEST DATE',m+1,y+2.5); val(r.date||'',m+1,y+7,8.5);
+    lbl('TIME',m+cw/3+1,y+2.5); val(r.time||'',m+cw/3+1,y+7,8.5);
     lbl('REASON FOR TEST',m+cw*2/3+1,y+2.5);
     const reason=r.reason||'Existing';
     [{l:'New',v:'New'},{l:'Existing',v:'Existing'},{l:'Replacement',v:'Replacement'}].forEach(function(opt,i){
-      chk(reason===opt.v,m+cw*2/3+2+i*22,y+3);
-      doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(0);
-      doc.text(opt.l,m+cw*2/3+7+i*22,y+6.5);
+      chk(reason===opt.v||reason.toLowerCase().includes(opt.v.toLowerCase()),m+cw*2/3+2+i*21,y+3);
+      doc.setFontSize(6.5);doc.setFont('helvetica','normal');doc.setTextColor(0);
+      doc.text(opt.l,m+cw*2/3+6.5+i*21,y+6.5);
     });
     y+=8;
-
-    // Old model/serial if replacement
-    box(m,y,cw,7);
+    // Old serial if replacement
+    box(m,y,cw,6);
     lbl('OLD MODEL / SERIAL # (IF REPLACEMENT)',m+1,y+2.5);
-    val((reason==='Replacement'&&r.old_serial)?r.old_serial:'',m+1,y+6,8);
-    y+=7;
+    val(reason==='Replacement'?(r.old_serial||''):'',m+1,y+5.5,8);
+    y+=6;
 
-    // Test results table header
-    const cW=[30,32,32,32,32,14]; // widths: label | C1 | C2 | RV | AI/BI | result
-    const cX=[m];
-    cW.forEach(function(w,i){ if(i>0) cX.push(cX[i-1]+cW[i-1]); });
-    const hdrs2=[
-      'Phase',
-      '1st Check / Air Inlet',
-      '2nd Check\n(DCVA only)',
-      'Relief Valve\nOpening',
-      'Bypass Check\nPVB / SVB Air Inlet',
-      ''
-    ];
-    doc.setFillColor(230,230,230);
-    hdrs2.forEach(function(h,i){
-      doc.rect(cX[i],y,cW[i],10,'FD');
-      doc.setFontSize(6); doc.setFont('helvetica','bold'); doc.setTextColor(30);
-      h.split('\n').forEach(function(l,li){ doc.text(l,cX[i]+cW[i]/2,y+4+li*3.5,{align:'center'}); });
+    // Test results table
+    const cW=[28,34,32,32,30,14];
+    const cX=[m]; cW.forEach(function(w2,i){ if(i>0) cX.push(cX[i-1]+cW[i-1]); });
+    // Headers
+    const hdrs3=['Phase','1st Check / Air Inlet','2nd Check\n(DCVA only)','Relief Valve\nOpening','Bypass Check\nPVB / SVB Air Inlet',''];
+    doc.setFillColor(225,225,225);
+    hdrs3.forEach(function(h,i){
+      doc.rect(cX[i],y,cW[i],9,'FD');
+      doc.setDrawColor(100); doc.setLineWidth(0.2); doc.rect(cX[i],y,cW[i],9);
+      doc.setFontSize(5.8); doc.setFont('helvetica','bold'); doc.setTextColor(30);
+      h.split('\n').forEach(function(l2,li){ doc.text(l2,cX[i]+cW[i]/2,y+3.5+li*3,{align:'center'}); });
     });
-    y+=10;
+    y+=9;
 
-    const c1v  = String(r.psid_c1||r.check1||'');
-    const c2v  = String(r.psid_c2||r.check2||'');
-    const rvv  = String(r.psid_rv||r.relief_valve||'');
-    const aiv  = String(r.psid_ai||r.air_inlet||'');
-    const hasR = r.repairs==='Yes'||r.repaired||false;
-    const c1r  = String(r.repair_c1||'');
-    const c2r  = String(r.repair_c2||'');
-    const rvr  = String(r.repair_rv||'');
+    // Parse numeric values
+    function pNum(v){ const n=parseFloat(String(v).replace(/[^\d.]/g,'')); return isNaN(n)?null:n; }
+    const c1n=pNum(c1Val), c2n=pNum(c2Val), rvn=pNum(rvVal), ain=pNum(aiVal);
 
-    function testResultRow(label2, c1, c2, rv, ai, rowResult, sub) {
-      const rh=13;
+    function resultRow(label2, c1d, c2d, rvd, aid, rowRes, subLabel) {
+      const rh=14;
+      // Phase
       box(cX[0],y,cW[0],rh);
-      doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(0);
-      doc.text(label2,cX[0]+1,y+4);
-      if(sub){ doc.setFontSize(6); doc.setFont('helvetica','normal'); doc.setTextColor(80); doc.text(sub,cX[0]+1,y+7.5); }
+      doc.setFontSize(6.5); doc.setFont('helvetica','bold'); doc.setTextColor(0);
+      label2.split('\n').forEach(function(l2,li){ doc.text(l2,cX[0]+1,y+4+li*3.5); });
+      if(subLabel){ doc.setFontSize(5.5); doc.setFont('helvetica','normal'); doc.setTextColor(80); doc.text(subLabel,cX[0]+1,y+rh-2); }
 
       // C1
       box(cX[1],y,cW[1],rh);
-      if(c1!==null){
+      if(c1d!==null){
         doc.setFontSize(6.5); doc.setFont('helvetica','normal'); doc.setTextColor(0);
-        const c1pass=c1&&parseFloat(c1)>=1;
-        doc.text('Held at  '+(c1||'_____')+' psid',cX[1]+1,y+4);
-        chk(!!c1,cX[1]+1,y+6.5); doc.text('Closed Tight',cX[1]+5.5,y+10);
-        if(c1&&!c1pass){doc.setTextColor(200,0,0);doc.text('FAIL',cX[1]+cW[1]-8,y+4);}
-        doc.setTextColor(0);
+        doc.text('Held at',cX[1]+1,y+4);
+        doc.setFont('helvetica','bold'); doc.text(String(c1d||'_____'),cX[1]+13,y+4);
+        doc.setFont('helvetica','normal'); doc.text('psid',cX[1]+13+(String(c1d).length*1.8),y+4);
+        chk(!!c1d,cX[1]+1,y+6); doc.text('Closed Tight',cX[1]+5.5,y+9.5);
       }
-
       // C2
       box(cX[2],y,cW[2],rh);
-      if(c2!==null){
+      if(c2d!==null){
         doc.setFontSize(6.5); doc.setFont('helvetica','normal'); doc.setTextColor(0);
-        doc.text('Held at  '+(c2||'_____')+' psid',cX[2]+1,y+4);
-        chk(!!c2,cX[2]+1,y+6.5); doc.text('Closed Tight',cX[2]+5.5,y+10);
+        doc.text('Held at',cX[2]+1,y+4);
+        doc.setFont('helvetica','bold'); doc.text(String(c2d||'_____'),cX[2]+13,y+4);
+        doc.setFont('helvetica','normal'); doc.text('psid',cX[2]+13+(String(c2d).length*1.8),y+4);
+        chk(!!c2d,cX[2]+1,y+6); doc.text('Closed Tight',cX[2]+5.5,y+9.5);
       }
-
       // RV
       box(cX[3],y,cW[3],rh);
-      if(rv!==null){
+      if(rvd!==null){
+        const rvFail = rvd!=='' && pNum(rvd)!==null && pNum(rvd)<2.0;
         doc.setFontSize(6.5); doc.setFont('helvetica','normal'); doc.setTextColor(0);
-        const rvFail=rv&&parseFloat(rv)<2;
-        doc.text('Opened at '+(rv||'_____')+' psid',cX[3]+1,y+4);
-        chk(rv&&!rvFail,cX[3]+1,y+6.5);
-        doc.text(rvFail?'Did not open / FAIL':'Opened OK',cX[3]+5.5,y+10);
-        if(rvFail){doc.setTextColor(200,0,0);doc.text('FAIL',cX[3]+cW[3]-8,y+4);}
+        doc.text('Opened at',cX[3]+1,y+4);
+        doc.setFont('helvetica','bold');
+        doc.setTextColor(...(rvFail?[180,0,0]:[0,0,0]));
+        doc.text(String(rvd||'_____'),cX[3]+16,y+4);
+        doc.setFont('helvetica','normal'); doc.setTextColor(0); doc.text('psid',cX[3]+16+(String(rvd).length*1.8),y+4);
+        chk(!rvFail&&!!rvd,cX[3]+1,y+6);
+        doc.setTextColor(...(rvFail?[180,0,0]:[0,0,0]));
+        doc.text(rvFail?'Did not open / FAIL':'Opened OK',cX[3]+5.5,y+9.5);
         doc.setTextColor(0);
       }
-
-      // AI/BI
+      // AI/Bypass
       box(cX[4],y,cW[4],rh);
-      if(ai!==null){
+      if(aid!==null){
         doc.setFontSize(6.5); doc.setFont('helvetica','normal'); doc.setTextColor(0);
-        doc.text('Opened at '+(ai||'_____')+' psid',cX[4]+1,y+4);
-        chk(!!ai,cX[4]+1,y+6.5); doc.text(ai?'Opened OK':'',cX[4]+5.5,y+10);
+        doc.text(String(aid||'—'),cX[4]+1,y+6);
+      } else {
+        doc.setFontSize(6.5); doc.setFont('helvetica','normal'); doc.setTextColor(150);
+        doc.text('—',cX[4]+cW[4]/2,y+7,{align:'center'});
       }
-
-      // Result stamp
+      // Result
       box(cX[5],y,cW[5],rh);
-      if(rowResult){
-        const isFR=rowResult==='FAIL';
+      if(rowRes){
         doc.setFontSize(7); doc.setFont('helvetica','bold');
-        doc.setTextColor(...(isFR?[200,0,0]:[0,130,0]));
-        doc.text(rowResult,cX[5]+cW[5]/2,y+7,{align:'center'});
+        doc.setTextColor(...(rowRes==='FAIL'?[200,0,0]:[0,130,0]));
+        doc.text(rowRes,cX[5]+cW[5]/2,y+7.5,{align:'center'});
         doc.setTextColor(0);
       }
       y+=rh;
     }
 
     // Repairs & Materials row
-    function repairRow(mainTxt, bypassTxt) {
-      const rh=10;
+    function repairRow(){
+      const rh=9;
       box(cX[0],y,cW[0],rh);
-      doc.setFontSize(6.5); doc.setFont('helvetica','bold'); doc.setTextColor(40);
-      doc.text('Repairs &',cX[0]+1,y+4); doc.text('Materials**',cX[0]+1,y+8);
+      doc.setFontSize(6); doc.setFont('helvetica','bold'); doc.setTextColor(40);
+      doc.text('Repairs &',cX[0]+1,y+4); doc.text('Materials**',cX[0]+1,y+7.5);
       box(cX[1],y,cW[1]+cW[2]+cW[3],rh);
-      doc.setFontSize(6.5); doc.setFont('helvetica','normal'); doc.setTextColor(0);
-      lbl('Main:',cX[1]+1,y+4,6); doc.text(mainTxt||'',cX[1]+10,y+4);
-      lbl('Bypass:',cX[1]+1,y+8.5,6); doc.text(bypassTxt||'',cX[1]+12,y+8.5);
+      doc.setFontSize(6); doc.setFont('helvetica','normal'); doc.setTextColor(0);
+      doc.setFont('helvetica','bold'); doc.text('Main:',cX[1]+1,y+4); doc.setFont('helvetica','normal');
+      doc.text(r.repair_main||'',cX[1]+11,y+4);
+      doc.setFont('helvetica','bold'); doc.text('Bypass:',cX[1]+1,y+7.5); doc.setFont('helvetica','normal');
+      doc.text(r.repair_bypass||'',cX[1]+14,y+7.5);
       box(cX[4],y,cW[4]+cW[5],rh);
+      doc.setFontSize(6); doc.setTextColor(150); doc.text('—',cX[4]+cW[4]/2,y+5.5,{align:'center'});
       y+=rh;
     }
 
-    testResultRow('Initial\nTest', c1v, c2v, rvv, aiv, overallResult, 'Date: '+(r.date||''));
-    repairRow(r.repair_main||'', r.repair_bypass||'');
-    testResultRow('Test After\nRepair', hasR?c1r:null, hasR?c2r:null, hasR?rvr:null, null, hasR?overallResult:'', '');
+    resultRow('Initial\nTest', c1Val, c2Val, rvVal, aiVal||null, result, 'Date: '+(r.date||''));
+    repairRow();
+    resultRow('Test After\nRepair',
+      repairYes?(r.repair_c1||''):'', repairYes?(r.repair_c2||''):'',
+      repairYes?(r.repair_rv||''):'', null, repairYes?result:'', '');
 
     y+=2;
+    // Note line
+    doc.setFontSize(5.5); doc.setFont('helvetica','italic'); doc.setTextColor(80);
+    doc.text('*** 2nd check numeric reading required for DCVA only   ** Use only manufacturer-approved replacement parts',m,y+2,{maxWidth:cw});
+    y+=5;
 
     // Installed per code / non-potable
     doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(0);
-    const instOk = r.installed_per_code!==false;
+    const instOk=r.installed_per_code!==false;
     doc.text('Installed per manufacturer recommendations and/or local codes?',m,y+3);
-    chk(instOk,m+100,y+0.5); doc.text('Yes',m+105,y+3.5);
-    chk(!instOk,m+114,y+0.5); doc.text('No',m+119,y+3.5);
+    chk(instOk,m+95,y+0.5); doc.text('Yes',m+100,y+3.5);
+    chk(!instOk,m+110,y+0.5); doc.text('No',m+115,y+3.5);
     y+=6;
-    const nonPotable = r.non_potable===true;
+    const nonPot=r.non_potable===true;
     doc.text('Assembly installed on a non-potable (auxiliary) water supply?',m,y+3);
-    chk(nonPotable,m+95,y+0.5); doc.text('Yes',m+100,y+3.5);
-    chk(!nonPotable,m+109,y+0.5); doc.text('No',m+114,y+3.5);
+    chk(nonPot,m+90,y+0.5); doc.text('Yes',m+95,y+3.5);
+    chk(!nonPot,m+105,y+0.5); doc.text('No',m+110,y+3.5);
     y+=7;
 
-    // ── SECTION 4: DIFFERENTIAL PRESSURE GAUGE ────────────────────────────────
-    secHdr('4  DIFFERENTIAL PRESSURE GAUGE',m,y,cw,5.5); y+=5.5;
-
-    box(m,y,cw/4,9); box(m+cw/4,y,cw/4,9); box(m+cw/2,y,cw/4,9); box(m+cw*3/4,y,cw/4,9);
+    // ── SECTION 4: GAUGE ─────────────────────────────────────────────────────
+    secHdr('4  DIFFERENTIAL PRESSURE GAUGE',m,y,cw,5); y+=5;
+    const gW=cw/4;
+    box(m,y,gW,8); box(m+gW,y,gW,8); box(m+gW*2,y,gW,8); box(m+gW*3,y,gW,8);
     lbl('Gauge used on:',m+1,y+2.5);
-    const gPotable=r.gauge_potable!==false;
-    chk(gPotable,m+1,y+4); doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.text('Potable',m+5.5,y+7.5);
-    chk(!gPotable,m+20,y+4); doc.text('Non-Potable',m+24.5,y+7.5);
-    lbl('MAKE / MODEL',m+cw/4+1,y+2.5);      val(r.gauge_model||r.gauge_make||'',m+cw/4+1,y+7.5,8);
-    lbl('SERIAL NUMBER (SN)',m+cw/2+1,y+2.5); val(r.gauge_serial||r.gauge_sn||'',m+cw/2+1,y+7.5,8);
-    lbl('DATE TESTED FOR ACCURACY',m+cw*3/4+1,y+2.5); val(r.gauge_cal_date||'',m+cw*3/4+1,y+7.5,8);
-    y+=9;
+    const gPot=r.gauge_potable!==false;
+    chk(gPot,m+1,y+4); doc.setFontSize(6.5);doc.setFont('helvetica','normal');doc.setTextColor(0); doc.text('Potable',m+5.5,y+7.5);
+    chk(!gPot,m+22,y+4); doc.text('Non-Potable',m+26.5,y+7.5);
+    lbl('MAKE / MODEL',m+gW+1,y+2.5); val(gaugeModel,m+gW+1,y+7,8,gW-2);
+    lbl('SERIAL NUMBER (SN)',m+gW*2+1,y+2.5); val(gaugeSN,m+gW*2+1,y+7,8,gW-2);
+    lbl('DATE TESTED FOR ACCURACY',m+gW*3+1,y+2.5); val(gaugeCal,m+gW*3+1,y+7,8,gW-2);
+    y+=8;
 
-    // ── SECTION 5: REPAIRS & MATERIALS ───────────────────────────────────────
-    secHdr('5  REPAIRS & MATERIALS USED',m,y,cw,5.5); y+=5.5;
-
-    box(m,y,cw,7);
-    const repMade=hasR;
-    chk(repMade,m+2,y+1.8); doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(0);
-    doc.text('Yes — repairs made',m+7,y+5);
-    chk(!repMade,m+50,y+1.8); doc.text('No repairs',m+55,y+5);
-    y+=7;
-
-    // Repair checkboxes — 3 columns
+    // ── SECTION 5: REPAIRS ───────────────────────────────────────────────────
+    secHdr('5  REPAIRS & MATERIALS USED',m,y,cw,5); y+=5;
+    box(m,y,cw,6);
+    chk(repairYes,m+2,y+1.5); doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(0); doc.text('Yes — repairs made',m+7,y+4.5);
+    chk(!repairYes,m+50,y+1.5); doc.text('No repairs',m+55,y+4.5);
+    y+=6;
+    // 3-column repair checkboxes
     const repCols=[
-      {title:'1ST CHECK VALVE', items:['Cleaned debris','Check valve replaced','Springs replaced','Seats / seals replaced','Disc replaced','O-ring replaced']},
-      {title:'2ND CHECK VALVE', items:['Cleaned debris','Check valve replaced','Springs replaced','Seats / seals replaced','Disc replaced','O-ring replaced']},
-      {title:'RELIEF VALVE',    items:['Cleaned debris','Diaphragm replaced','Springs replaced','Seat replaced','O-ring / gasket replaced','Relief valve assembly replaced']},
+      {title:'1ST CHECK VALVE',items:['Cleaned debris','Check valve replaced','Springs replaced','Seats / seals replaced','Disc replaced','O-ring replaced']},
+      {title:'2ND CHECK VALVE',items:['Cleaned debris','Check valve replaced','Springs replaced','Seats / seals replaced','Disc replaced','O-ring replaced']},
+      {title:'RELIEF VALVE',   items:['Cleaned debris','Diaphragm replaced','Springs replaced','Seat replaced','O-ring / gasket replaced','Relief valve assembly replaced']},
     ];
-    const repW=cw/3;
-    const repItems=r.repair_items||[];
+    const rW=cw/3;
     repCols.forEach(function(col,ci){
-      const rx=m+repW*ci;
-      box(rx,y,repW,5.5,[235,235,235]);
-      lbl(col.title,rx+1,y+4,6.5);
-      let ry=y+5.5;
+      const rx=m+rW*ci;
+      box(rx,y,rW,5,[230,230,230]); doc.setFontSize(6);doc.setFont('helvetica','bold');doc.setTextColor(0); doc.text(col.title,rx+1,y+3.8);
+      let ry=y+5;
       col.items.forEach(function(item){
-        box(rx,ry,repW,5);
+        box(rx,ry,rW,4.8);
         chk(repItems.includes(item),rx+1,ry+0.8);
-        doc.setFontSize(6.5); doc.setFont('helvetica','normal'); doc.setTextColor(0);
-        doc.text(item,rx+6,ry+3.8);
-        ry+=5;
+        doc.setFontSize(6.2);doc.setFont('helvetica','normal');doc.setTextColor(0);
+        doc.text(item,rx+5.5,ry+3.6);
+        ry+=4.8;
       });
     });
-    y+=5.5+repCols[0].items.length*5;
-
+    y+=5+repCols[0].items.length*4.8;
     // Additional repair notes
-    box(m,y,cw,9);
-    lbl('ADDITIONAL REPAIR NOTES',m+1,y+2.5);
-    val(r.repair_notes||r.repair_details||'',m+1,y+7.5,8);
-    y+=9;
+    box(m,y,cw,8); lbl('ADDITIONAL REPAIR NOTES',m+1,y+2.5); val(repairNotes,m+1,y+7,8,cw-2);
+    y+=8;
 
-    // ── SECTION 6: REMARKS / TESTER / CERTIFICATION ───────────────────────────
-    secHdr('6  REMARKS',m,y,cw,5.5); y+=5.5;
-
-    box(m,y,cw,12);
+    // ── SECTION 6: REMARKS + TESTER ──────────────────────────────────────────
+    secHdr('6  REMARKS',m,y,cw,5); y+=5;
+    box(m,y,cw,10);
     doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(0);
-    doc.text(String(r.remarks||r.notes||'The above is certified to be true and accurate at the time of testing.').substring(0,250),m+1,y+4,{maxWidth:cw-2});
-    y+=12;
-
-    // Tester info
-    box(m,y,cw/2,9); box(m+cw/2,y,cw/2,9);
-    lbl('COMPANY / FIRM NAME',m+1,y+2.5);    val(r.firm||r.company||'',m+1,y+7.5,9);
-    lbl('LICENSED TESTER NAME (Print)',m+cw/2+1,y+2.5); val(r.tester||r.tester_name||'',m+cw/2+1,y+7.5,9);
-    y+=9;
-
-    box(m,y,cw/2,9); box(m+cw/2,y,cw/2,9);
-    lbl('COMPANY ADDRESS',m+1,y+2.5); val(r.company_address||'',m+1,y+7.5,8);
+    doc.text(String(r.remarks||r.notes||'The above is certified to be true and accurate at the time of testing.').substring(0,300),m+1,y+4,{maxWidth:cw-2});
+    y+=10;
+    // Tester rows
+    box(m,y,cw/2,8); box(m+cw/2,y,cw/2,8);
+    lbl('COMPANY / FIRM NAME',m+1,y+2.5); val(firmVal,m+1,y+7,8.5,cw/2-2);
+    lbl('LICENSED TESTER NAME (Print)',m+cw/2+1,y+2.5); val(tester,m+cw/2+1,y+7,8.5,cw/2-2);
+    y+=8;
+    box(m,y,cw/2,8); box(m+cw/2,y,cw/2,8);
+    lbl('COMPANY ADDRESS',m+1,y+2.5); val(compAddr,m+1,y+7,8,cw/2-2);
     lbl('LICENSED TESTER SIGNATURE',m+cw/2+1,y+2.5);
-    doc.setDrawColor(160); doc.line(m+cw/2+1,y+8.5,pw-m-1,y+8.5);
-    y+=9;
-
-    box(m,y,cw/3,9); box(m+cw/3,y,cw/3,9); box(m+cw*2/3,y,cw/3,9);
-    lbl('COMPANY PHONE',m+1,y+2.5);          val(r.company_phone||'',m+1,y+7.5,9);
-    lbl('BPAT LICENSE #',m+cw/3+1,y+2.5);    val(r.certNum||r.cert_number||r.cert_num||'',m+cw/3+1,y+7.5,9);
-    lbl('LICENSE EXPIRATION DATE',m+cw*2/3+1,y+2.5); val(r.cert_exp||r.license_exp||'',m+cw*2/3+1,y+7.5,9);
-    y+=9;
+    doc.setDrawColor(160); doc.line(m+cw/2+1,y+7.5,pw-m-1,y+7.5);
+    y+=8;
+    box(m,y,cw/3,8); box(m+cw/3,y,cw/3,8); box(m+cw*2/3,y,cw/3,8);
+    lbl('COMPANY PHONE',m+1,y+2.5); val(compPhone,m+1,y+7,8.5);
+    lbl('BPAT LICENSE #',m+cw/3+1,y+2.5); val(certNum,m+cw/3+1,y+7,8.5);
+    lbl('LICENSE EXPIRATION DATE',m+cw*2/3+1,y+2.5); val(certExp,m+cw*2/3+1,y+7,8.5);
+    y+=8;
 
     // ── FOOTER ───────────────────────────────────────────────────────────────
-    hline(y+1); y+=4;
-    doc.setFontSize(6); doc.setFont('helvetica','italic'); doc.setTextColor(80);
+    doc.setDrawColor(120); doc.setLineWidth(0.3); doc.line(m,y+1,pw-m,y+1); y+=4;
+    doc.setFontSize(5.8); doc.setFont('helvetica','italic'); doc.setTextColor(80);
     doc.text('* Test records must be kept for at least 3 years [30 TAC §290.46(b)] · ** Use only manufacturer\'s replacement parts',m,y,{maxWidth:cw});
     y+=4;
-    doc.setFont('helvetica','normal'); doc.setTextColor(120);
-    doc.text('Backflow Check Pro — City of Abilene Cross-Connection Control Program · crossconnectioninspector.github.io',pw/2,y,{align:'center'});
+    doc.setFont('helvetica','normal'); doc.setTextColor(130);
+    doc.text('Backflow Check Pro — City of Abilene Cross-Connection Control Program',pw/2,y,{align:'center'});
 
-    // Save
     const fname='BCP_TestReport_'+(r.address||'').replace(/[^a-zA-Z0-9]/g,'_').substring(0,30)+'_'+(r.date||'').replace(/-/g,'')+'.pdf';
     doc.save(fname);
     if(typeof toast==='function') toast('📄 PDF downloaded','success');
