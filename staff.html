@@ -112,6 +112,24 @@ nav{padding:8px 0;flex:1}
   </div>
 </div>
 
+<!-- ── SET PASSWORD (invite flow) ── -->
+<div id="screen-setpass" style="display:none;min-height:100vh;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,rgba(249,166,30,.08) 0%,transparent 60%),var(--bg)">
+  <div class="login-card">
+    <div class="login-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+    <div class="login-title">Create Your Password</div>
+    <div class="login-sub">CITY STAFF PORTAL — FIRST TIME SETUP</div>
+    <div style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:20px;line-height:1.6">Welcome! Set a password to complete your account setup.</div>
+    <label class="field-label">New Password</label>
+    <input class="si" type="password" id="setpass-1" placeholder="At least 8 characters" style="margin-bottom:14px">
+    <label class="field-label">Confirm Password</label>
+    <input class="si" type="password" id="setpass-2" placeholder="Repeat password" onkeydown="if(event.key==='Enter')doSetPassword()">
+    <button class="btn-acc" onclick="doSetPassword()" id="setpass-btn" style="margin-top:16px">Set Password & Sign In</button>
+    <div class="err" id="setpass-err"></div>
+  </div>
+</div>
+
 <!-- ── PENDING APPROVAL ── -->
 <div id="screen-pending" style="display:none">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:24px;max-width:400px;width:100%;padding:40px 32px;text-align:center;box-shadow:0 12px 48px rgba(0,0,0,.6)">
@@ -365,14 +383,65 @@ async function loadStaffDashboard() {
   }
 }
 
-// ── Check session on load ──────────────────────────────────────────────────────
+// ── Check session on load — handles invite link flow ──────────────────────────
 (async function(){
+  // Detect Supabase invite/recovery tokens in the URL hash
+  const hash = window.location.hash;
+  const params = new URLSearchParams(hash.replace('#',''));
+  const type  = params.get('type');
+  const token = params.get('access_token');
+
+  if(token && (type==='invite' || type==='recovery' || type==='signup')) {
+    // User clicked invite link — Supabase already validated the token
+    // Set the session from the URL hash so supaClient knows who this is
+    const { data, error } = await supaClient.auth.setSession({
+      access_token:  token,
+      refresh_token: params.get('refresh_token') || ''
+    });
+    if(!error && data.session) {
+      staffUser = data.session.user;
+      // Show set-password screen
+      ['screen-login','screen-pending','screen-app'].forEach(function(id){
+        const el=document.getElementById(id); if(el) el.style.display='none';
+      });
+      const sp = document.getElementById('screen-setpass');
+      if(sp) sp.style.display='flex';
+      // Clear hash so token isn't reused
+      history.replaceState(null,'',window.location.pathname);
+    } else {
+      showScreen('login');
+    }
+    return;
+  }
+
+  // Normal returning user
   const { data } = await supaClient.auth.getSession();
   if(data.session) {
     staffUser = data.session.user;
     await checkStaffAccess();
   }
 })();
+
+async function doSetPassword() {
+  const p1  = document.getElementById('setpass-1').value;
+  const p2  = document.getElementById('setpass-2').value;
+  const err = document.getElementById('setpass-err');
+  const btn = document.getElementById('setpass-btn');
+  err.style.display='none';
+  if(p1.length < 8) { err.textContent='Password must be at least 8 characters.'; err.style.display='block'; return; }
+  if(p1 !== p2)     { err.textContent='Passwords do not match.'; err.style.display='block'; return; }
+  btn.textContent='Setting password…'; btn.disabled=true;
+  try {
+    const { error } = await supaClient.auth.updateUser({ password: p1 });
+    if(error) throw error;
+    // Password set — now check their staff access
+    await checkStaffAccess();
+  } catch(e) {
+    err.textContent = e.message || 'Could not set password.';
+    err.style.display='block';
+    btn.textContent='Set Password & Sign In'; btn.disabled=false;
+  }
+}
 </script>
 
 <!-- Mobile bottom nav — only visible on small screens -->
