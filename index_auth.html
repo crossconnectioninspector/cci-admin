@@ -7145,7 +7145,7 @@ async function generateReportPDF(r) {
     });
     y+=7;
     // Checkbox types
-    box(m,y,cw,7);
+    box(m,y,cw,11);
     const typeOpts=[
       {k:'RPZ',  l:'Reduced Pressure Principle (RPBA)'},
       {k:'RPZD', l:'RPBA-Detector (RPBA-D)'},
@@ -7154,15 +7154,17 @@ async function generateReportPDF(r) {
       {k:'PVB',  l:'Type II Pressure Vacuum Breaker (PVB)'},
       {k:'SVB',  l:'Spill-Resistant Vacuum Breaker (SVB)'},
     ];
-    let tx=m+2;
-    typeOpts.forEach(function(t2){
+    const typeColW = cw/3;
+    typeOpts.forEach(function(t2,i){
       const on = asmType.includes(t2.k) && !asmType.includes('AG');
-      chk(on,tx,y+2);
+      const col = i % 3, row = Math.floor(i / 3);
+      const cx = m + 2 + col*typeColW;
+      const cy = y + 2 + row*5.5;
+      chk(on,cx,cy);
       doc.setFontSize(6); doc.setFont('helvetica','normal'); doc.setTextColor(0);
-      doc.text(t2.l,tx+4.2,y+5);
-      tx+=32;
+      doc.text(t2.l,cx+4.2,cy+3,{maxWidth:typeColW-6});
     });
-    y+=7;
+    y+=11;
     // Main asm fields
     const col4=cw/4;
     ['MANUFACTURER (MAIN)','MODEL # (MAIN)','SERIAL # (MAIN)','SIZE (MAIN)'].forEach(function(l2,i){ box(m+col4*i,y,col4,8); lbl(l2,m+col4*i+1,y+2.5); });
