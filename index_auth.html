@@ -631,6 +631,7 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
     <div class="sb-sec">Admin</div>
     <button class="nb" onclick="nav('users-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Users</button>
     <button class="nb" onclick="nav('comms-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.86 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.77 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>Communications</button>
+    <button class="nb" onclick="nav('bulk-notices-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="13" y2="12"/></svg></span>Bulk Notices</button>
     <button class="nb" onclick="nav('notif-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>Notifications</button>
     <button class="nb" onclick="nav('settings-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M6.34 17.66l-1.41 1.41M2 12h2M20 12h2M17.66 17.66l1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2"/></svg></span>Settings</button>
     <button class="nb" onclick="nav('knowledge-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>Knowledge Base</button>
@@ -1839,6 +1840,98 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════
+     BULK NOTICES PAGE
+     ══════════════════════════════════════════════════ -->
+<div class="page" id="page-bulk-notices-page" style="padding:24px 28px 28px">
+
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap">
+    <div>
+      <div style="font-family:var(--cond);font-size:26px;font-weight:900;color:var(--text);line-height:1">Bulk Notices</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.5px;margin-top:6px">Write one letter template, pick recipients, generate every copy at once</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1.1fr 1fr;gap:16px;margin-bottom:16px;align-items:start">
+
+    <!-- Template editor -->
+    <div class="scard" style="padding:18px">
+      <div style="font-family:var(--cond);font-size:13px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">Letter Template</div>
+
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">
+        <label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Template Name</label>
+        <select id="bulk-template-select" class="ss" onchange="bulkLoadTemplate()" style="font-size:13px;padding:7px 10px">
+          <option value="new">+ New Template</option>
+        </select>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
+        <label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Subject Line</label>
+        <input id="bulk-subject" type="text" class="si" placeholder="e.g. Backflow Assembly Test Notice" style="font-size:13px;padding:8px 10px" oninput="bulkUpdatePreview()">
+      </div>
+
+      <div style="margin-bottom:8px">
+        <label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:6px">Insert Merge Field</label>
+        <div id="bulk-merge-chips" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+      </div>
+
+      <textarea id="bulk-body" class="si" rows="14" placeholder="Dear {{contact_name}},
+
+This letter confirms that the backflow prevention assembly at {{address}} is due for annual testing by {{due_date}}.
+
+Please contact our office to schedule your test..." style="font-size:13px;padding:10px 12px;resize:vertical;line-height:1.6;font-family:var(--sans);width:100%" oninput="bulkUpdatePreview()"></textarea>
+
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+        <button onclick="bulkSaveTemplate()" class="btn btn-gh btn-sm">&#x1F4BE; Save Template</button>
+        <button onclick="bulkDeleteTemplate()" class="btn btn-gh btn-sm" style="color:var(--red)">Delete Template</button>
+      </div>
+    </div>
+
+    <!-- Live preview -->
+    <div class="scard" style="padding:18px;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="font-family:var(--cond);font-size:13px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Live Preview</div>
+        <select id="bulk-preview-sample" class="ss" onchange="bulkUpdatePreview()" style="font-size:11px;padding:4px 8px;width:auto"></select>
+      </div>
+      <div style="background:#fff;border-radius:8px;padding:28px 26px;flex:1;min-height:380px;box-shadow:0 2px 12px rgba(0,0,0,.25)">
+        <div id="bulk-preview-subject" style="font-family:Georgia,serif;font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:14px;border-bottom:1px solid #ddd;padding-bottom:10px"></div>
+        <div id="bulk-preview-body" style="font-family:Georgia,serif;font-size:13px;color:#222;line-height:1.8;white-space:pre-wrap"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recipient picker -->
+  <div class="scard" style="padding:18px;margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px">
+      <div style="font-family:var(--cond);font-size:13px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Recipients</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--accent)" id="bulk-selected-count">0 selected</div>
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+      <button class="ft" onclick="bulkQuickSelect('all')">All Locations</button>
+      <button class="ft" onclick="bulkQuickSelect('overdue')">Overdue</button>
+      <button class="ft" onclick="bulkQuickSelect('noncompliant')">Non-Compliant</button>
+      <button class="ft" onclick="bulkQuickSelect('compliant')">Compliant</button>
+      <button class="ft" onclick="bulkQuickSelect('none')">Clear Selection</button>
+    </div>
+
+    <div id="bulk-recipient-list" style="display:flex;flex-direction:column;gap:1px;max-height:280px;overflow-y:auto;border:1px solid var(--border);border-radius:8px"></div>
+  </div>
+
+  <!-- Generate bar -->
+  <div class="scard" style="padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.5px">Output:</span>
+      <button id="bulk-out-combined" class="ft active" onclick="bulkSetOutput('combined',this)">Combined PDF</button>
+      <button id="bulk-out-separate" class="ft" onclick="bulkSetOutput('separate',this)">Separate PDFs (zip)</button>
+    </div>
+    <button onclick="bulkGenerate()" class="btn btn-ac" id="bulk-generate-btn" style="gap:8px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Generate Letters
+    </button>
+  </div>
+</div>
+
 <!-- Log Communication Modal -->
 <div id="commsLogModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;align-items:center;justify-content:center">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.6)">
@@ -2438,7 +2531,7 @@ function nav(id, btn) {
   document.querySelectorAll('.nb').forEach(n=>n.classList.remove('active'));
   const _pg = document.getElementById('page-'+id);
   if (_pg) {
-    const flexPages = ['locations-page','city-risk-page','contacts-page','providers-page','assemblies-page','users-page','comms-page','notif-page','settings-page','knowledge-page'];
+    const flexPages = ['locations-page','city-risk-page','contacts-page','providers-page','assemblies-page','users-page','comms-page','bulk-notices-page','notif-page','settings-page','knowledge-page'];
     document.querySelectorAll('.page').forEach(p=>{ p.classList.remove('active'); p.style.display='none'; });
     _pg.classList.add('active');
     _pg.style.display = flexPages.includes(id) ? 'flex' : 'block';
@@ -2450,7 +2543,7 @@ function nav(id, btn) {
     'csi-page':'Inspections','search-page':'Search All','import-page':'Add Report',
     'locations-page':'Locations','contacts-page':'Contacts','providers-page':'Testers',
     'assemblies-page':'Assemblies','users-page':'Users',
-    'comms-page':'Communications','notif-page':'Notifications','settings-page':'Settings',
+    'comms-page':'Communications','bulk-notices-page':'Bulk Notices','notif-page':'Notifications','settings-page':'Settings',
     'knowledge-page':'Knowledge Base'
   };
   document.getElementById('pageTitle').textContent = titles[id]||id;
@@ -2465,6 +2558,7 @@ function nav(id, btn) {
   if(id==='contacts-page'){ conExitFullscreen(); conInit(); }
   if(id==='providers-page'){ spExitFullscreen(); spInit(); }
   if(id==='comms-page') commsInit();
+  if(id==='bulk-notices-page') bulkInit();
   if(id==='notif-page') setTimeout(notifInit, 100);
   if(id==='assemblies-page'){ asmExitFullscreen(); asmInit(); }
   if(id==='users-page') staffMgmt_load();
@@ -6621,6 +6715,296 @@ function commsExport(){
   const rows=commsFiltered.map(c=>[c.type,c.location,c.contact,c.method,c.dueOn,c.generatedOn,c.status,c.notes]);
   const csv=[h,...rows].map(r=>r.map(v=>'"'+(v||'').toString().replace(/"/g,'""')+'"').join(',')).join('\n');
   const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='bcp-communications.csv';a.click();
+}
+
+// ══════════════════════════════════════════════════
+//  BULK NOTICES — template editor, recipient picker, PDF generation
+// ══════════════════════════════════════════════════
+const BULK_MERGE_FIELDS = [
+  {key:'contact_name', label:'Contact Name'},
+  {key:'business_name', label:'Business Name'},
+  {key:'address', label:'Address'},
+  {key:'city', label:'City'},
+  {key:'state', label:'State'},
+  {key:'zip', label:'ZIP'},
+  {key:'account', label:'Account #'},
+  {key:'due_date', label:'Due Date'},
+  {key:'assembly_type', label:'Assembly Type'},
+  {key:'compliance_status', label:'Compliance Status'},
+  {key:'today', label:'Today\'s Date'},
+];
+
+let bulkSelectedIds = new Set();
+let bulkOutputMode = 'combined';
+let bulkInitialized = false;
+
+function bulkFieldValue(loc, key){
+  const todayStr = new Date().toISOString().split('T')[0];
+  const lastAsm = (loc.assemblies && loc.assemblies.length) ? loc.assemblies[0] : null;
+  switch(key){
+    case 'contact_name': return loc.contact || '(no contact on file)';
+    case 'business_name': return loc.name || '';
+    case 'address': return loc.address || '';
+    case 'city': return loc.city || '';
+    case 'state': return loc.state || '';
+    case 'zip': return loc.zip || '';
+    case 'account': return loc.account || '';
+    case 'due_date': return lastAsm ? lastAsm.due : '—';
+    case 'assembly_type': return lastAsm ? lastAsm.type : '—';
+    case 'compliance_status': return loc.compliance || '';
+    case 'today': return todayStr;
+    default: return '';
+  }
+}
+
+function bulkMergeText(template, loc){
+  return String(template||'').replace(/\{\{\s*([a-z_]+)\s*\}\}/gi, function(match, key){
+    const k = key.toLowerCase();
+    const has = BULK_MERGE_FIELDS.some(f=>f.key===k);
+    return has ? bulkFieldValue(loc, k) : match;
+  });
+}
+
+function bulkInit(){
+  if(!bulkInitialized){
+    bulkInitialized = true;
+    // Merge field chips
+    const chipWrap = document.getElementById('bulk-merge-chips');
+    if(chipWrap){
+      chipWrap.innerHTML = BULK_MERGE_FIELDS.map(f=>
+        `<button type="button" onclick="bulkInsertField('${f.key}')" style="font-family:var(--mono);font-size:10px;padding:4px 9px;border-radius:20px;background:var(--elevated);border:1px solid var(--border);color:var(--accent);cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">+ ${f.label}</button>`
+      ).join('');
+    }
+    // Preview sample picker
+    const sampleSel = document.getElementById('bulk-preview-sample');
+    if(sampleSel){
+      sampleSel.innerHTML = (LOC_DATA||[]).map(l=>`<option value="${l.id}">${sanitize(l.name||l.address)}</option>`).join('');
+    }
+    bulkPopulateTemplateDropdown();
+    bulkRenderRecipientList();
+    bulkUpdatePreview();
+  } else {
+    bulkRenderRecipientList();
+    bulkUpdatePreview();
+  }
+}
+
+function bulkInsertField(key){
+  const ta = document.getElementById('bulk-body');
+  if(!ta) return;
+  const token = '{{'+key+'}}';
+  const start = ta.selectionStart ?? ta.value.length;
+  const end = ta.selectionEnd ?? ta.value.length;
+  ta.value = ta.value.slice(0,start) + token + ta.value.slice(end);
+  ta.focus();
+  ta.selectionStart = ta.selectionEnd = start + token.length;
+  bulkUpdatePreview();
+}
+
+function bulkUpdatePreview(){
+  const subjectEl = document.getElementById('bulk-subject');
+  const bodyEl = document.getElementById('bulk-body');
+  const sampleSel = document.getElementById('bulk-preview-sample');
+  const previewSubject = document.getElementById('bulk-preview-subject');
+  const previewBody = document.getElementById('bulk-preview-body');
+  if(!bodyEl || !previewBody) return;
+  const sampleId = sampleSel ? parseInt(sampleSel.value,10) : null;
+  const sample = (LOC_DATA||[]).find(l=>l.id===sampleId) || (LOC_DATA||[])[0];
+  if(!sample){
+    previewBody.textContent = 'Add a location first to preview this template.';
+    if(previewSubject) previewSubject.textContent = '';
+    return;
+  }
+  if(previewSubject) previewSubject.textContent = bulkMergeText(subjectEl ? subjectEl.value : '', sample);
+  previewBody.textContent = bulkMergeText(bodyEl.value, sample);
+}
+
+// ── Template save/load (persisted to localStorage) ──────────────────────────
+function bulkGetTemplates(){
+  try{ return JSON.parse(localStorage.getItem('bcp_bulk_templates')||'{}'); }catch(e){ return {}; }
+}
+function bulkSaveTemplates(store){
+  try{ localStorage.setItem('bcp_bulk_templates', JSON.stringify(store)); }catch(e){}
+}
+function bulkPopulateTemplateDropdown(){
+  const sel = document.getElementById('bulk-template-select');
+  if(!sel) return;
+  const templates = bulkGetTemplates();
+  const names = Object.keys(templates);
+  sel.innerHTML = '<option value="new">+ New Template</option>' +
+    names.map(n=>`<option value="${sanitize(n)}">${sanitize(n)}</option>`).join('');
+}
+function bulkLoadTemplate(){
+  const sel = document.getElementById('bulk-template-select');
+  if(!sel) return;
+  if(sel.value==='new'){
+    document.getElementById('bulk-subject').value = '';
+    document.getElementById('bulk-body').value = '';
+    bulkUpdatePreview();
+    return;
+  }
+  const templates = bulkGetTemplates();
+  const t = templates[sel.value];
+  if(!t) return;
+  document.getElementById('bulk-subject').value = t.subject || '';
+  document.getElementById('bulk-body').value = t.body || '';
+  bulkUpdatePreview();
+}
+function bulkSaveTemplate(){
+  const subject = document.getElementById('bulk-subject').value.trim();
+  const body = document.getElementById('bulk-body').value.trim();
+  if(!body){ toast('Write a letter body before saving.','error'); return; }
+  const name = prompt('Name this template:', document.getElementById('bulk-template-select').value!=='new' ? document.getElementById('bulk-template-select').value : 'Untitled Notice');
+  if(!name) return;
+  const templates = bulkGetTemplates();
+  templates[name] = {subject, body};
+  bulkSaveTemplates(templates);
+  bulkPopulateTemplateDropdown();
+  document.getElementById('bulk-template-select').value = name;
+  toast('Template saved.','success');
+}
+function bulkDeleteTemplate(){
+  const sel = document.getElementById('bulk-template-select');
+  if(!sel || sel.value==='new') return;
+  const templates = bulkGetTemplates();
+  delete templates[sel.value];
+  bulkSaveTemplates(templates);
+  bulkPopulateTemplateDropdown();
+  sel.value = 'new';
+  bulkLoadTemplate();
+  toast('Template deleted.','success');
+}
+
+// ── Recipient picker ──────────────────────────────────────────────────────
+function bulkRenderRecipientList(){
+  const wrap = document.getElementById('bulk-recipient-list');
+  if(!wrap) return;
+  const locs = LOC_DATA || [];
+  if(!locs.length){
+    wrap.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">No locations on file yet.</div>';
+    return;
+  }
+  wrap.innerHTML = locs.map(l=>{
+    const checked = bulkSelectedIds.has(l.id) ? 'checked' : '';
+    const cc = l.compliance==='Compliant'?'var(--green)':l.compliance==='Overdue'?'var(--yellow)':'var(--red)';
+    return `<label style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s" onmouseover="this.style.background='var(--elevated)'" onmouseout="this.style.background='transparent'">
+      <input type="checkbox" ${checked} onchange="bulkToggleRecipient(${l.id},this.checked)" style="width:15px;height:15px;accent-color:var(--accent);flex-shrink:0">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sanitize(l.name||l.address)}</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted)">${sanitize(l.address)} &middot; ${sanitize(l.contact||'no contact')}</div>
+      </div>
+      <span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${cc};flex-shrink:0">${sanitize(l.compliance||'')}</span>
+    </label>`;
+  }).join('');
+  bulkUpdateSelectedCount();
+}
+function bulkToggleRecipient(id, isChecked){
+  if(isChecked) bulkSelectedIds.add(id); else bulkSelectedIds.delete(id);
+  bulkUpdateSelectedCount();
+}
+function bulkUpdateSelectedCount(){
+  const el = document.getElementById('bulk-selected-count');
+  if(el) el.textContent = bulkSelectedIds.size + ' selected';
+}
+function bulkQuickSelect(mode){
+  const locs = LOC_DATA || [];
+  if(mode==='none'){ bulkSelectedIds = new Set(); }
+  else if(mode==='all'){ bulkSelectedIds = new Set(locs.map(l=>l.id)); }
+  else if(mode==='overdue'){ bulkSelectedIds = new Set(locs.filter(l=>l.compliance==='Overdue').map(l=>l.id)); }
+  else if(mode==='noncompliant'){ bulkSelectedIds = new Set(locs.filter(l=>l.compliance==='Non-Compliant'||l.compliance==='Overdue').map(l=>l.id)); }
+  else if(mode==='compliant'){ bulkSelectedIds = new Set(locs.filter(l=>l.compliance==='Compliant').map(l=>l.id)); }
+  bulkRenderRecipientList();
+}
+
+// ── Output mode toggle ───────────────────────────────────────────────────
+function bulkSetOutput(mode, btn){
+  bulkOutputMode = mode;
+  document.getElementById('bulk-out-combined').classList.toggle('active', mode==='combined');
+  document.getElementById('bulk-out-separate').classList.toggle('active', mode==='separate');
+}
+
+// ── PDF generation ───────────────────────────────────────────────────────
+function bulkRenderLetterToDoc(doc, subject, body, loc){
+  const pw = 215.9, m = 22;
+  let y = m;
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(60);
+  doc.text(new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}), m, y);
+  y += 14;
+  if(subject){
+    doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(20);
+    doc.text(doc.splitTextToSize(subject, pw-m*2), m, y);
+    y += 10;
+    doc.setDrawColor(180); doc.setLineWidth(0.3); doc.line(m, y, pw-m, y);
+    y += 10;
+  }
+  doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(20);
+  const lines = doc.splitTextToSize(body, pw-m*2);
+  doc.text(lines, m, y, {lineHeightFactor:1.6});
+}
+
+async function bulkEnsureLibs(needsZip){
+  const jsPDFClass = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+  if(!jsPDFClass){
+    await new Promise(function(res){
+      const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      s.onload=res; document.head.appendChild(s);
+    });
+  }
+  if(needsZip && !window.JSZip){
+    await new Promise(function(res){
+      const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+      s.onload=res; document.head.appendChild(s);
+    });
+  }
+}
+
+async function bulkGenerate(){
+  const subject = document.getElementById('bulk-subject').value;
+  const body = document.getElementById('bulk-body').value.trim();
+  if(!body){ toast('Write a letter body before generating.','error'); return; }
+  const recipients = (LOC_DATA||[]).filter(l=>bulkSelectedIds.has(l.id));
+  if(!recipients.length){ toast('Select at least one recipient.','error'); return; }
+
+  const btn = document.getElementById('bulk-generate-btn');
+  const origHTML = btn ? btn.innerHTML : '';
+  if(btn){ btn.disabled = true; btn.innerHTML = 'Generating…'; }
+
+  try{
+    await bulkEnsureLibs(bulkOutputMode==='separate');
+    const jsPDF = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+    if(!jsPDF) throw new Error('PDF library failed to load.');
+
+    if(bulkOutputMode==='combined'){
+      const doc = new jsPDF({orientation:'portrait', unit:'mm', format:'letter'});
+      recipients.forEach((loc,i)=>{
+        if(i>0) doc.addPage();
+        bulkRenderLetterToDoc(doc, bulkMergeText(subject,loc), bulkMergeText(body,loc), loc);
+      });
+      doc.save('bulk-notices-'+new Date().toISOString().split('T')[0]+'.pdf');
+      toast('Generated 1 PDF with '+recipients.length+' letter'+(recipients.length!==1?'s':'')+'.','success');
+    } else {
+      if(!window.JSZip) throw new Error('ZIP library failed to load.');
+      const zip = new window.JSZip();
+      recipients.forEach(loc=>{
+        const doc = new jsPDF({orientation:'portrait', unit:'mm', format:'letter'});
+        bulkRenderLetterToDoc(doc, bulkMergeText(subject,loc), bulkMergeText(body,loc), loc);
+        const safeName = (loc.name||loc.address||'recipient').replace(/[^a-z0-9]+/gi,'-').toLowerCase();
+        zip.file('notice-'+safeName+'.pdf', doc.output('blob'));
+      });
+      const blob = await zip.generateAsync({type:'blob'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'bulk-notices-'+new Date().toISOString().split('T')[0]+'.zip';
+      a.click();
+      toast('Generated '+recipients.length+' separate PDF'+(recipients.length!==1?'s':'')+' (zipped).','success');
+    }
+  } catch(e){
+    toast('Could not generate letters: '+e.message,'error');
+  } finally {
+    if(btn){ btn.disabled = false; btn.innerHTML = origHTML; }
+  }
 }
 
 // Close filter dropdown on outside click
