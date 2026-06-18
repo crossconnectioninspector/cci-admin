@@ -1750,7 +1750,7 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
 <div class="page" id="page-comms-page" style="padding:0;display:none;height:calc(100vh - 56px);flex-direction:column;overflow:hidden">
 
   <!-- Top bar (collapsible) -->
-  <div id="commsToolbarWrap" style="flex-shrink:0;overflow:hidden;max-height:500px;transition:max-height .25s ease,opacity .2s ease;opacity:1">
+  <div id="commsToolbarWrap" style="flex-shrink:0;overflow:visible;max-height:500px;transition:max-height .25s ease,opacity .2s ease;opacity:1">
   <div style="display:flex;align-items:center;gap:10px;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0">
     <!-- Filter dropdown -->
     <div style="position:relative" id="commsFilterWrap">
@@ -6485,7 +6485,16 @@ function commsToggleToolbar(){
     wrap.style.opacity = '1';
     if(chevron) chevron.style.transform = '';
     if(handle) handle.title = 'Collapse toolbar';
+    // Restore visible overflow only after the expand transition finishes,
+    // so the dropdown menu can render outside the box once open.
+    setTimeout(()=>{ if(wrap.style.maxHeight==='500px') wrap.style.overflow='visible'; }, 260);
   } else {
+    // Close the filter dropdown first so it doesn't get clipped mid-collapse.
+    const menu=document.getElementById('commsFilterMenu');
+    const arrow=document.getElementById('commsFilterArrow');
+    if(menu) menu.style.display='none';
+    if(arrow) arrow.style.transform='';
+    wrap.style.overflow = 'hidden';
     wrap.style.maxHeight = '0px';
     wrap.style.opacity = '0';
     if(chevron) chevron.style.transform = 'rotate(180deg)';
