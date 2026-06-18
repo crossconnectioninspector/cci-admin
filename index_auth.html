@@ -5460,17 +5460,17 @@ function notifInit() {
     const bc = has?(dot==='#ef5a5a'?'rgba(224,82,82,.35)':dot==='#f0c040'?'rgba(240,192,64,.35)':'rgba(100,149,237,.35)'):'var(--border)';
     const dp = has?'data-page="'+item.page+'"':'';
     const chev = has?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>':'';
-    return '<div '+dp+' style="background:var(--surface);border:1.5px solid '+bc+';border-radius:10px;padding:14px;'+(has?'':'opacity:.5;')+'">' +
-      '<div style="display:flex;align-items:center;gap:12px">' +
-        '<div style="width:36px;height:36px;border-radius:9px;background:'+(has?bg:'var(--elevated)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0">' +
+    return '<div '+dp+' style="background:var(--surface);border:1.5px solid '+bc+';border-radius:10px;padding:16px;min-height:92px;box-sizing:border-box;'+(has?'':'opacity:.5;')+'">' +
+      '<div style="display:flex;align-items:flex-start;gap:12px;height:100%">' +
+        '<div style="width:36px;height:36px;border-radius:9px;background:'+(has?bg:'var(--elevated)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">' +
           '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="'+(has?dot:'var(--muted)')+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+item.icon+'</svg>' +
         '</div>' +
-        '<div style="flex:1;min-width:0">' +
-          '<div style="font-size:13px;font-weight:700;color:'+(has?'var(--text)':'var(--muted)')+';margin-bottom:2px">'+item.label+'</div>' +
-          '<div style="font-family:var(--mono);font-size:10px;color:var(--muted)">'+item.desc+'</div>' +
+        '<div style="flex:1;min-width:0;padding-top:1px">' +
+          '<div style="font-size:13px;font-weight:700;color:'+(has?'var(--text)':'var(--muted)')+';margin-bottom:4px;line-height:1.3">'+item.label+'</div>' +
+          '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.5">'+item.desc+'</div>' +
         '</div>' +
-        '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">' +
-          '<div style="font-family:var(--cond);font-size:26px;font-weight:900;color:'+(has?dot:'var(--muted)')+'">'+item.count+'</div>' +
+        '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;margin-top:2px">' +
+          '<div style="font-family:var(--cond);font-size:26px;font-weight:900;color:'+(has?dot:'var(--muted)')+';line-height:1">'+item.count+'</div>' +
           chev +
         '</div>' +
       '</div>' +
@@ -5482,41 +5482,41 @@ function notifInit() {
       ? '<span style="background:'+dot+';color:#000;font-family:var(--mono);font-size:10px;font-weight:700;padding:1px 8px;border-radius:10px">'+total+'</span>'
       : '<span style="background:var(--elevated);color:var(--muted);font-family:var(--mono);font-size:10px;padding:1px 8px;border-radius:10px">0</span>';
     return '<div style="display:flex;flex-direction:column;gap:0">' +
-      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">' +
         '<div style="width:8px;height:8px;border-radius:50%;background:'+dot+';flex-shrink:0"></div>' +
         '<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:'+dot+';letter-spacing:1.5px;text-transform:uppercase">'+title+'</span>' +
         badge +
       '</div>' +
-      '<div style="display:flex;flex-direction:column;gap:8px">' +
+      '<div style="display:flex;flex-direction:column;gap:10px">' +
         items.map(function(i){return card(i,dot);}).join('') +
       '</div>' +
     '</div>';
   }
 
   list.innerHTML =
-    '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:24px;flex-wrap:wrap">' +
+    '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:28px;flex-wrap:wrap">' +
       '<div>' +
-        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">' +
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">' +
           '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>' +
-          '<div style="font-family:var(--cond);font-size:26px;font-weight:900;color:var(--text)">Notifications</div>' +
+          '<div style="font-family:var(--cond);font-size:26px;font-weight:900;color:var(--text);line-height:1">Notifications</div>' +
           '<div id="notif-total-badge" style="display:none;background:var(--accent);color:#000;font-family:var(--mono);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px">'+grandTotal+' item'+(grandTotal!==1?'s':'')+' need attention</div>' +
         '</div>' +
         '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.5px">Items requiring your attention · Updated now</div>' +
       '</div>' +
-      '<div style="background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:16px 20px;min-width:220px;flex-shrink:0">' +
-        '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:10px">Program Compliance Rate</div>' +
-        '<div style="display:flex;align-items:center;gap:14px">' +
+      '<div style="background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:18px 22px;min-width:220px;flex-shrink:0;box-sizing:border-box">' +
+        '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:12px">Program Compliance Rate</div>' +
+        '<div style="display:flex;align-items:center;gap:16px">' +
           '<div style="font-family:var(--cond);font-size:42px;font-weight:900;color:'+compColor+';line-height:1">'+compRate+'%</div>' +
           '<div style="flex:1">' +
-            '<div style="height:8px;background:var(--elevated);border-radius:4px;overflow:hidden;margin-bottom:6px">' +
+            '<div style="height:8px;background:var(--elevated);border-radius:4px;overflow:hidden;margin-bottom:8px">' +
               '<div id="comp-bar" style="height:100%;width:0%;background:'+compColor+';border-radius:4px;transition:width 1s ease"></div>' +
             '</div>' +
-            '<div style="font-family:var(--mono);font-size:10px;color:var(--muted)">'+compliantLocs+' of '+totalLocs+' locations compliant</div>' +
+            '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.4">'+compliantLocs+' of '+totalLocs+' locations compliant</div>' +
           '</div>' +
         '</div>' +
       '</div>' +
     '</div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;align-items:start">' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;align-items:start">' +
       column('Urgent — Action Required','#ef5a5a',urgentTotal,[
         {label:'Locations Non-Compliant',count:locNonCompliant,page:'locations-page',
          icon:'<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/>',
