@@ -623,9 +623,8 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
     <button class="nb" onclick="nav('assemblies-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M17.66 17.66l1.41 1.41M4.93 4.93l1.41 1.41"/></svg></span>Assemblies</button>
     <div class="sb-sec">Reports</div>
     <button class="nb" onclick="nav('backflow-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="9" y1="13" x2="15" y2="13"/></svg></span>Test Reports</button>
-    <button class="nb" onclick="nav('csi-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg></span>Surveys</button>
+    <button class="nb" onclick="nav('csi-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg></span>Inspections</button>
     <button class="nb" onclick="nav('inspections-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>Reporting</button>
-    <button class="nb" onclick="nav('state-reports-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>State Reports</button>
     <div class="sb-sec">Maps</div>
     <button class="nb" onclick="nav('device-map-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg></span>Device Map</button>
     <button class="nb" onclick="nav('city-risk-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>City Risk</button>
@@ -1259,7 +1258,7 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
         <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase">Phone</label><input type="text" id="lf-phone" class="si" style="font-size:13px;padding:5px 8px"></div>
         <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase">Contact</label><input type="text" id="lf-contact" class="si" style="font-size:13px;padding:5px 8px"></div>
         <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase">ZIP</label><input type="text" id="lf-zip" class="si" style="font-size:13px;padding:5px 8px"></div>
-        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase">Last Survey</label><select id="lf-survey" class="ss" style="font-size:13px;padding:5px 8px"><option value="">Any</option><option>Pass</option><option>Fail</option><option>Pending</option></select></div>
+        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase">Last Inspection</label><select id="lf-survey" class="ss" style="font-size:13px;padding:5px 8px"><option value="">Any</option><option>Pass</option><option>Fail</option><option>Pending</option></select></div>
       </div>
       <div style="display:flex;gap:8px">
         <button class="btn btn-gh btn-sm" onclick="locClearFilters()">Clear All</button>
@@ -1316,7 +1315,7 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
             <button class="m-tab" onclick="locSwitchTab('assemblies',this)">Assemblies</button>
             <button class="m-tab" onclick="locSwitchTab('contacts',this)">Contacts</button>
             <button class="m-tab" onclick="locSwitchTab('communications',this)">Comms</button>
-            <button class="m-tab" onclick="locSwitchTab('surveys',this)">Surveys</button>
+            <button class="m-tab" onclick="locSwitchTab('surveys',this)">Inspections</button>
             <button class="m-tab" onclick="locSwitchTab('compliance',this)">Compliance</button>
           </div>
         </div>
@@ -1603,7 +1602,6 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
   </div>
 </div>
 
-<div class="page" id="page-state-reports-page"><div class="es"><div class="es-icon">&#x1F4CB;</div><div class="es-title">State Reports</div><div class="es-sub">Annual compliance report export coming soon.</div></div></div>
 
 <div class="page" id="page-users-page" style="padding:0;display:none;height:calc(100vh - 56px);flex-direction:column;overflow:hidden">
 
@@ -1750,7 +1748,8 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
 
 <div class="page" id="page-comms-page" style="padding:0;display:none;height:calc(100vh - 56px);flex-direction:column;overflow:hidden">
 
-  <!-- Top bar -->
+  <!-- Top bar (collapsible) -->
+  <div id="commsToolbarWrap" style="flex-shrink:0;overflow:hidden;max-height:500px;transition:max-height .25s ease,opacity .2s ease;opacity:1">
   <div style="display:flex;align-items:center;gap:10px;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0">
     <!-- Filter dropdown -->
     <div style="position:relative" id="commsFilterWrap">
@@ -1802,6 +1801,11 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
         Log Communication
       </button>
     </div>
+  </div>
+  </div>
+  <!-- Collapse handle -->
+  <div onclick="commsToggleToolbar()" id="commsToolbarHandle" title="Collapse toolbar" style="flex-shrink:0;display:flex;align-items:center;justify-content:center;height:14px;background:var(--elevated);border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='var(--elevated)'">
+    <svg id="commsToolbarChevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" style="transition:transform .25s"><polyline points="18 15 12 9 6 15"/></svg>
   </div>
 
   <!-- Table -->
@@ -2433,7 +2437,7 @@ function nav(id, btn) {
   document.querySelectorAll('.nb').forEach(n=>n.classList.remove('active'));
   const _pg = document.getElementById('page-'+id);
   if (_pg) {
-    const flexPages = ['locations-page','city-risk-page','contacts-page','providers-page','assemblies-page','state-reports-page','users-page','comms-page','notif-page','settings-page','knowledge-page'];
+    const flexPages = ['locations-page','city-risk-page','contacts-page','providers-page','assemblies-page','users-page','comms-page','notif-page','settings-page','knowledge-page'];
     document.querySelectorAll('.page').forEach(p=>{ p.classList.remove('active'); p.style.display='none'; });
     _pg.classList.add('active');
     _pg.style.display = flexPages.includes(id) ? 'flex' : 'block';
@@ -2442,9 +2446,9 @@ function nav(id, btn) {
   const titles = {
     dashboard:'Dashboard','device-map-page':'Device Map','city-risk-page':'City Risk',
     'inspections-page':'Reporting','backflow-page':'Test Reports',
-    'csi-page':'Surveys','search-page':'Search All','import-page':'Add Report',
+    'csi-page':'Inspections','search-page':'Search All','import-page':'Add Report',
     'locations-page':'Locations','contacts-page':'Contacts','providers-page':'Testers',
-    'assemblies-page':'Assemblies','state-reports-page':'State Reports','users-page':'Users',
+    'assemblies-page':'Assemblies','users-page':'Users',
     'comms-page':'Communications','notif-page':'Notifications','settings-page':'Settings',
     'knowledge-page':'Knowledge Base'
   };
@@ -4848,7 +4852,7 @@ function locAddCommNote(locId){
   if(btn){const orig=btn.innerHTML;btn.innerHTML='&#x2713; Logged';btn.style.background='rgba(76,175,121,.2)';setTimeout(()=>{btn.innerHTML=orig;btn.style.background='';},1500);}
 }
 
-function locRenderSurveys(loc){const s=loc.surveys&&loc.surveys[0];if(!s)return _lc('Surveys','<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">No surveys on file.</div>');const rc=s.result==='Pass'?'var(--green)':s.result==='Fail'?'var(--red)':'var(--yellow)';return _lc('Customer Service Inspection',_lg([['Date',s.date],['Surveyor',s.surveyor],['Result','<span style="color:'+rc+'">'+s.result+'</span>'],['','&nbsp;']])+`<div style="margin-top:10px;padding:10px 12px;background:var(--elevated);border-radius:6px;font-size:13px;color:var(--muted);line-height:1.6">${sanitize(s.notes)}</div>`)+'<button onclick="alert(\'New Survey\')" class="btn btn-gh" style="width:100%;justify-content:center;margin-top:8px">+ New Survey</button>';}
+function locRenderSurveys(loc){const s=loc.surveys&&loc.surveys[0];if(!s)return _lc('Inspection','<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">No inspections on file.</div>');const rc=s.result==='Pass'?'var(--green)':s.result==='Fail'?'var(--red)':'var(--yellow)';return _lc('Customer Service Inspection',_lg([['Date',s.date],['Inspector',s.surveyor],['Result','<span style="color:'+rc+'">'+s.result+'</span>'],['','&nbsp;']])+`<div style="margin-top:10px;padding:10px 12px;background:var(--elevated);border-radius:6px;font-size:13px;color:var(--muted);line-height:1.6">${sanitize(s.notes)}</div>`)+'<button onclick="alert(\'New Inspection\')" class="btn btn-gh" style="width:100%;justify-content:center;margin-top:8px">+ New Inspection</button>';}
 
 function locRenderCompliance(loc){const bars=loc.complianceHistory.map(y=>{const c=y.pct===100?'var(--green)':y.pct>=50?'var(--yellow)':'var(--red)';return`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><div style="font-family:var(--mono);font-size:11px;color:var(--muted);width:34px">${y.year}</div><div style="flex:1;background:var(--elevated);border-radius:3px;height:14px;overflow:hidden"><div style="height:100%;border-radius:3px;width:${y.pct}%;background:${c}"></div></div><div style="font-family:var(--mono);font-size:11px;color:var(--text);width:32px;text-align:right">${y.pct}%</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);width:50px">${y.pass}P/${y.fail}F</div></div>`;}).join('');const rc=loc.riskScore<30?'var(--green)':loc.riskScore<60?'var(--yellow)':'var(--red)';const rl=loc.riskScore<30?'LOW RISK':loc.riskScore<60?'MODERATE RISK':'HIGH RISK';const rm=loc.riskScore<30?'Excellent compliance.':loc.riskScore<60?'Moderate risk. Inspect within 30 days.':'High risk. Immediate follow-up required.';return _lc('Year-Over-Year Compliance',bars)+_lc('AI Risk Score',`<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px"><div style="width:52px;height:52px;border-radius:50%;background:conic-gradient(${rc} ${loc.riskScore*3.6}deg,var(--elevated) 0deg);display:flex;align-items:center;justify-content:center;flex-shrink:0"><div style="width:40px;height:40px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:17px;color:${rc}">${loc.riskScore}</div></div><div><div style="font-family:var(--cond);font-weight:700;font-size:17px;color:${rc}">${rl}</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Composite score 0-100</div></div></div><div style="font-size:13px;color:var(--muted);line-height:1.6;padding:9px 11px;background:var(--elevated);border-radius:6px">${rm}</div>`);}
 
@@ -5879,7 +5883,7 @@ const RPT_DEFINITIONS = {
   'loc-overdue': {
     title: 'Locations Past Due',
     subtitle: 'Service addresses with one or more overdue backflow assemblies',
-    headers: ['Address','City','Account #','Contact','Phone','Compliance','Devices','Last Survey'],
+    headers: ['Address','City','Account #','Contact','Phone','Compliance','Devices','Last Inspection'],
     filter: () => true,
     data_source: 'locations',
     row: l => [l.address, l.city, l.account, l.contact||'—', l.phone||'—', l.compliance, l.deviceCount, l.lastSurvey],
@@ -6408,6 +6412,25 @@ function commsToggleFilter(){
   const open = menu.style.display === 'block';
   menu.style.display = open ? 'none' : 'block';
   if(arrow) arrow.style.transform = open ? '' : 'rotate(180deg)';
+}
+
+function commsToggleToolbar(){
+  const wrap = document.getElementById('commsToolbarWrap');
+  const chevron = document.getElementById('commsToolbarChevron');
+  const handle = document.getElementById('commsToolbarHandle');
+  if(!wrap) return;
+  const collapsed = wrap.style.maxHeight === '0px';
+  if(collapsed){
+    wrap.style.maxHeight = '500px';
+    wrap.style.opacity = '1';
+    if(chevron) chevron.style.transform = '';
+    if(handle) handle.title = 'Collapse toolbar';
+  } else {
+    wrap.style.maxHeight = '0px';
+    wrap.style.opacity = '0';
+    if(chevron) chevron.style.transform = 'rotate(180deg)';
+    if(handle) handle.title = 'Expand toolbar';
+  }
 }
 
 function commsSetFilter(filter, label, btn){
