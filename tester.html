@@ -1523,6 +1523,10 @@ function applyProfileToForm() {
     reasonSel.addEventListener('change', function(){
       const repFields = document.getElementById('replacement-fields');
       if (repFields) repFields.style.display = this.value === 'Replacement' ? '' : 'none';
+      // Re-evaluate lead compliance banner with new context
+      const mfr = (document.getElementById('sub-mfr')?.value||'').trim();
+      const mdl = (document.getElementById('sub-model')?.value||'').trim();
+      if (mfr && mdl) checkLeadFree(mfr, mdl);
     });
   }
 }
@@ -3404,16 +3408,25 @@ function checkLeadFree(brand, model) {
   const info = BACKFLOW_DEVICES[brand]?.models[model];
   if (!info) { checkEl.style.display = 'none'; return; }
   checkEl.style.display = 'block';
+  // Check if this is a new installation — only then is non-lead-free a true blocker
+  const reasonEl = document.getElementById('sub-reason') || document.getElementById('wiz-reason');
+  const isNew = reasonEl ? reasonEl.value === 'New' : false;
   if (info.leadFree) {
     checkEl.style.background = 'rgba(61,184,112,.08)';
     checkEl.style.border = '1px solid rgba(61,184,112,.25)';
     checkEl.style.color = 'var(--green)';
-    checkEl.innerHTML = '✓ LEAD-FREE COMPLIANT — Lead-free (NSF/ANSI 372 compliant)';
-  } else {
+    checkEl.innerHTML = '✓ LEAD-FREE COMPLIANT — NSF/ANSI 372 compliant. Approved for all installations.';
+  } else if (isNew) {
     checkEl.style.background = 'rgba(224,82,82,.08)';
     checkEl.style.border = '1px solid rgba(224,82,82,.25)';
     checkEl.style.color = 'var(--red)';
-    checkEl.innerHTML = '⚠ NOT NON-COMPLIANT — Exceeds 0.25% lead limit. Not approved for new installations.';
+    checkEl.innerHTML = '⚠ NOT LEAD-FREE — Exceeds 0.25% lead limit. Not approved for new installations per TCEQ rules.';
+  } else {
+    // Existing or replacement install — informational only, not a blocker
+    checkEl.style.background = 'rgba(240,192,64,.08)';
+    checkEl.style.border = '1px solid rgba(240,192,64,.25)';
+    checkEl.style.color = 'var(--yellow)';
+    checkEl.innerHTML = '⚠ NOTE: This model is not lead-free (Exceeds 0.25% lead limit). Existing installation — testing may proceed.';
   }
 }
 
