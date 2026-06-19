@@ -866,11 +866,25 @@ select.field-input option{background:var(--elevated)}
       </div>
     </div>
 
+    <!-- ── SECTION 1: PUBLIC WATER SYSTEM ── -->
     <div class="form-section">
-      <div class="form-section-title">LOCATION</div>
+      <div class="form-section-title">1 — PUBLIC WATER SYSTEM</div>
+      <div class="form-row">
+        <div class="form-field"><span class="field-label">PWS Name</span><input type="text" class="field-input" id="sub-pws-name" value="City of Abilene Water Dept."></div>
+        <div class="form-field"><span class="field-label">PWS ID #</span><input type="text" class="field-input" id="sub-pws-id" value="TX1090001"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><span class="field-label">PWS Contact Person</span><input type="text" class="field-input" id="sub-pws-contact" value="John Williams"></div>
+        <div class="form-field"><span class="field-label">PWS Mailing Address</span><input type="text" class="field-input" id="sub-pws-addr" value="PO Box 60, Abilene TX 79604"></div>
+      </div>
+    </div>
+
+    <!-- ── SECTION 2: LOCATION & DEVICE ── -->
+    <div class="form-section">
+      <div class="form-section-title">2 — LOCATION & DEVICE</div>
       <div class="form-row full">
         <div class="form-field">
-          <span class="field-label">Street Address <span style="color:var(--red)">*</span><span class="field-error" id="err-sub-addr"></span></span>
+          <span class="field-label">Address of Service / Location <span style="color:var(--red)">*</span><span class="field-error" id="err-sub-addr"></span></span>
           <input type="text" class="field-input req-field" id="sub-addr"
             placeholder="123 Main St, Abilene TX 79601"
             autocomplete="street-address"
@@ -879,13 +893,9 @@ select.field-input option{background:var(--elevated)}
         </div>
       </div>
       <div class="form-row">
-        <div class="form-field"><span class="field-label">Date</span><input type="date" class="field-input" id="sub-date"></div>
-        <div class="form-field"><span class="field-label">Your Name</span><input type="text" class="field-input" id="sub-tester" placeholder="Full name"></div>
+        <div class="form-field"><span class="field-label">BPA Serves (what it protects)</span><input type="text" class="field-input" id="sub-bpa-serves" placeholder="Irrigation System, Boiler…"></div>
+        <div class="form-field"><span class="field-label">BPA Location (where installed)</span><input type="text" class="field-input" id="sub-bpa-location" placeholder="Meter Room, East Wall…"></div>
       </div>
-    </div>
-
-    <div class="form-section">
-      <div class="form-section-title">DEVICE INFO</div>
       <div class="form-row">
         <div class="form-field">
           <span class="field-label">Manufacturer <span style="color:var(--red)">*</span><span class="field-error" id="err-sub-mfr"></span></span>
@@ -895,7 +905,7 @@ select.field-input option{background:var(--elevated)}
           </div>
         </div>
         <div class="form-field">
-          <span class="field-label">Model <span style="color:var(--red)">*</span><span class="field-error" id="err-sub-model"></span></span>
+          <span class="field-label">Model # <span style="color:var(--red)">*</span><span class="field-error" id="err-sub-model"></span></span>
           <div class="ac-wrap">
             <input type="text" class="field-input" id="sub-model" placeholder="LF009…" autocomplete="off">
             <div class="ac-dropdown" id="sub-model-dropdown" style="display:none"></div>
@@ -907,8 +917,48 @@ select.field-input option{background:var(--elevated)}
         <div class="form-field"><span class="field-label">Serial # <span style="color:var(--red)">*</span><span class="field-error" id="err-sub-serial"></span></span><input type="text" class="field-input" id="sub-serial" placeholder="SN-12345"></div>
         <div class="form-field"><span class="field-label">Size</span><select class="field-input" id="sub-size"><option>3/4"</option><option>1"</option><option>1-1/4"</option><option>1-1/2"</option><option>2"</option><option>3"</option><option>4"</option></select></div>
       </div>
+      <!-- Bypass (optional) -->
+      <div style="margin-top:6px">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px">BYPASS ASSEMBLY (if present)</div>
+        <div class="form-row">
+          <div class="form-field"><span class="field-label">Bypass Manufacturer</span><input type="text" class="field-input" id="sub-bypass-mfr" placeholder="Optional"></div>
+          <div class="form-field"><span class="field-label">Bypass Model</span><input type="text" class="field-input" id="sub-bypass-model" placeholder="Optional"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><span class="field-label">Bypass Serial #</span><input type="text" class="field-input" id="sub-bypass-serial" placeholder="Optional"></div>
+          <div class="form-field"><span class="field-label">Bypass Size</span><input type="text" class="field-input" id="sub-bypass-size" placeholder='e.g. 1"'></div>
+        </div>
+      </div>
     </div>
 
+    <!-- ── SECTION 3: TEST INFO ── -->
+    <div class="form-section">
+      <div class="form-section-title">3 — TEST INFO</div>
+      <div class="form-row">
+        <div class="form-field"><span class="field-label">Date</span><input type="date" class="field-input" id="sub-date"></div>
+        <div class="form-field"><span class="field-label">Time</span><input type="time" class="field-input" id="sub-time"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><span class="field-label">Your Name</span><input type="text" class="field-input" id="sub-tester" placeholder="Full name"></div>
+        <div class="form-field">
+          <span class="field-label">Reason for Test</span>
+          <select class="field-input" id="sub-reason">
+            <option value="Existing">Existing</option>
+            <option value="New">New Installation</option>
+            <option value="Replacement">Replacement</option>
+          </select>
+        </div>
+      </div>
+      <!-- Old model/serial shown only when Replacement -->
+      <div id="replacement-fields" style="display:none">
+        <div class="form-row">
+          <div class="form-field"><span class="field-label">Old Model #</span><input type="text" class="field-input" id="sub-old-model" placeholder="Replaced model"></div>
+          <div class="form-field"><span class="field-label">Old Serial #</span><input type="text" class="field-input" id="sub-old-serial" placeholder="Replaced serial"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECTION 3b: PRESSURE READINGS ── -->
     <div class="form-section">
       <div class="form-section-title">PRESSURE READINGS (PSID)</div>
       <div id="psid-fields"></div>
@@ -916,20 +966,65 @@ select.field-input option{background:var(--elevated)}
         <div class="result-banner" id="result-banner">Enter readings above — result auto-calculates</div>
         <div class="result-detail" id="result-detail">Based on USC/AWWA standards</div>
       </div>
+
+      <!-- Test After Repair -->
+      <div id="after-repair-section" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">TEST AFTER REPAIR</div>
+        <div id="psid-after-fields"></div>
+      </div>
+
+      <!-- Code compliance questions -->
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:13px;color:var(--text)">Installed per manufacturer recommendations and/or local codes?</span>
+          <div style="display:flex;gap:8px">
+            <label style="display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;cursor:pointer"><input type="radio" name="mfr-rec" id="mfr-rec-yes" value="yes" checked> Yes</label>
+            <label style="display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;cursor:pointer"><input type="radio" name="mfr-rec" id="mfr-rec-no" value="no"> No</label>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:13px;color:var(--text)">Assembly installed on a non-potable (auxiliary) water supply?</span>
+          <div style="display:flex;gap:8px">
+            <label style="display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;cursor:pointer"><input type="radio" name="non-potable" id="non-pot-yes" value="yes"> Yes</label>
+            <label style="display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;cursor:pointer"><input type="radio" name="non-potable" id="non-pot-no" value="no" checked> No</label>
+          </div>
+        </div>
+      </div>
     </div>
 
+    <!-- ── SECTION 4: GAUGE ── -->
     <div class="form-section">
-      <div class="form-section-title">REPAIRS</div>
+      <div class="form-section-title">4 — DIFFERENTIAL PRESSURE GAUGE</div>
+      <div class="form-row">
+        <div class="form-field"><span class="field-label">Gauge Make / Model</span><input type="text" class="field-input" id="sub-gauge-model" placeholder="Watts Test Kit"></div>
+        <div class="form-field"><span class="field-label">Gauge Serial #</span><input type="text" class="field-input" id="sub-gauge-serial" placeholder="G-TF-00421"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><span class="field-label">Date Tested for Accuracy</span><input type="date" class="field-input" id="sub-gauge-cal"></div>
+        <div class="form-field">
+          <span class="field-label">Gauge Used On</span>
+          <div style="display:flex;gap:14px;margin-top:6px">
+            <label style="display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px;cursor:pointer"><input type="radio" name="gauge-type" id="gauge-potable" value="potable" checked> Potable</label>
+            <label style="display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px;cursor:pointer"><input type="radio" name="gauge-type" id="gauge-nonpotable" value="non-potable"> Non-Potable</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECTION 5: REPAIRS ── -->
+    <div class="form-section">
+      <div class="form-section-title">5 — REPAIRS & MATERIALS USED</div>
       <div class="toggle-row"><span class="toggle-label">Repairs were made</span><button class="toggle" id="repairs-toggle" onclick="toggleRepairs()"></button></div>
       <div id="repair-details-wrap" style="display:none;margin-top:10px">
         <div class="form-field">
           <span class="field-label" style="margin-bottom:8px;display:block">REPAIR DETAILS — SELECT ALL THAT APPLY</span>
           <div id="repair-checklist" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
-          <textarea class="field-input" id="sub-repair-details" rows="2" placeholder="Additional notes on repairs…" style="resize:vertical;font-size:13px"></textarea>
+          <textarea class="field-input" id="sub-repair-details" rows="2" placeholder="Additional notes on repairs, parts used…" style="resize:vertical;font-size:13px"></textarea>
         </div>
       </div>
     </div>
 
+    <!-- ── PHOTOS ── -->
     <div class="form-section">
       <div class="form-section-title">PHOTOS</div>
       <div class="photo-zone">
@@ -941,8 +1036,9 @@ select.field-input option{background:var(--elevated)}
       <div id="photo-count" style="font-family:var(--mono);font-size:10px;color:var(--accent);margin-top:6px"></div>
     </div>
 
+    <!-- ── SECTION 6: CERTIFICATION ── -->
     <div class="form-section">
-      <div class="form-section-title">CERTIFICATION & REMARKS</div>
+      <div class="form-section-title">6 — CERTIFICATION & REMARKS</div>
       <div class="form-row">
         <div class="form-field"><span class="field-label">Cert #</span><input type="text" class="field-input" id="sub-cert" placeholder="TX-BPAT-12345"></div>
         <div class="form-field"><span class="field-label">Firm</span><input type="text" class="field-input" id="sub-firm" placeholder="Your Company"></div>
@@ -1412,6 +1508,23 @@ function applyProfileToForm() {
   if (testerProfile.name)    s('sub-tester').value = testerProfile.name;
   if (testerProfile.cert)    s('sub-cert').value   = testerProfile.cert;
   if (testerProfile.company) s('sub-firm').value    = testerProfile.company;
+  // Auto-populate gauge fields from profile
+  if (testerProfile.gaugeSerial) s('sub-gauge-serial').value = testerProfile.gaugeSerial;
+  if (testerProfile.gaugeDate)   s('sub-gauge-cal').value    = testerProfile.gaugeDate;
+  // Set current time
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  const timeEl = document.getElementById('sub-time');
+  if (timeEl && !timeEl.value) timeEl.value = hh+':'+mm;
+  // Wire reason-for-test show/hide
+  const reasonSel = document.getElementById('sub-reason');
+  if (reasonSel) {
+    reasonSel.addEventListener('change', function(){
+      const repFields = document.getElementById('replacement-fields');
+      if (repFields) repFields.style.display = this.value === 'Replacement' ? '' : 'none';
+    });
+  }
 }
 
 function renderProfilePage() {
@@ -1947,6 +2060,30 @@ function toggleRepairs() {
   repairsOn=!repairsOn;
   document.getElementById('repairs-toggle').className='toggle'+(repairsOn?' on':'');
   document.getElementById('repair-details-wrap').style.display=repairsOn?'block':'none';
+  // Show/hide Test After Repair readings
+  const afterSection = document.getElementById('after-repair-section');
+  if (afterSection) {
+    afterSection.style.display = repairsOn ? '' : 'none';
+    if (repairsOn) {
+      const afterWrap = document.getElementById('psid-after-fields');
+      if (afterWrap && !afterWrap.innerHTML) {
+        const asm = currentAsm;
+        let html = psidField('psid-after-c1','1ST CHECK AFTER REPAIR','post-repair reading');
+        if (asm === 'RPZ' || asm === 'DCVA') html += psidField('psid-after-c2','2ND CHECK AFTER REPAIR','post-repair reading');
+        if (asm === 'RPZ') html += psidField('psid-after-rv','RELIEF VALVE AFTER REPAIR','post-repair reading');
+        afterWrap.innerHTML = html;
+        // Wire live update to indicators
+        ['psid-after-c1','psid-after-c2','psid-after-rv'].forEach(id=>{
+          const el=document.getElementById(id);
+          if(el) el.addEventListener('input', function(){
+            const v=parseFloat(this.value);
+            const ind=document.getElementById(id+'-ind');
+            if(ind&&!isNaN(v)){ind.textContent=v.toFixed(1)+' PSID';ind.style.color='var(--green)';}
+          });
+        });
+      }
+    }
+  }
 }
 
 function handlePhotos(input) {
@@ -2058,22 +2195,56 @@ async function submitReport() {
   const row={
     date: reportDate,
     address: addr,
+    // PWS
+    pws_name: document.getElementById('sub-pws-name')?.value || 'City of Abilene Water Dept.',
+    pws_id: document.getElementById('sub-pws-id')?.value || 'TX1090001',
+    pws_contact: document.getElementById('sub-pws-contact')?.value || '',
+    pws_address: document.getElementById('sub-pws-addr')?.value || '',
+    // Location/device
+    bpa_serves: document.getElementById('sub-bpa-serves')?.value || '',
+    bpa_location: document.getElementById('sub-bpa-location')?.value || '',
+    // Tester
     tester: testerName,
     tester_email: currentUser.email,
     tester_cert: document.getElementById('sub-cert').value||testerProfile.cert||'',
     cert_num: document.getElementById('sub-cert').value||testerProfile.cert||'',
     firm: document.getElementById('sub-firm').value||testerProfile.company||'',
+    // Assembly
     assembly: currentAsm,
     manufacturer: document.getElementById('sub-mfr').value,
     model: document.getElementById('sub-model').value,
     serial: document.getElementById('sub-serial').value,
     size: document.getElementById('sub-size').value,
+    // Bypass
+    bypass_mfr: document.getElementById('sub-bypass-mfr')?.value || '',
+    bypass_model: document.getElementById('sub-bypass-model')?.value || '',
+    bypass_serial: document.getElementById('sub-bypass-serial')?.value || '',
+    bypass_size: document.getElementById('sub-bypass-size')?.value || '',
+    // Test info
+    test_time: document.getElementById('sub-time')?.value || '',
+    reason: document.getElementById('sub-reason')?.value || 'Existing',
+    old_model: document.getElementById('sub-old-model')?.value || '',
+    old_serial: document.getElementById('sub-old-serial')?.value || '',
+    // Results
     result: result,
     check1: fmtPsid(c1,'c1'),
     check2: fmtPsid(c2,'c2'),
     relief: fmtPsid(rv,'rv'),
     psid_c1: c1, psid_c2: c2, psid_relief: rv,
     fail_reasons: fails.join('; '),
+    // After-repair readings
+    after_c1: getVal('psid-after-c1'),
+    after_c2: getVal('psid-after-c2'),
+    after_rv: getVal('psid-after-rv'),
+    // Compliance questions
+    installed_per_mfr: (document.querySelector('input[name="mfr-rec"]:checked')?.value || 'yes') === 'yes',
+    non_potable: (document.querySelector('input[name="non-potable"]:checked')?.value || 'no') === 'yes',
+    // Gauge
+    gauge_model: document.getElementById('sub-gauge-model')?.value || '',
+    gauge_serial: document.getElementById('sub-gauge-serial')?.value || testerProfile.gaugeSerial || '',
+    gauge_cal_date: document.getElementById('sub-gauge-cal')?.value || testerProfile.gaugeDate || '',
+    gauge_potable: (document.querySelector('input[name="gauge-type"]:checked')?.value || 'potable') === 'potable',
+    // Repairs
     repairs: repairsOn,
     repair_details: (function(){
       const items = repairsOn ? collectPortalRepairs() : [];
@@ -2086,7 +2257,6 @@ async function submitReport() {
     photo_urls: photoUrls,
     city: 'Abilene',
     state: 'TX',
-    pws_name: document.getElementById('wiz-pws-name')?.value || 'City of Abilene',
     submitted_by_user: currentUser.id,
   };
 
@@ -2110,7 +2280,9 @@ async function submitReport() {
 }
 
 function clearForm() {
-  ['sub-addr','sub-mfr','sub-model','sub-serial','sub-remarks','sub-repair-details'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['sub-addr','sub-mfr','sub-model','sub-serial','sub-remarks','sub-repair-details',
+   'sub-bpa-serves','sub-bpa-location','sub-bypass-mfr','sub-bypass-model','sub-bypass-serial','sub-bypass-size',
+   'sub-old-model','sub-old-serial'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   // Clear all dynamically generated repair checkboxes
   document.querySelectorAll('#repair-checklist input[type=checkbox]').forEach(cb => cb.checked = false);
   document.getElementById('photo-preview').innerHTML='';
@@ -2119,7 +2291,17 @@ function clearForm() {
   photoFiles=[];repairsOn=false;
   document.getElementById('repairs-toggle').className='toggle';
   document.getElementById('repair-details-wrap').style.display='none';
+  const afterSection = document.getElementById('after-repair-section');
+  if (afterSection) { afterSection.style.display='none'; const af=document.getElementById('psid-after-fields'); if(af) af.innerHTML=''; }
   document.getElementById('sub-date').valueAsDate=new Date();
+  const timeEl=document.getElementById('sub-time');
+  if(timeEl){const now=new Date();timeEl.value=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');}
+  const reasonSel=document.getElementById('sub-reason');if(reasonSel)reasonSel.value='Existing';
+  const repFields=document.getElementById('replacement-fields');if(repFields)repFields.style.display='none';
+  // Reset radio buttons to defaults
+  const mfrYes=document.getElementById('mfr-rec-yes');if(mfrYes)mfrYes.checked=true;
+  const nonPotNo=document.getElementById('non-pot-no');if(nonPotNo)nonPotNo.checked=true;
+  const gaugePot=document.getElementById('gauge-potable');if(gaugePot)gaugePot.checked=true;
   selectAsm('RPZ');
 }
 
@@ -2289,7 +2471,7 @@ async function generateReportPDF(r) {
     // Date / Time / Reason
     box(m,y,cw/3,8); box(m+cw/3,y,cw/3,8); box(m+cw*2/3,y,cw/3,8);
     lbl('TEST DATE',m+1,y+2.5); val(r.date||'',m+1,y+7,8.5);
-    lbl('TIME',m+cw/3+1,y+2.5); val(r.time||'',m+cw/3+1,y+7,8.5);
+    lbl('TIME',m+cw/3+1,y+2.5); val(r.test_time||r.time||'',m+cw/3+1,y+7,8.5);
     lbl('REASON FOR TEST',m+cw*2/3+1,y+2.5);
     const reason=r.reason||'Existing';
     [{l:'New',v:'New'},{l:'Existing',v:'Existing'},{l:'Replacement',v:'Replacement'}].forEach(function(opt,i){
@@ -2403,8 +2585,8 @@ async function generateReportPDF(r) {
     resultRow('Initial\nTest', c1Val, c2Val, rvVal, aiVal||null, result, 'Date: '+(r.date||''));
     repairRow();
     resultRow('Test After\nRepair',
-      repairYes?(r.repair_c1||''):'', repairYes?(r.repair_c2||''):'',
-      repairYes?(r.repair_rv||''):'', null, repairYes?result:'', '');
+      repairYes?(r.after_c1||r.repair_c1||''):'', repairYes?(r.after_c2||r.repair_c2||''):'',
+      repairYes?(r.after_rv||r.repair_rv||''):'', null, repairYes?result:'', '');
 
     y+=2;
     // Note line
