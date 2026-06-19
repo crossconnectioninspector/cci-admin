@@ -2226,6 +2226,7 @@ async function submitReport() {
   const combinedNotes = [baseRemarks, extraFields].filter(Boolean).join('\n');
 
   const row={
+    id: 'BF' + Date.now() + Math.random().toString(36).slice(2,6).toUpperCase(),
     date: reportDate,
     address: addr,
     // PWS (schema has pws_name and pws_id)
