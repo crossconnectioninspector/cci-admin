@@ -2207,17 +2207,30 @@ async function submitReport() {
   const testerName=document.getElementById('sub-tester').value||testerProfile.name||currentUser.email;
   const reportDate=document.getElementById('sub-date').value||new Date().toISOString().split('T')[0];
 
+  // Pack extra 20700 fields that don't have DB columns into notes
+  const extraFields = [
+    document.getElementById('sub-reason')?.value !== 'Existing' ? `Reason: ${document.getElementById('sub-reason')?.value}` : '',
+    document.getElementById('sub-old-model')?.value ? `Old Model: ${document.getElementById('sub-old-model').value}` : '',
+    document.getElementById('sub-old-serial')?.value ? `Old Serial: ${document.getElementById('sub-old-serial').value}` : '',
+    document.getElementById('sub-bpa-serves')?.value ? `BPA Serves: ${document.getElementById('sub-bpa-serves').value}` : '',
+    document.getElementById('sub-bpa-location')?.value ? `BPA Location: ${document.getElementById('sub-bpa-location').value}` : '',
+    document.getElementById('sub-bypass-serial')?.value ? `Bypass: ${document.getElementById('sub-bypass-mfr')?.value||''} ${document.getElementById('sub-bypass-model')?.value||''} ${document.getElementById('sub-bypass-serial').value} ${document.getElementById('sub-bypass-size')?.value||''}`.trim() : '',
+    document.getElementById('sub-time')?.value ? `Time: ${document.getElementById('sub-time').value}` : '',
+    (document.querySelector('input[name="mfr-rec"]:checked')?.value||'yes')==='no' ? 'NOT installed per mfr recommendations' : '',
+    (document.querySelector('input[name="non-potable"]:checked')?.value||'no')==='yes' ? 'Non-potable supply' : '',
+    (document.querySelector('input[name="gauge-type"]:checked')?.value||'potable')==='non-potable' ? 'Gauge: Non-Potable' : '',
+    (() => { const a1=getVal('psid-after-c1'),a2=getVal('psid-after-c2'),ar=getVal('psid-after-rv'); const parts=[]; if(a1!==null)parts.push(`After-C1:${a1}`); if(a2!==null)parts.push(`After-C2:${a2}`); if(ar!==null)parts.push(`After-RV:${ar}`); return parts.length?`Test After Repair: ${parts.join(' ')}`:''})(),
+  ].filter(Boolean).join(' | ');
+
+  const baseRemarks = document.getElementById('sub-remarks').value;
+  const combinedNotes = [baseRemarks, extraFields].filter(Boolean).join('\n');
+
   const row={
     date: reportDate,
     address: addr,
-    // PWS
+    // PWS (schema has pws_name and pws_id)
     pws_name: document.getElementById('sub-pws-name')?.value || 'City of Abilene Water Dept.',
     pws_id: document.getElementById('sub-pws-id')?.value || 'TX1090001',
-    pws_contact: document.getElementById('sub-pws-contact')?.value || '',
-    pws_address: document.getElementById('sub-pws-addr')?.value || '',
-    // Location/device
-    bpa_serves: document.getElementById('sub-bpa-serves')?.value || '',
-    bpa_location: document.getElementById('sub-bpa-location')?.value || '',
     // Tester
     tester: testerName,
     tester_email: currentUser.email,
@@ -2230,16 +2243,6 @@ async function submitReport() {
     model: document.getElementById('sub-model').value,
     serial: document.getElementById('sub-serial').value,
     size: document.getElementById('sub-size').value,
-    // Bypass
-    bypass_mfr: document.getElementById('sub-bypass-mfr')?.value || '',
-    bypass_model: document.getElementById('sub-bypass-model')?.value || '',
-    bypass_serial: document.getElementById('sub-bypass-serial')?.value || '',
-    bypass_size: document.getElementById('sub-bypass-size')?.value || '',
-    // Test info
-    test_time: document.getElementById('sub-time')?.value || '',
-    reason: document.getElementById('sub-reason')?.value || 'Existing',
-    old_model: document.getElementById('sub-old-model')?.value || '',
-    old_serial: document.getElementById('sub-old-serial')?.value || '',
     // Results
     result: result,
     check1: fmtPsid(c1,'c1'),
@@ -2247,18 +2250,9 @@ async function submitReport() {
     relief: fmtPsid(rv,'rv'),
     psid_c1: c1, psid_c2: c2, psid_relief: rv,
     fail_reasons: fails.join('; '),
-    // After-repair readings
-    after_c1: getVal('psid-after-c1'),
-    after_c2: getVal('psid-after-c2'),
-    after_rv: getVal('psid-after-rv'),
-    // Compliance questions
-    installed_per_mfr: (document.querySelector('input[name="mfr-rec"]:checked')?.value || 'yes') === 'yes',
-    non_potable: (document.querySelector('input[name="non-potable"]:checked')?.value || 'no') === 'yes',
-    // Gauge
-    gauge_model: document.getElementById('sub-gauge-model')?.value || testerProfile.gaugeModel || '',
+    // Gauge (schema has gauge_serial and gauge_cal_date)
     gauge_serial: document.getElementById('sub-gauge-serial')?.value || testerProfile.gaugeSerial || '',
     gauge_cal_date: document.getElementById('sub-gauge-cal')?.value || testerProfile.gaugeDate || '',
-    gauge_potable: (document.querySelector('input[name="gauge-type"]:checked')?.value || 'potable') === 'potable',
     // Repairs
     repairs: repairsOn,
     repair_details: (function(){
@@ -2267,12 +2261,38 @@ async function submitReport() {
       const parts = items.map(i => i.component + ': ' + i.action);
       return parts.concat(notes ? [notes] : []).join('; ');
     })(),
-    remarks: document.getElementById('sub-remarks').value,
-    notes: document.getElementById('sub-remarks').value,
+    // Notes + remarks (pack extra 20700 fields here)
+    remarks: combinedNotes,
+    notes: combinedNotes,
     photo_urls: photoUrls,
     city: 'Abilene',
     state: 'TX',
     submitted_by_user: currentUser.id,
+  };
+
+  // Full row for local PDF generation (carries all 20700 fields)
+  const fullRow = {
+    ...row,
+    pws_contact: document.getElementById('sub-pws-contact')?.value || 'John Williams',
+    pws_address: document.getElementById('sub-pws-addr')?.value || 'PO Box 60, Abilene TX 79604',
+    bpa_serves: document.getElementById('sub-bpa-serves')?.value || '',
+    bpa_location: document.getElementById('sub-bpa-location')?.value || '',
+    bypass_mfr: document.getElementById('sub-bypass-mfr')?.value || '',
+    bypass_model: document.getElementById('sub-bypass-model')?.value || '',
+    bypass_serial: document.getElementById('sub-bypass-serial')?.value || '',
+    bypass_size: document.getElementById('sub-bypass-size')?.value || '',
+    time: document.getElementById('sub-time')?.value || '',
+    test_time: document.getElementById('sub-time')?.value || '',
+    reason: document.getElementById('sub-reason')?.value || 'Existing',
+    old_model: document.getElementById('sub-old-model')?.value || '',
+    old_serial: document.getElementById('sub-old-serial')?.value || '',
+    after_c1: getVal('psid-after-c1'),
+    after_c2: getVal('psid-after-c2'),
+    after_rv: getVal('psid-after-rv'),
+    installed_per_mfr: (document.querySelector('input[name="mfr-rec"]:checked')?.value||'yes')==='yes',
+    non_potable: (document.querySelector('input[name="non-potable"]:checked')?.value||'no')==='yes',
+    gauge_model: document.getElementById('sub-gauge-model')?.value || testerProfile.gaugeModel || '',
+    gauge_potable: (document.querySelector('input[name="gauge-type"]:checked')?.value||'potable')==='potable',
   };
 
   try {
@@ -2281,10 +2301,10 @@ async function submitReport() {
       method:'POST', headers:{...headers,'Prefer':'return=minimal'}, body:JSON.stringify(row)
     });
     if (!res.ok) throw new Error(await res.text());
-    myReports.unshift(row);
+    myReports.unshift(fullRow);
     toast(result==='PASS'?'✓ Saved — Generating PDF…':'✗ Saved — Generating PDF…', result==='PASS'?'success':'error');
     // Generate report PDF
-    setTimeout(()=>generateReportPDF(row), 800);
+    setTimeout(()=>generateReportPDF(fullRow), 800);
     clearForm();
     setTimeout(()=>switchPage('history'),2000);
   } catch(e){
