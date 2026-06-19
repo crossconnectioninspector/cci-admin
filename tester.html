@@ -1991,31 +1991,21 @@ async function submitReport() {
     date: reportDate,
     address: addr,
     // Tester info
-    tester_name: testerName,
     tester: testerName,
     tester_email: currentUser.email,
-    tester_cert: document.getElementById('sub-cert').value||testerProfile.cert||'',
     cert_num: document.getElementById('sub-cert').value||testerProfile.cert||'',
     firm: document.getElementById('sub-firm').value||testerProfile.company||'',
     // Assembly info
-    assembly_type: currentAsm,
     assembly: currentAsm,
     manufacturer: document.getElementById('sub-mfr').value,
     model: document.getElementById('sub-model').value,
-    serial_number: document.getElementById('sub-serial').value,
     serial: document.getElementById('sub-serial').value,
     size: document.getElementById('sub-size').value,
     // Results
     result: result,
-    test_result: result,
-    check1: fmtPsid(c1,'c1'),
-    check2: fmtPsid(c2,'c2'),
-    relief: fmtPsid(rv,'rv'),
-    initial_check1: c1, initial_check2: c2,
-    psid_c1: c1, psid_c2: c2, psid_rv: rv, psid_relief: rv,
+    psid_c1: c1, psid_c2: c2, psid_rv: rv,
     fail_reasons: fails.join('; '),
     repairs: repairsOn,
-    repair_items: repairsOn ? collectPortalRepairs() : [],
     repair_details: (function(){
       const items = repairsOn ? collectPortalRepairs() : [];
       const notes = (document.getElementById('sub-repair-details') || {}).value || '';
@@ -2023,12 +2013,8 @@ async function submitReport() {
       return parts.concat(notes ? [notes] : []).join('; ');
     })(),
     notes: document.getElementById('sub-remarks').value,
-    remarks: document.getElementById('sub-remarks').value,
     photo_urls: photoUrls,
-    city: 'Abilene',
-    state: 'TX',
     pws_name: document.getElementById('wiz-pws-name')?.value || 'City of Abilene',
-    submitted_by_user: currentUser.id,
   };
 
   try {
@@ -2783,7 +2769,6 @@ async function wizStep4Next() {
   const meta = currentUser?.user_metadata || {};
   const repairsYes = document.getElementById('wiz-repairs')?.value === 'yes';
   const row = {
-    id: 'BF' + Date.now(),
     date: document.getElementById('wiz-date').value || new Date().toISOString().split('T')[0],
     address: document.getElementById('wiz-addr').value.trim(),
     tester: meta.full_name || currentUser.email,
@@ -2794,14 +2779,11 @@ async function wizStep4Next() {
     manufacturer: mfr, model, serial,
     size: document.getElementById('wiz-size').value,
     result: result || 'PASS',
-    psid_c1: c1, psid_c2: c2, psid_rv: rv, psid_relief: rv,
-    check1: c1 !== null ? `${c1} psid` : '',
-    check2: c2 !== null ? `${c2} psid` : '',
-    relief: rv !== null ? `${rv} psid` : '',
+    psid_c1: c1, psid_c2: c2, psid_rv: rv,
     fail_reasons: fails.join('; '),
     repairs: repairsYes,
     repair_details: document.getElementById('wiz-repair-details')?.value || '',
-    remarks: document.getElementById('wiz-remarks')?.value || '',
+    notes: document.getElementById('wiz-remarks')?.value || '',
     photo_urls: photoUrls,
     pws_name: document.getElementById('wiz-pws-name')?.value || 'Abilene TX',
     pws_id: document.getElementById('wiz-pws-id')?.value || '',

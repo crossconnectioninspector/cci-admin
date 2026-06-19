@@ -1307,6 +1307,10 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 Edit
               </button>
+              <button onclick="locConfirmDelete()" title="Delete this location and all its reports" style="height:26px;padding:0 10px;border-radius:6px;background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.3);color:var(--red);cursor:pointer;display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;transition:all .15s">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                Delete
+              </button>
               <button onclick="locCloseDetail()" style="width:26px;height:26px;border-radius:6px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1">&#x2715;</button>
             </div>
           </div>
@@ -1929,6 +1933,26 @@ Please contact our office to schedule your test..." style="font-size:13px;paddin
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       Generate Letters
     </button>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteConfirmModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:2000;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1.5px solid rgba(224,82,82,.4);border-radius:16px;padding:28px;width:420px;max-width:92vw;box-shadow:0 24px 60px rgba(0,0,0,.6)">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <div style="width:36px;height:36px;border-radius:9px;background:rgba(224,82,82,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+      </div>
+      <div>
+        <div style="font-family:var(--cond);font-size:17px;font-weight:900;color:var(--red)" id="deleteModalTitle">Confirm Delete</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px">This cannot be undone</div>
+      </div>
+    </div>
+    <div id="deleteModalBody" style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:20px"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="closeDeleteModal()" class="btn btn-gh">Cancel</button>
+      <button id="deleteModalConfirmBtn" class="btn btn-rd">Delete</button>
+    </div>
   </div>
 </div>
 
@@ -3170,7 +3194,10 @@ function renderBF() {
     <td>${sanitize(r.tester)}</td>
     <td><span class="badge ${r.result==='PASS'?'b-pass':'b-fail'}">${r.result==='PASS'?'✓':'✗'} ${r.result}</span></td>
     <td>${r.repairs?'<span style="color:var(--accent)">🔧 Yes</span>':'<span style="color:var(--muted)">—</span>'}</td>
-    <td><button onclick="event.stopPropagation();generateReportPDF(DB.find(x=>x.id==='${r.id}'))" style="background:var(--elevated);border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;font-size:11px;padding:3px 8px" title="Download PDF">📄 PDF</button></td>
+    <td style="display:flex;gap:4px;align-items:center;padding:8px 6px">
+      <button onclick="event.stopPropagation();generateReportPDF(DB.find(x=>x.id==='${r.id}'))" style="background:var(--elevated);border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;font-size:11px;padding:3px 8px" title="Download PDF">📄 PDF</button>
+      <button onclick="event.stopPropagation();reportConfirmDelete('${r.id}','${r.address ? r.address.replace(/'/g,"\\'") : ''}')" style="background:rgba(224,82,82,.08);border:1px solid rgba(224,82,82,.2);border-radius:6px;color:var(--red);cursor:pointer;font-size:11px;padding:3px 8px" title="Delete report">🗑</button>
+    </td>
   </tr>`).join('')}</tbody></table>`:es('🔧','No backflow reports','Add a backflow test report');
 }
 
@@ -4882,7 +4909,99 @@ function locRenderAssemblies(loc){const sc=s=>s==='Pass'?'var(--green)':s==='Fai
 
 function locSaveAssemblies(){const loc=LOC_DATA.find(l=>l.id===locActiveId);if(!loc)return;loc.assemblies.forEach((a,i)=>{const g=id=>document.getElementById(id)?.value?.trim();a.type=g('ae-type-'+i)||a.type;a.make=g('ae-make-'+i)||a.make;a.model=g('ae-model-'+i)||a.model;a.size=g('ae-size-'+i)||a.size;a.serial=g('ae-serial-'+i)||a.serial;a.status=g('ae-status-'+i)||a.status;a.due=g('ae-due-'+i)||a.due;});const newSerial=document.getElementById('ae-serial-new')?.value?.trim();if(newSerial){loc.assemblies.push({type:document.getElementById('ae-type-new')?.value||'RPZ',make:document.getElementById('ae-make-new')?.value?.trim()||'',model:document.getElementById('ae-model-new')?.value?.trim()||'',size:document.getElementById('ae-size-new')?.value?.trim()||'',serial:newSerial,status:document.getElementById('ae-status-new')?.value||'Pass',due:document.getElementById('ae-due-new')?.value||'',tested:new Date().toISOString().split('T')[0]});loc.deviceCount=loc.assemblies.length;}locEditMode=false;locToggleEdit();const body=document.getElementById('locTabBody');if(body)body.innerHTML=locRenderAssemblies(loc);locRenderTable();}
 
-function locDeleteAssembly(idx){const loc=LOC_DATA.find(l=>l.id===locActiveId);if(!loc)return;if(!confirm('Remove assembly '+loc.assemblies[idx].serial+'?'))return;loc.assemblies.splice(idx,1);loc.deviceCount=loc.assemblies.length;const body=document.getElementById('locTabBody');if(body)body.innerHTML=locRenderAssemblies(loc);}
+function locDeleteAssembly(idx){
+  const loc=LOC_DATA.find(l=>l.id===locActiveId);
+  if(!loc||!loc.assemblies[idx])return;
+  const asm=loc.assemblies[idx];
+  showDeleteModal(
+    'Delete Assembly',
+    `Remove assembly <strong style="color:var(--text)">${asm.serial||asm.type}</strong> from ${loc.address}?<br><br>This will permanently delete all test reports linked to this serial number from the database.`,
+    async ()=>{
+      try{
+        if(asm.serial){
+          await sbFetch('backflow_reports',{method:'DELETE',query:`?serial=eq.${encodeURIComponent(asm.serial)}`});
+        }
+        loc.assemblies.splice(idx,1);
+        loc.deviceCount=loc.assemblies.length;
+        // Also remove from DB array
+        DB=DB.filter(r=>r.serial!==asm.serial);
+        const body=document.getElementById('locTabBody');
+        if(body)body.innerHTML=locRenderAssemblies(loc);
+        locRenderTable();
+        toast('Assembly deleted','success');
+      }catch(e){toast('Delete failed: '+e.message,'error');}
+    }
+  );
+}
+
+function locConfirmDelete(){
+  const loc=LOC_DATA.find(l=>l.id===locActiveId);
+  if(!loc)return;
+  showDeleteModal(
+    'Delete Location',
+    `Permanently delete <strong style="color:var(--text)">${loc.address}</strong>?<br><br>This will remove <strong style="color:var(--red)">${loc.assemblies.length} assembly record${loc.assemblies.length!==1?'s':''}</strong> and all associated test reports from the database. This cannot be undone.`,
+    async ()=>{
+      try{
+        await sbFetch('backflow_reports',{method:'DELETE',query:`?address=eq.${encodeURIComponent(loc.address)}`});
+        LOC_DATA=LOC_DATA.filter(l=>l.id!==locActiveId);
+        locFiltered=locFiltered.filter(l=>l.id!==locActiveId);
+        DB=DB.filter(r=>r.address!==loc.address);
+        locCloseDetail();
+        locRenderTable();
+        toast('Location deleted','success');
+      }catch(e){toast('Delete failed: '+e.message,'error');}
+    }
+  );
+}
+
+function reportConfirmDelete(reportId, address){
+  showDeleteModal(
+    'Delete Test Report',
+    `Permanently delete this test report for <strong style="color:var(--text)">${address||'this address'}</strong>?<br><br>This removes the single report record from the database.`,
+    async ()=>{
+      try{
+        await sbFetch('backflow_reports',{method:'DELETE',query:`?id=eq.${encodeURIComponent(reportId)}`});
+        DB=DB.filter(r=>String(r.id)!==String(reportId));
+        // Refresh whatever view is currently showing
+        if(typeof bfRenderTable==='function') bfRenderTable();
+        if(typeof locRenderTable==='function') locRenderTable();
+        toast('Report deleted','success');
+      }catch(e){toast('Delete failed: '+e.message,'error');}
+    }
+  );
+}
+
+// ── Delete modal helpers ─────────────────────────────────────────────────────
+let _deleteCallback = null;
+function showDeleteModal(title, body, onConfirm){
+  document.getElementById('deleteModalTitle').textContent=title;
+  document.getElementById('deleteModalBody').innerHTML=body;
+  _deleteCallback=onConfirm;
+  const btn=document.getElementById('deleteModalConfirmBtn');
+  btn.textContent='Delete';
+  btn.disabled=false;
+  const modal=document.getElementById('deleteConfirmModal');
+  modal.style.display='flex';
+}
+function closeDeleteModal(){
+  document.getElementById('deleteConfirmModal').style.display='none';
+  _deleteCallback=null;
+}
+async function executeDelete(){
+  if(!_deleteCallback)return;
+  const btn=document.getElementById('deleteModalConfirmBtn');
+  btn.textContent='Deleting…';
+  btn.disabled=true;
+  try{ await _deleteCallback(); }finally{ closeDeleteModal(); }
+}
+// Wire the confirm button
+document.addEventListener('DOMContentLoaded',function(){
+  const btn=document.getElementById('deleteModalConfirmBtn');
+  if(btn) btn.addEventListener('click', executeDelete);
+  // Close on backdrop click
+  const modal=document.getElementById('deleteConfirmModal');
+  if(modal) modal.addEventListener('click',function(e){ if(e.target===modal) closeDeleteModal(); });
+});
 
 function locRenderContacts(loc){if(locEditMode){const ef=(id,val)=>`<input id="${id}" type="text" value="${sanitize(val||'')}" class="si" style="font-size:13px;padding:5px 8px;width:100%">`;return _lc('Contact — Editing',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div style="grid-column:1/-1"><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Contact Name</div>${ef('ec-contact',loc.contact)}</div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Phone</div>${ef('ec-phone',loc.phone)}</div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Email</div>${ef('ec-email',loc.email)}</div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Role</div>${ef('ec-role',loc.role||'Property Manager')}</div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Account #</div>${ef('ec-account',loc.account)}</div></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button onclick="locEditMode=false;locToggleEdit()" class="btn btn-gh btn-sm">Cancel</button><button onclick="locSaveContact()" class="btn btn-ac btn-sm">Save Contact</button></div>`);}return _lc('Primary Contact',_lg([['Contact Name',sanitize(loc.contact)],['Phone',sanitize(loc.phone)],['Email',sanitize(loc.email)],['Role',sanitize(loc.role||'Property Manager')],['Account #',sanitize(loc.account)],['City',loc.city]]))+_lc('Address',_lg([['Street',sanitize(loc.address)],['City',loc.city],['State',loc.state],['ZIP',loc.zip]]));}
 
