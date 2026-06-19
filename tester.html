@@ -1142,9 +1142,15 @@ select.field-input option{background:var(--elevated)}
             <input type="date" class="field-input" id="prof-license-exp" style="font-size:15px;padding:11px 13px;width:100%;box-sizing:border-box">
           </div>
         </div>
-        <div>
-          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Gauge Serial #</div>
-          <input type="text" class="field-input" id="prof-gauge-serial" placeholder="SN-00000" style="font-size:15px;padding:11px 13px;width:100%;box-sizing:border-box">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Gauge Make / Model</div>
+            <input type="text" class="field-input" id="prof-gauge-model" placeholder="Watts Test Kit" style="font-size:15px;padding:11px 13px;width:100%;box-sizing:border-box">
+          </div>
+          <div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Gauge Serial #</div>
+            <input type="text" class="field-input" id="prof-gauge-serial" placeholder="SN-00000" style="font-size:15px;padding:11px 13px;width:100%;box-sizing:border-box">
+          </div>
         </div>
       </div>
     </div>
@@ -1494,6 +1500,7 @@ async function loadProfile() {
     license: meta.license_number || '',
     licenseExp: meta.license_exp || '',
     gaugeSerial: meta.gauge_serial || '',
+    gaugeModel: meta.gauge_model || '',
     gaugeDate: meta.gauge_cal_date || '',
     gaugeDue: meta.gauge_cal_due || '',
     gaugeDocUrl: meta.gauge_doc_url || '',
@@ -1511,6 +1518,7 @@ function applyProfileToForm() {
   // Auto-populate gauge fields from profile
   if (testerProfile.gaugeSerial) s('sub-gauge-serial').value = testerProfile.gaugeSerial;
   if (testerProfile.gaugeDate)   s('sub-gauge-cal').value    = testerProfile.gaugeDate;
+  if (testerProfile.gaugeModel)  s('sub-gauge-model').value  = testerProfile.gaugeModel;
   // Set current time
   const now = new Date();
   const hh = String(now.getHours()).padStart(2,'0');
@@ -1540,7 +1548,8 @@ function renderProfilePage() {
   s('prof-license').value      = testerProfile.license || '';
   s('prof-license-exp').value  = testerProfile.licenseExp || '';
   s('prof-gauge-serial').value = testerProfile.gaugeSerial || '';
-  s('prof-gauge-date').value   = testerProfile.gaugeDate || '';
+  s('prof-gauge-model').value  = testerProfile.gaugeModel  || '';
+  s('prof-gauge-date').value   = testerProfile.gaugeDate   || '';
   s('prof-gauge-due').value    = testerProfile.gaugeDue || '';
 
   // Avatar
@@ -1623,6 +1632,7 @@ async function saveProfile() {
     certExp: s('prof-cert-exp'),
     license: s('prof-license'),
     licenseExp: s('prof-license-exp'),
+    gaugeModel: s('prof-gauge-model'),
     gaugeSerial: s('prof-gauge-serial'),
     gaugeDate: s('prof-gauge-date'),
     gaugeDue: s('prof-gauge-due'),
@@ -1638,6 +1648,7 @@ async function saveProfile() {
       cert_exp: testerProfile.certExp,
       license_number: testerProfile.license,
       license_exp: testerProfile.licenseExp,
+      gauge_model: testerProfile.gaugeModel,
       gauge_serial: testerProfile.gaugeSerial,
       gauge_cal_date: testerProfile.gaugeDate,
       gauge_cal_due: testerProfile.gaugeDue,
@@ -2244,7 +2255,7 @@ async function submitReport() {
     installed_per_mfr: (document.querySelector('input[name="mfr-rec"]:checked')?.value || 'yes') === 'yes',
     non_potable: (document.querySelector('input[name="non-potable"]:checked')?.value || 'no') === 'yes',
     // Gauge
-    gauge_model: document.getElementById('sub-gauge-model')?.value || '',
+    gauge_model: document.getElementById('sub-gauge-model')?.value || testerProfile.gaugeModel || '',
     gauge_serial: document.getElementById('sub-gauge-serial')?.value || testerProfile.gaugeSerial || '',
     gauge_cal_date: document.getElementById('sub-gauge-cal')?.value || testerProfile.gaugeDate || '',
     gauge_potable: (document.querySelector('input[name="gauge-type"]:checked')?.value || 'potable') === 'potable',
