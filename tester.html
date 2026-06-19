@@ -155,6 +155,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 .form-row.full{grid-template-columns:1fr}
 .form-field{overflow:visible;display:flex;flex-direction:column;gap:6px}
 .field-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
+.field-error{font-family:var(--mono);font-size:9px;color:var(--red);letter-spacing:.5px;font-weight:700;margin-left:6px;text-transform:none;animation:errFade .2s ease}
+@keyframes errFade{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:none}}
+.field-input--error{border-color:var(--red)!important;box-shadow:0 0 0 3px rgba(224,82,82,.12)!important}
 .field-input{
   background:var(--elevated);border:1.5px solid var(--border);
   border-radius:10px;padding:12px 13px;color:var(--text);
@@ -867,7 +870,7 @@ select.field-input option{background:var(--elevated)}
       <div class="form-section-title">LOCATION</div>
       <div class="form-row full">
         <div class="form-field">
-          <span class="field-label">Street Address <span style="color:var(--red)">*</span></span>
+          <span class="field-label">Street Address <span style="color:var(--red)">*</span><span class="field-error" id="err-sub-addr"></span></span>
           <input type="text" class="field-input req-field" id="sub-addr"
             placeholder="123 Main St, Abilene TX 79601"
             autocomplete="street-address"
@@ -885,14 +888,14 @@ select.field-input option{background:var(--elevated)}
       <div class="form-section-title">DEVICE INFO</div>
       <div class="form-row">
         <div class="form-field">
-          <span class="field-label">Manufacturer <span style="color:var(--red)">*</span></span>
+          <span class="field-label">Manufacturer <span style="color:var(--red)">*</span><span class="field-error" id="err-sub-mfr"></span></span>
           <div class="ac-wrap" style="z-index:20">
             <input type="text" class="field-input" id="sub-mfr" placeholder="Watts, Febco…" autocomplete="off">
             <div class="ac-dropdown" id="sub-mfr-dropdown" style="display:none"></div>
           </div>
         </div>
         <div class="form-field">
-          <span class="field-label">Model <span style="color:var(--red)">*</span></span>
+          <span class="field-label">Model <span style="color:var(--red)">*</span><span class="field-error" id="err-sub-model"></span></span>
           <div class="ac-wrap">
             <input type="text" class="field-input" id="sub-model" placeholder="LF009…" autocomplete="off">
             <div class="ac-dropdown" id="sub-model-dropdown" style="display:none"></div>
@@ -901,7 +904,7 @@ select.field-input option{background:var(--elevated)}
       </div>
       <div class="model-lf-check" id="lf-check-result" style="display:none;border-radius:9px;padding:10px 12px;margin-bottom:8px;font-family:var(--mono);font-size:10px;line-height:1.6;margin-top:4px"></div>
       <div class="form-row">
-        <div class="form-field"><span class="field-label">Serial #</span><input type="text" class="field-input" id="sub-serial" placeholder="SN-12345"></div>
+        <div class="form-field"><span class="field-label">Serial # <span style="color:var(--red)">*</span><span class="field-error" id="err-sub-serial"></span></span><input type="text" class="field-input" id="sub-serial" placeholder="SN-12345"></div>
         <div class="form-field"><span class="field-label">Size</span><select class="field-input" id="sub-size"><option>3/4"</option><option>1"</option><option>1-1/4"</option><option>1-1/2"</option><option>2"</option><option>3"</option><option>4"</option></select></div>
       </div>
     </div>
@@ -1846,8 +1849,8 @@ function collectPortalRepairs() {
 }
 
 function psidField(id, label, hint) {
-  return `<div class="psid-row">
-    <div class="psid-row-top"><span class="psid-label">${label}</span><span class="psid-indicator" id="${id}-ind" style="color:var(--muted)">—</span></div>
+  return `<div class="psid-row" id="${id}-row">
+    <div class="psid-row-top"><span class="psid-label">${label} <span class="field-error" id="err-${id}"></span></span><span class="psid-indicator" id="${id}-ind" style="color:var(--muted)">—</span></div>
     <input type="number" step="0.1" min="0" class="psid-input" id="${id}" placeholder="0.0">
     <div class="psid-unit">${hint}</div>
   </div>`;
@@ -1955,11 +1958,76 @@ function handlePhotos(input) {
 }
 
 async function submitReport() {
-  const addr=document.getElementById('sub-addr').value.trim();
-  if (!addr){toast('Please enter an address','error');return;}
-  const c1=getVal('psid-c1'),c2=getVal('psid-c2'),rv=getVal('psid-rv');
-  const {result,fails}=calcResult(currentAsm,c1,c2,rv);
-  if (!result){toast('Please enter at least one pressure reading','error');return;}
+
+  // ── Per-field validation ────────────────────────────────────────────────
+  function setErr(inputId, errId, msg) {
+    const input = document.getElementById(inputId);
+    const errEl = document.getElementById(errId);
+    if (input) input.classList.add('field-input--error');
+    if (errEl) { errEl.textContent = msg ? '← ' + msg : ''; }
+    // Auto-clear on next change
+    if (input && msg) {
+      const clear = () => {
+        input.classList.remove('field-input--error');
+        if (errEl) errEl.textContent = '';
+        input.removeEventListener('input', clear);
+        input.removeEventListener('change', clear);
+      };
+      input.addEventListener('input', clear);
+      input.addEventListener('change', clear);
+    }
+  }
+  function clearErr(inputId, errId) { setErr(inputId, errId, ''); }
+
+  // Clear all errors first
+  [['sub-addr','err-sub-addr'],['sub-mfr','err-sub-mfr'],
+   ['sub-model','err-sub-model'],['sub-serial','err-sub-serial'],
+   ['psid-c1','err-psid-c1'],['psid-c2','err-psid-c2'],['psid-rv','err-psid-rv']
+  ].forEach(([inp,err]) => clearErr(inp, err));
+
+  const addr = document.getElementById('sub-addr').value.trim();
+  const mfr  = document.getElementById('sub-mfr').value.trim();
+  const model= document.getElementById('sub-model').value.trim();
+  const serial=document.getElementById('sub-serial').value.trim();
+  const c1   = getVal('psid-c1');
+  const c2   = getVal('psid-c2');
+  const rv   = getVal('psid-rv');
+
+  const asm = currentAsm;
+  let errors = [];
+
+  if (!addr)  { setErr('sub-addr',  'err-sub-addr',  'Required'); errors.push('sub-addr'); }
+  if (!mfr)   { setErr('sub-mfr',   'err-sub-mfr',   'Required'); errors.push('sub-mfr'); }
+  if (!model) { setErr('sub-model', 'err-sub-model', 'Required'); errors.push('sub-model'); }
+  if (!serial){ setErr('sub-serial','err-sub-serial','Required'); errors.push('sub-serial'); }
+
+  // Pressure reading requirements vary by assembly type
+  if (asm === 'RPZ') {
+    if (c1 === null) { setErr('psid-c1','err-psid-c1','RPZ requires 1st check reading'); errors.push('psid-c1'); }
+    if (c2 === null) { setErr('psid-c2','err-psid-c2','RPZ requires 2nd check reading'); errors.push('psid-c2'); }
+    if (rv === null) { setErr('psid-rv','err-psid-rv','RPZ requires relief valve reading'); errors.push('psid-rv'); }
+  } else if (asm === 'DCVA') {
+    if (c1 === null) { setErr('psid-c1','err-psid-c1','DCVA requires 1st check reading'); errors.push('psid-c1'); }
+    if (c2 === null) { setErr('psid-c2','err-psid-c2','DCVA requires 2nd check reading'); errors.push('psid-c2'); }
+  } else if (asm === 'PVB' || asm === 'SVB') {
+    if (c1 === null) { setErr('psid-c1','err-psid-c1',asm+' requires check valve reading'); errors.push('psid-c1'); }
+    if (rv === null) { setErr('psid-rv','err-psid-rv',asm+' requires air inlet reading'); errors.push('psid-rv'); }
+  } else {
+    // Generic — require at least 1st check
+    if (c1 === null) { setErr('psid-c1','err-psid-c1','At least 1st check reading required'); errors.push('psid-c1'); }
+  }
+
+  if (errors.length > 0) {
+    // Scroll to first error field
+    const firstId = errors[0];
+    const firstEl = document.getElementById(firstId) || document.getElementById('err-'+firstId);
+    if (firstEl) firstEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    toast(errors.length + ' required field' + (errors.length > 1 ? 's' : '') + ' missing — see highlights above', 'error');
+    return;
+  }
+
+  const { result, fails } = calcResult(asm, c1, c2, rv);
+  // ────────────────────────────────────────────────────────────────────────
 
   const btn=document.getElementById('submit-btn');
   btn.innerHTML='<span class="spinner"></span> Saving…';
@@ -1990,20 +2058,21 @@ async function submitReport() {
   const row={
     date: reportDate,
     address: addr,
-    // Tester info
     tester: testerName,
     tester_email: currentUser.email,
+    tester_cert: document.getElementById('sub-cert').value||testerProfile.cert||'',
     cert_num: document.getElementById('sub-cert').value||testerProfile.cert||'',
     firm: document.getElementById('sub-firm').value||testerProfile.company||'',
-    // Assembly info
     assembly: currentAsm,
     manufacturer: document.getElementById('sub-mfr').value,
     model: document.getElementById('sub-model').value,
     serial: document.getElementById('sub-serial').value,
     size: document.getElementById('sub-size').value,
-    // Results
     result: result,
-    psid_c1: c1, psid_c2: c2, psid_rv: rv,
+    check1: fmtPsid(c1,'c1'),
+    check2: fmtPsid(c2,'c2'),
+    relief: fmtPsid(rv,'rv'),
+    psid_c1: c1, psid_c2: c2, psid_relief: rv,
     fail_reasons: fails.join('; '),
     repairs: repairsOn,
     repair_details: (function(){
@@ -2012,9 +2081,13 @@ async function submitReport() {
       const parts = items.map(i => i.component + ': ' + i.action);
       return parts.concat(notes ? [notes] : []).join('; ');
     })(),
+    remarks: document.getElementById('sub-remarks').value,
     notes: document.getElementById('sub-remarks').value,
     photo_urls: photoUrls,
+    city: 'Abilene',
+    state: 'TX',
     pws_name: document.getElementById('wiz-pws-name')?.value || 'City of Abilene',
+    submitted_by_user: currentUser.id,
   };
 
   try {
@@ -2051,7 +2124,7 @@ function clearForm() {
 }
 
 // ── REPORT PDF GENERATOR — matches app dark style ─────────────
-// ── REPORT PDF GENERATOR — official TCEQ Form 20700 layout (shared with admin/owner portals) ─────────────
+// ── TCEQ Form 20700 PDF — shared layout with admin/owner portals ──
 async function generateReportPDF(r) {
   if (!r) return;
   try {
@@ -2074,7 +2147,7 @@ async function generateReportPDF(r) {
     const asmType  = (r.assembly||r.assembly_type||r.type||'').toUpperCase();
     const c1Val    = r.psid_c1   ?? r.check1   ?? r.c1   ?? '';
     const c2Val    = r.psid_c2   ?? r.check2   ?? r.c2   ?? '';
-    const rvVal    = r.psid_rv   ?? r.relief    ?? r.rv   ?? '';
+    const rvVal    = r.psid_relief ?? r.psid_rv   ?? r.relief    ?? r.rv   ?? '';
     const aiVal    = r.psid_ai   ?? r.air_inlet ?? r.ai   ?? '';
     const mfrVal   = r.mfr       || r.manufacturer || '';
     const modelVal = r.model     || '';
@@ -2769,6 +2842,7 @@ async function wizStep4Next() {
   const meta = currentUser?.user_metadata || {};
   const repairsYes = document.getElementById('wiz-repairs')?.value === 'yes';
   const row = {
+    id: 'BF' + Date.now(),
     date: document.getElementById('wiz-date').value || new Date().toISOString().split('T')[0],
     address: document.getElementById('wiz-addr').value.trim(),
     tester: meta.full_name || currentUser.email,
@@ -2779,11 +2853,14 @@ async function wizStep4Next() {
     manufacturer: mfr, model, serial,
     size: document.getElementById('wiz-size').value,
     result: result || 'PASS',
-    psid_c1: c1, psid_c2: c2, psid_rv: rv,
+    psid_c1: c1, psid_c2: c2, psid_relief: rv,
+    check1: c1 !== null ? `${c1} psid` : '',
+    check2: c2 !== null ? `${c2} psid` : '',
+    relief: rv !== null ? `${rv} psid` : '',
     fail_reasons: fails.join('; '),
     repairs: repairsYes,
     repair_details: document.getElementById('wiz-repair-details')?.value || '',
-    notes: document.getElementById('wiz-remarks')?.value || '',
+    remarks: document.getElementById('wiz-remarks')?.value || '',
     photo_urls: photoUrls,
     pws_name: document.getElementById('wiz-pws-name')?.value || 'Abilene TX',
     pws_id: document.getElementById('wiz-pws-id')?.value || '',
