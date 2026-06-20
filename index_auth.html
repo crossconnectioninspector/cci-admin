@@ -2392,13 +2392,8 @@ async function loadAllData() {
     DB.sort((a,b) => (b.date||'') > (a.date||'') ? 1 : -1);
     console.log(`✅ Loaded ${DB.length} records (${bfNorm.length} backflow, ${csiNorm.length} CSI, ${inspNorm.length} inspections)`);
 
-    // Staff emails — used to flag reports submitted by City staff testers
-    try {
-      const staff = await sbFetch('staff_access', { query: '?select=email' });
-      STAFF_EMAILS = new Set((Array.isArray(staff) ? staff : [])
-        .map(s => (s.email || '').toLowerCase().trim())
-        .filter(Boolean));
-    } catch(e) { /* staff_access may not be reachable for this user — badge just won't show */ }
+    // Staff emails (for the CITY STAFF badge) — fired in the background, never blocks report data
+    loadStaffEmails();
 
     return true;
   } catch(e) {
@@ -2458,6 +2453,22 @@ async function saveRecord(rec) {
 // ── DATA ──────────────────────────────────────────────────────────────────────
 let DB = [];
 let STAFF_EMAILS = new Set();
+let staffEmailsLoaded = false;
+function loadStaffEmails() {
+  if (staffEmailsLoaded) return; // only need this once per session — staff list rarely changes mid-session
+  staffEmailsLoaded = true;
+  sbFetch('staff_access', { query: '?select=email' }).then(staff => {
+    STAFF_EMAILS = new Set((Array.isArray(staff) ? staff : [])
+      .map(s => (s.email || '').toLowerCase().trim())
+      .filter(Boolean));
+    // Quietly refresh the Test Reports table if it's the page currently on screen, so badges appear without a manual reload
+    const activePage = document.querySelector('.page.active');
+    if (activePage && activePage.id === 'page-backflow-page') renderBF();
+  }).catch(e => {
+    console.warn('staff_access lookup failed (non-critical — CITY STAFF badge just won\'t show):', e.message);
+    staffEmailsLoaded = false; // allow a retry on next loadAllData() call
+  });
+}
 let currentRec = null;
 let deviceMap = null, riskMap = null;
 let deviceMarkers = null, riskMarkers = null;
