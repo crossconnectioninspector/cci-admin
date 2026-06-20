@@ -554,7 +554,7 @@ async function generateReportPDF(r) {
 
     y = sec('2  Backflow Prevention Assembly Type', y);
 
-    const AG_H = 52;
+    const AG_H = 64;
     filledRect(ML, y, CW, AG_H, BLUELT, BLUE, 0.6);
     filledRect(ML, y, 5, AG_H, BLUE);
     cbx(ML + 18, y + 16, r.air_gap || false, 9);
@@ -566,7 +566,7 @@ async function generateReportPDF(r) {
       ['Min. Required AG (in)', r.ag_min || r.ag_min_required || ''],
       ['Actual AG Measured (in)', r.ag_actual || ''],
       ['Drain / Receptor Type', r.ag_receptor || r.ag_location || ''],
-    ].forEach((af, i) => { field(ML + 5 + i * agfw, y + 26, agfw - 2, 22, af[0], af[1], 5.5, 7.5); });
+    ].forEach((af, i) => { field(ML + 5 + i * agfw, y + 38, agfw - 2, 22, af[0], af[1], 5.5, 7.5); });
     y += AG_H + 3;
 
     const CB_H = 28;
