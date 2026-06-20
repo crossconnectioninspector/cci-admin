@@ -886,11 +886,14 @@ select.field-input option{background:var(--elevated)}
       <div class="form-row full">
         <div class="form-field">
           <span class="field-label">Address of Service / Location <span style="color:var(--red)">*</span><span class="field-error" id="err-sub-addr"></span></span>
-          <input type="text" class="field-input req-field" id="sub-addr"
-            placeholder="123 Main St, Abilene TX 79601"
-            autocomplete="street-address"
-            autocapitalize="words"
-            inputmode="text">
+          <div class="ac-wrap">
+            <input type="text" class="field-input req-field" id="sub-addr"
+              placeholder="123 Main St, Abilene TX 79601"
+              autocomplete="off"
+              autocapitalize="words"
+              inputmode="text">
+            <div class="ac-dropdown" id="sub-addr-dropdown" style="display:none"></div>
+          </div>
         </div>
       </div>
       <div class="form-row">
@@ -2230,6 +2233,10 @@ async function submitReport() {
     id: 'BF' + Date.now() + Math.random().toString(36).slice(2,6).toUpperCase(),
     date: reportDate,
     address: addr,
+    // Exact coordinates from address autocomplete, if the address was picked from a suggestion —
+    // lets admin's location map show the pin immediately without re-geocoding
+    lat: pickedAddrLat,
+    lng: pickedAddrLng,
     // PWS (schema has pws_name and pws_id)
     pws_name: document.getElementById('sub-pws-name')?.value || 'City of Abilene Water Dept.',
     pws_id: document.getElementById('sub-pws-id')?.value || 'TX1090001',
@@ -2317,6 +2324,7 @@ async function submitReport() {
 }
 
 function clearForm() {
+  pickedAddrLat = null; pickedAddrLng = null;
   ['sub-addr','sub-mfr','sub-model','sub-serial','sub-remarks','sub-repair-details',
    'sub-bpa-serves','sub-bpa-location','sub-bypass-mfr','sub-bypass-model','sub-bypass-serial','sub-bypass-size',
    'sub-old-model','sub-old-serial'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
@@ -2897,6 +2905,7 @@ function initWizard() {
   el('wiz-greeting').textContent = 'Hey, ' + name.split(' ')[0] + '!';
   el('wiz-cert-display').textContent = cert ? 'CERT # ' + cert : 'No cert # — update Profile';
   el('wiz-date').valueAsDate = new Date();
+  initAddrAutocomplete('wiz-addr', 'wiz-addr-dropdown');
   // Load stats
   loadWizStats();
   // Check alerts
@@ -2966,10 +2975,10 @@ function wizStartTest() {
   document.getElementById('wiz-photo-preview').innerHTML = '';
   document.getElementById('wiz-photo-count').textContent = '';
   document.getElementById('wiz-date').valueAsDate = new Date();
+  pickedAddrLat = null; pickedAddrLng = null;
   wizSelectAsm('RPZ');
   wizShowStep('addr');
-  // Init address autocomplete
-  
+  initAddrAutocomplete('wiz-addr', 'wiz-addr-dropdown');
 }
 
 function wizGoHistory() {
@@ -3148,6 +3157,8 @@ async function wizStep4Next() {
     id: 'BF' + Date.now(),
     date: document.getElementById('wiz-date').value || new Date().toISOString().split('T')[0],
     address: document.getElementById('wiz-addr').value.trim(),
+    lat: pickedAddrLat,
+    lng: pickedAddrLng,
     tester: meta.full_name || currentUser.email,
     tester_email: currentUser.email,
     cert_num: meta.cert_number || '',
@@ -3409,6 +3420,76 @@ function positionDropdown(input, dropdown) {
   }
 }
 
+// ── Address autocomplete (Nominatim, scoped to Abilene TX) — captures lat/lng so
+//    admin's location map doesn't have to re-geocode a freehand-typed address ──
+let addrSearchTimer = null;
+let pickedAddrLat = null, pickedAddrLng = null;
+
+function initAddrAutocomplete(inputId, dropdownId) {
+  const input = document.getElementById(inputId);
+  const dropdown = document.getElementById(dropdownId);
+  if (!input || !dropdown || input._addrAcInit) return;
+  input._addrAcInit = true;
+
+  document.body.appendChild(dropdown);
+  dropdown.style.position = 'fixed';
+  dropdown.style.zIndex = '9999';
+
+  input.addEventListener('input', () => {
+    pickedAddrLat = null; pickedAddrLng = null; // typed text no longer matches a picked suggestion
+    const q = input.value.trim();
+    clearTimeout(addrSearchTimer);
+    if (q.length < 3) { dropdown.style.display = 'none'; return; }
+    dropdown.innerHTML = '<div class="ac-loading">🔍 SEARCHING…</div>';
+    dropdown.style.display = 'block';
+    positionDropdown(input, dropdown);
+    addrSearchTimer = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q+' Abilene TX')}&format=json&addressdetails=1&limit=5&countrycodes=us&viewbox=-99.90,32.30,-99.55,32.68&bounded=0`,
+          { headers: { 'User-Agent': 'BackflowCheckPro/1.0' } });
+        if (!res.ok) { dropdown.style.display = 'none'; return; }
+        const data = await res.json();
+        if (!data.length) { dropdown.innerHTML = '<div class="ac-empty">No matches — you can still type the full address</div>'; positionDropdown(input, dropdown); return; }
+        dropdown.innerHTML = data.map(item => {
+          const a = item.address || {};
+          const parts = [a.house_number, a.road, a.city||a.town||'Abilene', a.state||'TX'].filter(Boolean);
+          const display = parts.join(' ').replace(/'/g, "\\'");
+          return `<div class="ac-item" onclick="pickAddr('${display}', ${item.lat}, ${item.lon}, '${inputId}', '${dropdownId}')">
+            <div class="ac-item-main">${display}</div>
+          </div>`;
+        }).join('');
+        positionDropdown(input, dropdown);
+      } catch(e) { dropdown.style.display = 'none'; }
+    }, 350);
+  });
+
+  input.addEventListener('focus', () => {
+    if (dropdown.style.display === 'block') positionDropdown(input, dropdown);
+  });
+
+  window.addEventListener('scroll', () => {
+    if (dropdown.style.display === 'block') positionDropdown(input, dropdown);
+  }, true);
+
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.style.display = 'none';
+    }
+  });
+}
+
+function pickAddr(display, lat, lon, inputId, dropdownId) {
+  const input = document.getElementById(inputId);
+  const dropdown = document.getElementById(dropdownId);
+  if (input) input.value = display;
+  if (dropdown) dropdown.style.display = 'none';
+  pickedAddrLat = parseFloat(lat);
+  pickedAddrLng = parseFloat(lon);
+  const errEl = document.getElementById('err-' + inputId);
+  if (errEl) errEl.textContent = '';
+  if (input) input.classList.remove('field-input--error');
+}
+
 function initMfrAutocomplete(inputId, dropdownId, modelInputId, modelDropdownId) {
   const input = document.getElementById(inputId);
   const dropdown = document.getElementById(dropdownId);
@@ -3554,7 +3635,7 @@ function initWizardAutocompletes() {
 }
 
 function initPortalAutocompletes() {
-  
+  initAddrAutocomplete('sub-addr', 'sub-addr-dropdown');
   initMfrAutocomplete('sub-mfr', 'sub-mfr-dropdown', 'sub-model', 'sub-model-dropdown');
 }
 
@@ -3938,12 +4019,15 @@ function handleAvatarUpload(input){
       <div class="wiz-content">
         <div class="wiz-field-group">
           <label class="wiz-field-label">SERVICE ADDRESS <span style="color:var(--red)">*</span></label>
-          <input type="text" class="wiz-field-input" id="wiz-addr"
-            placeholder="123 Main St, Abilene TX"
-            autocomplete="street-address"
-            autocorrect="off"
-            autocapitalize="words"
-            inputmode="text">
+          <div class="ac-wrap">
+            <input type="text" class="wiz-field-input" id="wiz-addr"
+              placeholder="123 Main St, Abilene TX"
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="words"
+              inputmode="text">
+            <div class="ac-dropdown" id="wiz-addr-dropdown" style="display:none"></div>
+          </div>
         </div>
         <div class="wiz-field-row">
           <div>
