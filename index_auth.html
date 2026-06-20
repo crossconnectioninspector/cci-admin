@@ -5022,7 +5022,7 @@ function reportConfirmDelete(reportId, address){
         await sbFetch('backflow_reports',{method:'DELETE',query:`?id=eq.${encodeURIComponent(reportId)}`});
         DB=DB.filter(r=>String(r.id)!==String(reportId));
         // Refresh whatever view is currently showing
-        if(typeof bfRenderTable==='function') bfRenderTable();
+        if(typeof renderBF==='function') renderBF();
         if(typeof locRenderTable==='function') locRenderTable();
         toast('Report deleted','success');
       }catch(e){toast('Delete failed: '+e.message,'error');}
