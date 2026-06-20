@@ -3425,6 +3425,8 @@ function positionDropdown(input, dropdown) {
 let addrSearchTimer = null;
 let pickedAddrLat = null, pickedAddrLng = null;
 
+let addrAbortCtrl = null;
+
 function initAddrAutocomplete(inputId, dropdownId) {
   const input = document.getElementById(inputId);
   const dropdown = document.getElementById(dropdownId);
@@ -3439,28 +3441,31 @@ function initAddrAutocomplete(inputId, dropdownId) {
     pickedAddrLat = null; pickedAddrLng = null; // typed text no longer matches a picked suggestion
     const q = input.value.trim();
     clearTimeout(addrSearchTimer);
-    if (q.length < 3) { dropdown.style.display = 'none'; return; }
+    if (addrAbortCtrl) addrAbortCtrl.abort(); // cancel any in-flight search — stops slow old results from overwriting newer ones
+    if (q.length < 4) { dropdown.style.display = 'none'; return; }
     dropdown.innerHTML = '<div class="ac-loading">🔍 SEARCHING…</div>';
     dropdown.style.display = 'block';
     positionDropdown(input, dropdown);
     addrSearchTimer = setTimeout(async () => {
+      addrAbortCtrl = new AbortController();
       try {
         const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q+' Abilene TX')}&format=json&addressdetails=1&limit=5&countrycodes=us&viewbox=-99.90,32.30,-99.55,32.68&bounded=0`,
-          { headers: { 'User-Agent': 'BackflowCheckPro/1.0' } });
+          { headers: { 'User-Agent': 'BackflowCheckPro/1.0' }, signal: addrAbortCtrl.signal });
         if (!res.ok) { dropdown.style.display = 'none'; return; }
         const data = await res.json();
         if (!data.length) { dropdown.innerHTML = '<div class="ac-empty">No matches — you can still type the full address</div>'; positionDropdown(input, dropdown); return; }
         dropdown.innerHTML = data.map(item => {
           const a = item.address || {};
           const parts = [a.house_number, a.road, a.city||a.town||'Abilene', a.state||'TX'].filter(Boolean);
-          const display = parts.join(' ').replace(/'/g, "\\'");
-          return `<div class="ac-item" onclick="pickAddr('${display}', ${item.lat}, ${item.lon}, '${inputId}', '${dropdownId}')">
+          const display = parts.join(' '); // raw text, shown to the user as-is
+          const displayJs = display.replace(/\\/g, '\\\\').replace(/'/g, "\\'"); // separately escaped only for the onclick JS argument
+          return `<div class="ac-item" onclick="pickAddr('${displayJs}', ${item.lat}, ${item.lon}, '${inputId}', '${dropdownId}')">
             <div class="ac-item-main">${display}</div>
           </div>`;
         }).join('');
         positionDropdown(input, dropdown);
-      } catch(e) { dropdown.style.display = 'none'; }
-    }, 350);
+      } catch(e) { if (e.name !== 'AbortError') dropdown.style.display = 'none'; }
+    }, 400);
   });
 
   input.addEventListener('focus', () => {
