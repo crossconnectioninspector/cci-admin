@@ -2488,6 +2488,7 @@ function pointInPolygon(lat, lng, polygon) {
 }
 
 let activeTab = { insp:'all', bf:'all', csi:'all' };
+let bfMonthFilter = null; // [year, monthIndex] or null — set when drilling in from the dashboard's monthly trend chart
 
 // kept for reference only — no longer used
 if (false) {
@@ -2598,6 +2599,33 @@ function nav(id, btn) {
   if(id==='users-page') staffMgmt_load();
 }
 
+// ── Dashboard drill-through — navigate to Test Reports with a filter pre-applied ──
+function goToReports(opts={}) {
+  const btn = document.querySelector('.nb[onclick*="backflow-page"]');
+  nav('backflow-page', btn);
+  if(el('bf-addr')) el('bf-addr').value = opts.addr || '';
+  if(el('bf-serial')) el('bf-serial').value = '';
+  if(el('bf-result')) el('bf-result').value = opts.result || '';
+  if(el('bf-type')) el('bf-type').value = opts.type || '';
+  bfMonthFilter = opts.month || null;
+  const tab = opts.tab || 'all';
+  activeTab.bf = tab;
+  document.querySelectorAll('#page-backflow-page .ftabs .ft').forEach(t=>t.classList.remove('active'));
+  const tabBtn = document.querySelector(`#page-backflow-page .ftabs .ft[onclick*="'bf','${tab}'"]`);
+  if(tabBtn) tabBtn.classList.add('active');
+  renderBF();
+}
+
+function dashScrollTo(elId) {
+  const target = el(elId);
+  if(!target) return;
+  target.scrollIntoView({behavior:'smooth', block:'center'});
+  target.style.transition='box-shadow .25s ease';
+  const prevShadow = target.style.boxShadow;
+  target.style.boxShadow = '0 0 0 2px var(--accent)';
+  setTimeout(()=>{ target.style.boxShadow = prevShadow; }, 1100);
+}
+
 // Dashboard theme handled below
 
 async function renderDashboard() {
@@ -2701,18 +2729,18 @@ function buildDashboard() {
 
   const container=el('dash-widgets');
   container.innerHTML=`
-  ${(due30.length>0||nonComp>0)?`<div style="background:linear-gradient(135deg,rgba(224,82,82,.12) 0%,rgba(240,192,64,.08) 100%);border:1px solid rgba(224,82,82,.3);border-radius:14px;padding:14px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap"><div style="width:36px;height:36px;background:rgba(224,82,82,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div style="flex:1;min-width:200px"><div style="font-family:var(--sans);font-size:15px;font-weight:700;color:var(--text);letter-spacing:.2px">Program Attention Required</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:7px;line-height:2">${nonComp>0?`<span style="color:var(--red)">${nonComp} device${nonComp>1?'s':''} failed last test</span>`:''} ${nonComp>0&&due30.length>0?'<span style="margin:0 8px;color:var(--border)">|</span>':''} ${due30.length>0?`<span style="color:var(--yellow)">${due30.length} device${due30.length>1?'s':''} due within 30 days</span>`:''}</div></div>${due30[0]?`<div style="text-align:right;flex-shrink:0"><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Most Urgent</div><div style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px">${sanitize(due30[0].address)}</div><div style="font-family:var(--mono);font-size:10px;color:var(--red)">Due in ${due30[0].daysUntil} day${due30[0].daysUntil!==1?'s':''}</div></div>`:''}</div>`:''}
+  ${(due30.length>0||nonComp>0)?`<div style="background:linear-gradient(135deg,rgba(224,82,82,.12) 0%,rgba(240,192,64,.08) 100%);border:1px solid rgba(224,82,82,.3);border-radius:14px;padding:14px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap"><div style="width:36px;height:36px;background:rgba(224,82,82,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div style="flex:1;min-width:200px"><div style="font-family:var(--sans);font-size:15px;font-weight:700;color:var(--text);letter-spacing:.2px">Program Attention Required</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:7px;line-height:2">${nonComp>0?`<span onclick="goToReports({tab:'fail'})" style="color:var(--red);cursor:pointer;text-decoration:underline;text-underline-offset:3px">${nonComp} device${nonComp>1?'s':''} failed last test</span>`:''} ${nonComp>0&&due30.length>0?'<span style="margin:0 8px;color:var(--border)">|</span>':''} ${due30.length>0?`<span onclick="dashScrollTo('dash-overdue-aging')" style="color:var(--yellow);cursor:pointer;text-decoration:underline;text-underline-offset:3px">${due30.length} device${due30.length>1?'s':''} due within 30 days</span>`:''}</div></div>${due30[0]?`<div onclick="openModal('${due30[0].id}')" style="text-align:right;flex-shrink:0;cursor:pointer" onmouseover="this.style.opacity='.75'" onmouseout="this.style.opacity='1'"><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Most Urgent</div><div style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px">${sanitize(due30[0].address)}</div><div style="font-family:var(--mono);font-size:10px;color:var(--red)">Due in ${due30[0].daysUntil} day${due30[0].daysUntil!==1?'s':''}</div></div>`:''}</div>`:''}
 
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
-    ${[{label:'Total Devices',val:total,color:'var(--text)',sub:'on record',icon:'<circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4"/>'},
-       {label:'Compliant',val:compliant,color:'var(--green)',sub:'tested within 1yr',icon:'<polyline points="20 6 9 17 4 12"/>'},
-       {label:'Non-Compliant',val:nonComp,color:nonComp>0?'var(--red)':'var(--green)',sub:nonComp>0?'need follow-up':'all clear',icon:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'},
-       {label:'Overdue >1yr',val:overdue,color:overdue>0?'var(--yellow)':'var(--green)',sub:overdue>0?'immediate outreach':'all current',icon:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'}
-    ].map(k=>`<div class="scard" style="padding:16px;position:relative;overflow:hidden"><div style="position:absolute;top:12px;right:12px;opacity:.12"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="${k.color}" stroke-width="2">${k.icon}</svg></div><div style="font-family:var(--cond);font-size:12px;font-weight:600;color:var(--muted);letter-spacing:1.4px;text-transform:uppercase;margin-bottom:8px">${k.label}</div><div class="countup" data-target="${k.val}" style="font-family:var(--cond);font-size:42px;font-weight:900;line-height:1;color:${k.color}">0</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:6px">${k.sub}</div></div>`).join('')}
+    ${[{label:'Total Devices',val:total,color:'var(--text)',sub:'on record',icon:'<circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4"/>',action:`goToReports({})`},
+       {label:'Compliant',val:compliant,color:'var(--green)',sub:'tested within 1yr',icon:'<polyline points="20 6 9 17 4 12"/>',action:`goToReports({tab:'pass'})`},
+       {label:'Non-Compliant',val:nonComp,color:nonComp>0?'var(--red)':'var(--green)',sub:nonComp>0?'need follow-up':'all clear',icon:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',action:`goToReports({tab:'fail'})`},
+       {label:'Overdue >1yr',val:overdue,color:overdue>0?'var(--yellow)':'var(--green)',sub:overdue>0?'immediate outreach':'all current',icon:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',action:`dashScrollTo('dash-overdue-aging')`}
+    ].map(k=>`<div class="scard" style="padding:16px;position:relative;overflow:hidden;cursor:pointer" onclick="${k.action}" title="Click to view"><div style="position:absolute;top:12px;right:12px;opacity:.12"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="${k.color}" stroke-width="2">${k.icon}</svg></div><div style="font-family:var(--cond);font-size:12px;font-weight:600;color:var(--muted);letter-spacing:1.4px;text-transform:uppercase;margin-bottom:8px">${k.label}</div><div class="countup" data-target="${k.val}" style="font-family:var(--cond);font-size:42px;font-weight:900;line-height:1;color:${k.color}">0</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:6px">${k.sub}</div></div>`).join('')}
   </div>
 
   <div style="display:grid;grid-template-columns:220px 1fr 1fr;gap:12px">
-    <div class="scard" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 16px;gap:8px">
+    <div class="scard" onclick="goToReports({tab:'pass'})" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 16px;gap:8px;cursor:pointer" title="Click to view">
       <div style="font-family:var(--cond);font-size:12px;font-weight:600;color:var(--muted);letter-spacing:1.4px;text-transform:uppercase;text-align:center">Compliance Rate</div>
       <div style="position:relative;width:130px;height:130px"><canvas id="chart-gauge" width="130" height="130"></canvas><div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-family:var(--cond);font-size:34px;font-weight:900;color:${compRate>=90?'var(--green)':compRate>=70?'var(--yellow)':'var(--red)'};line-height:1">${compRate}%</div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px">${compRate>=90?'EXCELLENT':compRate>=70?'NEEDS WORK':'CRITICAL'}</div></div></div>
       <div style="width:100%;background:var(--elevated);border-radius:6px;height:4px"><div style="width:${Math.min(100,compRate)}%;background:${compRate>=goalComp?'var(--green)':'var(--accent)'};height:4px;border-radius:6px"></div></div>
@@ -2727,13 +2755,13 @@ function buildDashboard() {
            {label:'Due 61–90d',count:due90.length,color:'var(--blue)',bg:'linear-gradient(155deg, rgba(100,149,237,.14), rgba(100,149,237,.05))',bd:'rgba(100,149,237,.25)'}
         ].map(b=>`<div style="background:${b.bg};border:1px solid ${b.bd};border-radius:11px;padding:10px;text-align:center"><div style="font-family:var(--cond);font-size:28px;font-weight:900;color:${b.color};line-height:1">${b.count}</div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px">${b.label}</div></div>`).join('')}
       </div>
-      ${due30.slice(0,5).map(r=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)"><div style="width:26px;height:26px;border-radius:7px;background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--cond);font-weight:900;font-size:10px;color:var(--red)">${r.daysUntil}d</div><div style="min-width:0;flex:1"><div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sanitize(r.address)}</div><div style="font-family:var(--mono);font-size:9px;color:var(--muted)">${r.assembly||'—'} · ${sanitize(r.serial||'—')}</div></div></div>`).join('')}
+      ${due30.slice(0,5).map(r=>`<div onclick="openModal('${r.id}')" style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);cursor:pointer" onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'"><div style="width:26px;height:26px;border-radius:7px;background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--cond);font-weight:900;font-size:10px;color:var(--red)">${r.daysUntil}d</div><div style="min-width:0;flex:1"><div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sanitize(r.address)}</div><div style="font-family:var(--mono);font-size:9px;color:var(--muted)">${r.assembly||'—'} · ${sanitize(r.serial||'—')}</div></div></div>`).join('')}
       ${due30.length===0?`<div style="text-align:center;padding:10px;font-family:var(--mono);font-size:10px;color:var(--green)">✓ No devices due in 30 days</div>`:''}
     </div>
 
-    <div class="scard" style="padding:16px">
+    <div class="scard" id="dash-overdue-aging" style="padding:16px">
       <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:10px;background:var(--red);display:inline-block;border-radius:2px"></span>OVERDUE AGING</div><span style="font-family:var(--cond);font-size:18px;font-weight:900;color:var(--red)">${overdueAged.length}</span></div>
-      ${overdueAged.slice(0,7).map(r=>{const severity=r.daysOver>730?'var(--red)':r.daysOver>365?'var(--yellow)':'var(--muted)';const bar=Math.min(100,(r.daysOver/730)*100);return`<div style="padding:5px 0;border-bottom:1px solid var(--border)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px"><div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px">${sanitize(r.address)}</div><span style="font-family:var(--mono);font-size:9px;font-weight:700;color:${severity};white-space:nowrap;margin-left:6px">${r.result==='FAIL'?'FAIL':r.daysOver>0?r.daysOver+'d over':'NEVER'}</span></div><div style="height:3px;background:var(--elevated);border-radius:2px;overflow:hidden"><div style="height:100%;width:${bar}%;background:${severity};border-radius:2px"></div></div></div>`;}).join('')}
+      ${overdueAged.slice(0,7).map(r=>{const severity=r.daysOver>730?'var(--red)':r.daysOver>365?'var(--yellow)':'var(--muted)';const bar=Math.min(100,(r.daysOver/730)*100);return`<div onclick="openModal('${r.id}')" style="padding:5px 0;border-bottom:1px solid var(--border);cursor:pointer" onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px"><div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px">${sanitize(r.address)}</div><span style="font-family:var(--mono);font-size:9px;font-weight:700;color:${severity};white-space:nowrap;margin-left:6px">${r.result==='FAIL'?'FAIL':r.daysOver>0?r.daysOver+'d over':'NEVER'}</span></div><div style="height:3px;background:var(--elevated);border-radius:2px;overflow:hidden"><div style="height:100%;width:${bar}%;background:${severity};border-radius:2px"></div></div></div>`;}).join('')}
       ${overdueAged.length===0?`<div style="text-align:center;padding:12px;font-family:var(--mono);font-size:10px;color:var(--green)">✓ No overdue devices</div>`:''}
     </div>
   </div>
@@ -2746,7 +2774,7 @@ function buildDashboard() {
     <div class="scard" style="padding:16px">
       <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px"><span style="width:3px;height:10px;background:var(--accent);display:inline-block;border-radius:2px"></span>ASSEMBLY TYPES</div>
       <div style="position:relative;height:120px;display:flex;align-items:center;justify-content:center;margin-bottom:10px"><canvas id="chart-asm" style="max-height:120px"></canvas></div>
-      <div style="display:flex;flex-direction:column;gap:5px">${Object.entries(asmCounts).map(([k,v],i)=>{const colors=['var(--accent)','var(--blue)','var(--green)','var(--red)','#b464ff'];return`<div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:${colors[i%colors.length]};flex-shrink:0"></span><span style="font-family:var(--mono);font-size:10px;color:var(--muted);flex:1">${k}</span><span style="font-family:var(--cond);font-weight:700;font-size:13px;color:var(--text)">${v}</span></div>`;}).join('')}</div>
+      <div style="display:flex;flex-direction:column;gap:5px">${Object.entries(asmCounts).map(([k,v],i)=>{const colors=['var(--accent)','var(--blue)','var(--green)','var(--red)','#b464ff'];return`<div onclick="goToReports({type:'${k}'})" style="display:flex;align-items:center;gap:6px;cursor:pointer" onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'"><span style="width:8px;height:8px;border-radius:2px;background:${colors[i%colors.length]};flex-shrink:0"></span><span style="font-family:var(--mono);font-size:10px;color:var(--muted);flex:1">${k}</span><span style="font-family:var(--cond);font-weight:700;font-size:13px;color:var(--text)">${v}</span></div>`;}).join('')}</div>
     </div>
   </div>
 
@@ -2758,7 +2786,7 @@ function buildDashboard() {
   <div class="scard" style="padding:16px">
     <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:10px;background:var(--green);display:inline-block;border-radius:2px"></span>RECENT TEST ACTIVITY</div><button onclick="nav('backflow-page',document.querySelector('.nb[onclick*=backflow]'))" style="font-family:var(--mono);font-size:9px;color:var(--accent);background:none;border:none;cursor:pointer;letter-spacing:.5px">View All →</button></div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px">
-      ${bf.slice(0,12).map(r=>{const pass=r.result==='PASS';const color=pass?'var(--green)':'var(--red)';const bg=pass?'rgba(61,184,112,.08)':'rgba(224,82,82,.08)';const bd=pass?'rgba(61,184,112,.2)':'rgba(224,82,82,.2)';return`<div style="background:${bg};border:1px solid ${bd};border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px"><div style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;box-shadow:0 0 6px ${color}"></div><div style="min-width:0;flex:1"><div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sanitize(r.address)}</div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px">${r.assembly||'—'} · ${r.date||'—'} · ${sanitize(r.tester||'—')}</div></div><span style="font-family:var(--cond);font-weight:900;font-size:12px;color:${color};flex-shrink:0">${r.result}</span></div>`;}).join('')}
+      ${bf.slice(0,12).map(r=>{const pass=r.result==='PASS';const color=pass?'var(--green)':'var(--red)';const bg=pass?'rgba(61,184,112,.08)':'rgba(224,82,82,.08)';const bd=pass?'rgba(61,184,112,.2)':'rgba(224,82,82,.2)';return`<div onclick="openModal('${r.id}')" style="background:${bg};border:1px solid ${bd};border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer" onmouseover="this.style.opacity='.75'" onmouseout="this.style.opacity='1'"><div style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;box-shadow:0 0 6px ${color}"></div><div style="min-width:0;flex:1"><div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sanitize(r.address)}</div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px">${r.assembly||'—'} · ${r.date||'—'} · ${sanitize(r.tester||'—')}</div></div><span style="font-family:var(--cond);font-weight:900;font-size:12px;color:${color};flex-shrink:0">${r.result}</span></div>`;}).join('')}
     </div>
   </div>
 
@@ -2771,9 +2799,9 @@ function buildDashboard() {
     if(gaugeCtx){if(gaugeCtx._chart)gaugeCtx._chart.destroy();const gColor=compRate>=90?'#3ecf80':compRate>=70?'#f0c040':'#ef5a5a';gaugeCtx._chart=new Chart(gaugeCtx,{type:'doughnut',data:{datasets:[{data:[compRate,100-compRate],backgroundColor:[gColor,'rgba(255,255,255,.06)'],borderWidth:0,hoverOffset:0,borderRadius:6}]},options:{cutout:'78%',responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false},tooltip:{enabled:false}},animation:{animateRotate:true,duration:900,easing:'easeOutCubic'}}});gaugeCtx.style.filter=`drop-shadow(0 0 14px ${gColor}55)`;}
     animateCountUp();
     const asmCtx=document.getElementById('chart-asm');
-    if(asmCtx&&Object.keys(asmCounts).length){if(asmCtx._chart)asmCtx._chart.destroy();const aC=['#f9a61e','#6495ed','#3ecf80','#ef5a5a','#b464ff','#f0c040'];asmCtx._chart=new Chart(asmCtx,{type:'doughnut',data:{labels:Object.keys(asmCounts),datasets:[{data:Object.values(asmCounts),backgroundColor:aC,borderWidth:0,hoverOffset:4}]},options:{cutout:'60%',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.label}: ${c.raw}`},...tt}}}});}
+    if(asmCtx&&Object.keys(asmCounts).length){if(asmCtx._chart)asmCtx._chart.destroy();const aC=['#f9a61e','#6495ed','#3ecf80','#ef5a5a','#b464ff','#f0c040'];const asmLabels=Object.keys(asmCounts);asmCtx._chart=new Chart(asmCtx,{type:'doughnut',data:{labels:asmLabels,datasets:[{data:Object.values(asmCounts),backgroundColor:aC,borderWidth:0,hoverOffset:4}]},options:{cutout:'60%',responsive:true,maintainAspectRatio:false,onClick:(evt,elements)=>{if(elements.length)goToReports({type:asmLabels[elements[0].index]});},onHover:(evt,elements)=>{evt.native.target.style.cursor=elements.length?'pointer':'default';},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.label}: ${c.raw}`},...tt}}}});}
     const monthCtx=document.getElementById('chart-monthly');
-    if(monthCtx){if(monthCtx._chart)monthCtx._chart.destroy();monthCtx._chart=new Chart(monthCtx,{type:'bar',data:{labels:MONTHS,datasets:[{label:'Pass',data:monthlyPass,backgroundColor:'rgba(61,184,112,.8)',borderRadius:4,borderSkipped:false},{label:'Fail',data:monthlyFail,backgroundColor:'rgba(224,82,82,.8)',borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...tt}},scales:{x:{stacked:true,grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#7a8494',font:{family:'Share Tech Mono',size:9}}},y:{stacked:true,grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#7a8494',font:{family:'Share Tech Mono',size:9},stepSize:1},beginAtZero:true}}}});}
+    if(monthCtx){if(monthCtx._chart)monthCtx._chart.destroy();monthCtx._chart=new Chart(monthCtx,{type:'bar',data:{labels:MONTHS,datasets:[{label:'Pass',data:monthlyPass,backgroundColor:'rgba(61,184,112,.8)',borderRadius:4,borderSkipped:false},{label:'Fail',data:monthlyFail,backgroundColor:'rgba(224,82,82,.8)',borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,onClick:(evt,elements)=>{if(elements.length){const e=elements[0];goToReports({tab:e.datasetIndex===0?'pass':'fail',month:[year,e.index]});}},onHover:(evt,elements)=>{evt.native.target.style.cursor=elements.length?'pointer':'default';},plugins:{legend:{display:false},tooltip:{...tt}},scales:{x:{stacked:true,grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#7a8494',font:{family:'Share Tech Mono',size:9}}},y:{stacked:true,grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#7a8494',font:{family:'Share Tech Mono',size:9},stepSize:1},beginAtZero:true}}}});}
   });
 }
 
@@ -3191,8 +3219,13 @@ function renderBF() {
   if(tab==='pass') data=data.filter(r=>r.result==='PASS');
   if(tab==='fail') data=data.filter(r=>r.result==='FAIL');
   if(tab==='repairs') data=data.filter(r=>r.repairs);
+  if(bfMonthFilter) data=data.filter(r=>{ if(!r.date) return false; const d=new Date(r.date+'T12:00:00'); return d.getFullYear()===bfMonthFilter[0] && d.getMonth()===bfMonthFilter[1]; });
   data.sort((a,b)=>new Date(b.date)-new Date(a.date));
-  el('bf-ct').textContent=data.length+' records';
+  const MONTH_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const ctEl = el('bf-ct');
+  if (ctEl) {
+    ctEl.innerHTML = data.length+' records'+(bfMonthFilter?` <span onclick="bfMonthFilter=null;renderBF()" style="cursor:pointer;margin-left:8px;background:rgba(249,166,30,.12);border:1px solid rgba(249,166,30,.3);color:var(--accent);border-radius:20px;padding:2px 9px;font-size:10px;letter-spacing:.3px">${MONTH_NAMES[bfMonthFilter[1]]} ${bfMonthFilter[0]} ✕</span>`:'');
+  }
   el('bf-body').innerHTML=data.length?`<table><thead><tr>
     <th>Date</th><th>Address</th><th>Assembly</th><th>Mfr / Model</th><th>Serial #</th><th>Tester</th><th>Result</th><th>Repairs</th><th>PDF</th>
   </tr></thead><tbody>${data.map(r=>`<tr onclick="openModal('${r.id}')">
@@ -3528,7 +3561,7 @@ function fTab(el_,section,val){
 
 function clearF(s){
   if(s==='insp'){el('insp-addr').value='';el('insp-status').value='';el('insp-time').value='all';renderInspections();}
-  if(s==='bf'){el('bf-addr').value='';el('bf-serial').value='';el('bf-result').value='';el('bf-type').value='';renderBF();}
+  if(s==='bf'){el('bf-addr').value='';el('bf-serial').value='';el('bf-result').value='';el('bf-type').value='';bfMonthFilter=null;renderBF();}
   if(s==='csi'){el('csi-addr').value='';el('csi-insp').value='';el('csi-status').value='';renderCSI();}
 }
 
