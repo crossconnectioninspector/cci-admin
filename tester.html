@@ -3449,7 +3449,7 @@ function initAddrAutocomplete(inputId, dropdownId) {
     addrSearchTimer = setTimeout(async () => {
       addrAbortCtrl = new AbortController();
       try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q+' Abilene TX')}&format=json&addressdetails=1&limit=5&countrycodes=us&viewbox=-99.90,32.30,-99.55,32.68&bounded=0`,
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=5&countrycodes=us&viewbox=-99.90,32.30,-99.55,32.68&bounded=1`,
           { headers: { 'User-Agent': 'BackflowCheckPro/1.0' }, signal: addrAbortCtrl.signal });
         if (!res.ok) { dropdown.style.display = 'none'; return; }
         const data = await res.json();
