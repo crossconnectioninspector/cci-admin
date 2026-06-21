@@ -3524,7 +3524,9 @@ async function importRecord() {
   const notes=el('imp-notes').value;
   let rec={id:t.toUpperCase().slice(0,2)+Date.now(),type:t,date,address:addr,tester,remarks:notes,
     pwsName:'Abilene TX',pwsId:'',firm:'Backflow Check Pro',
-    lat:32.4487+(Math.random()-.5)*.1, lng:-99.7331+(Math.random()-.5)*.1};
+    lat: adminPickedLat ?? (32.4487+(Math.random()-.5)*.1),
+    lng: adminPickedLng ?? (-99.7331+(Math.random()-.5)*.1)};
+  adminPickedLat = null; adminPickedLng = null; // reset so the next report doesn't inherit this one's pin
   if(t==='backflow') {
     const asm=el('imp-assembly').value.split(' ')[0];
     const c1=el('imp-check1')?.value!==''?parseFloat(el('imp-check1').value):null;
@@ -4713,25 +4715,30 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 let adminAddrTimer = null;
 let adminCurrentMfr = '';
 
+let adminPickedLat = null, adminPickedLng = null;
 async function adminAddrSearch(q) {
   const dropdown = document.getElementById('sub-addr-dropdown');
   if (!dropdown) return;
+  adminPickedLat = null; adminPickedLng = null; // typed text no longer matches a picked suggestion
   clearTimeout(adminAddrTimer);
   if (q.length < 3) { dropdown.style.display = 'none'; return; }
   dropdown.style.display = 'block';
   dropdown.innerHTML = '<div style="padding:12px 14px;font-family:var(--mono);font-size:11px;color:var(--muted)">🔍 SEARCHING…</div>';
   adminAddrTimer = setTimeout(async () => {
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=5&countrycodes=us&viewbox=-99.90,32.30,-99.55,32.68&bounded=1`,
-        { headers:{'User-Agent':'BackflowCheckPro/1.0'} });
+      // Photon (komoot.io) — OSM-based, built for live search-as-you-type, no API key required.
+      const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=5&lat=32.4487&lon=-99.7331&bbox=-99.90,32.30,-99.55,32.68`);
       if (!res.ok) { dropdown.style.display='none'; return; }
-      const data = await res.json();
-      if (!data.length) { dropdown.style.display='none'; return; }
-      dropdown.innerHTML = data.map((item,i) => {
-        const addr = item.address;
-        const parts = [addr.house_number, addr.road, addr.city||addr.town||'Abilene', addr.state?'TX':''].filter(Boolean);
+      const geo = await res.json();
+      const data = geo.features || [];
+      if (!data.length) { dropdown.innerHTML = '<div style="padding:12px 14px;font-family:var(--mono);font-size:11px;color:var(--muted)">No matches — you can still type the full address</div>'; return; }
+      dropdown.innerHTML = data.map((f) => {
+        const p = f.properties || {};
+        const parts = [p.housenumber, p.street, p.city||p.town||'Abilene', p.state||'TX'].filter(Boolean);
         const display = parts.join(' ');
-        return `<div onclick="pickAdminAddr('${display.replace(/'/g,"\'")}','sub-addr','sub-addr-dropdown')"
+        const displayJs = display.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        const lon = f.geometry.coordinates[0], lat = f.geometry.coordinates[1];
+        return `<div onclick="pickAdminAddr('${displayJs}','sub-addr','sub-addr-dropdown',${lat},${lon})"
           style="padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:15px;font-weight:600;color:var(--text)"
           onmouseover="this.style.background='rgba(249,166,30,.08)'" onmouseout="this.style.background=''">${display}</div>`;
       }).join('');
@@ -4739,11 +4746,12 @@ async function adminAddrSearch(q) {
   }, 300);
 }
 
-function pickAdminAddr(addr, inputId, dropId) { inputId = inputId || 'imp-addr'; dropId = dropId || 'sub-addr-dropdown';
+function pickAdminAddr(addr, inputId, dropId, lat, lon) { inputId = inputId || 'imp-addr'; dropId = dropId || 'sub-addr-dropdown';
   const input = document.getElementById(inputId);
   const drop = document.getElementById(dropId);
   if (input) input.value = addr;
   if (drop) drop.style.display = 'none';
+  if (lat != null && lon != null) { adminPickedLat = parseFloat(lat); adminPickedLng = parseFloat(lon); }
 }
 
 // Device brand/model data
