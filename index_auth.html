@@ -555,6 +555,81 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
   font-size:12px !important;
   letter-spacing:1px;
 }
+
+/* ===== Ported from tester.html for visual parity on the Add Report form ===== */
+.form-section{margin-bottom:20px}
+.form-section-title{
+  font-family:var(--mono);font-size:9px;color:var(--accent);
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;
+  padding-bottom:8px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:6px;
+}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;overflow:visible}
+.form-row.full{grid-template-columns:1fr}
+.form-field{overflow:visible;display:flex;flex-direction:column;gap:6px}
+.field-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
+.field-error{font-family:var(--mono);font-size:9px;color:var(--red);letter-spacing:.5px;font-weight:700;margin-left:6px;text-transform:none}
+.field-input--error{border-color:var(--red)!important;box-shadow:0 0 0 3px rgba(224,82,82,.12)!important}
+.field-input{
+  background:var(--elevated);border:1.5px solid var(--border);
+  border-radius:10px;padding:12px 13px;color:var(--text);
+  font-family:var(--sans);font-size:14px;font-weight:600;
+  outline:none;transition:border-color .2s,box-shadow .2s;width:100%;
+  position:relative;z-index:11;
+}
+.field-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(249,166,30,.08)}
+.field-input::placeholder{color:var(--muted);font-weight:400}
+select.field-input option{background:var(--elevated)}
+
+.asm-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.asm-btn{
+  padding:16px 8px;border-radius:12px;font-family:var(--cond);font-size:18px;
+  font-weight:900;letter-spacing:.5px;border:1.5px solid var(--border);
+  background:var(--elevated);color:var(--muted);cursor:pointer;transition:all .2s;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+}
+.asm-btn.active{background:var(--accent);color:#000;border-color:var(--accent);box-shadow:0 4px 16px rgba(249,166,30,.3)}
+.asm-btn:not(.active):hover{border-color:var(--muted)}
+.asm-btn-sub{font-family:var(--mono);font-size:8px;letter-spacing:1px;opacity:.7;font-weight:400}
+
+.psid-row{background:var(--elevated);border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;transition:all .2s}
+.psid-row:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(249,166,30,.08)}
+.psid-row-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.psid-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
+.psid-indicator{font-family:var(--mono);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;background:var(--surface)}
+.psid-input{background:transparent;border:none;color:var(--text);font-family:var(--mono);font-size:28px;font-weight:700;outline:none;width:100%;padding:0;line-height:1}
+.psid-input::placeholder{color:var(--muted);font-size:20px;font-weight:400}
+.psid-unit{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px}
+
+.result-banner{border-radius:12px;padding:16px 18px;text-align:center;font-family:var(--cond);font-size:22px;font-weight:900;letter-spacing:.5px;transition:all .3s;background:rgba(140,149,159,.08);color:var(--muted)}
+.result-detail{font-family:var(--mono);font-size:10px;color:var(--muted);text-align:center;margin-top:8px;line-height:1.7}
+
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-label{font-size:14px;font-weight:600}
+.toggle{width:48px;height:26px;background:var(--elevated);border:1.5px solid var(--border);border-radius:13px;position:relative;cursor:pointer;transition:all .25s;flex-shrink:0}
+.toggle.on{background:var(--accent);border-color:var(--accent)}
+.toggle::after{content:'';position:absolute;width:20px;height:20px;background:#fff;border-radius:10px;top:2px;left:2px;transition:left .25s;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.toggle.on::after{left:24px}
+
+.photo-zone{border:2px dashed var(--border);border-radius:14px;padding:24px 16px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:var(--elevated)}
+.photo-zone:hover,.photo-zone:active{border-color:var(--accent);background:rgba(249,166,30,.04)}
+.photo-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.photo-zone-icon{font-size:36px;margin-bottom:8px;display:block}
+.photo-zone-text{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px}
+.photo-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.photo-thumb{width:72px;height:72px;border-radius:10px;object-fit:cover;border:1.5px solid var(--border)}
+
+.ac-wrap{position:relative;width:100%;z-index:10}
+.ac-wrap:focus-within{z-index:300}
+.ac-item{padding:14px 16px;font-size:14px;font-weight:600;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s;display:flex;flex-direction:column;gap:3px}
+.ac-item:last-child{border-bottom:none}
+.ac-item:active,.ac-item:hover{background:rgba(249,166,30,.12)}
+.ac-item-main{color:var(--text)}
+.ac-loading{padding:14px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px}
+.ac-empty{padding:14px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--muted)}
+
+.admin-entry-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.5px;white-space:nowrap;background:rgba(249,166,30,.12);color:var(--accent);border:1px solid rgba(249,166,30,.3)}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
@@ -1115,102 +1190,226 @@ tbody td{padding:11px 14px;font-size:15px;font-weight:600;vertical-align:middle}
       <div class="import-form">
         <div class="if-group">
           <label class="sl">Report Type</label>
-          <select class="ss" id="imp-type" onchange="toggleImportFields()">
+          <select class="field-input" id="imp-type" onchange="toggleImportFields()">
             <option value="backflow">Backflow Test Report</option>
             <option value="csi">CSI Report</option>
             <option value="inspection">Property Inspection</option>
           </select>
         </div>
-        <div class="if-group">
-          <label class="sl">Service Address</label>
-          <input type="text" class="si" id="imp-addr" placeholder="123 Main St, Abilene TX"
-            autocomplete="off" oninput="adminAddrSearch(this.value)" style="width:100%">
-          <div id="sub-addr-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:500;background:var(--elevated);border:1.5px solid var(--accent);border-radius:10px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.8);max-height:220px;overflow-y:auto"></div>
-        </div>
-        <div class="if-group">
-          <label class="sl">Date</label>
-          <input type="date" class="si" id="imp-date">
-        </div>
-        <div class="if-group">
-          <label class="sl">Tester / Inspector Name</label>
-          <input type="text" class="si" id="imp-tester" placeholder="Tester Name">
-        </div>
-        <!-- Backflow fields -->
-        <div class="if-group" id="f-assembly">
-          <label class="sl">Assembly Type</label>
-          <select class="ss" id="imp-assembly" onchange="setupPsidFields(this.value)"><option>RPZ</option><option>DCVA</option><option>PVB</option><option>SVB</option></select>
-        </div>
-        <div class="if-group" id="f-mfr">
-          <label class="sl">Manufacturer</label>
-          <div style="position:relative">
-            <input type="text" class="si" id="imp-mfr" placeholder="Watts, Febco…" autocomplete="off" oninput="adminMfrSearch(this.value)" style="width:100%">
-            <div id="sub-mfr-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:500;background:var(--elevated);border:1.5px solid var(--accent);border-radius:10px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.8);max-height:200px;overflow-y:auto"></div>
+
+        <!-- ── Backflow: tester-style layout ── -->
+        <div id="backflow-tester-style">
+          <input type="hidden" id="imp-assembly" value="RPZ">
+
+          <div class="form-section">
+            <div class="form-section-title">ASSEMBLY TYPE</div>
+            <div class="asm-grid">
+              <button type="button" class="asm-btn active" id="admin-asm-rpz" onclick="selectAdminAsm('RPZ')">RPZ<span class="asm-btn-sub">REDUCED PRESSURE</span></button>
+              <button type="button" class="asm-btn" id="admin-asm-dcva" onclick="selectAdminAsm('DCVA')">DCVA<span class="asm-btn-sub">DOUBLE CHECK</span></button>
+              <button type="button" class="asm-btn" id="admin-asm-pvb" onclick="selectAdminAsm('PVB')">PVB<span class="asm-btn-sub">PRESSURE VAC</span></button>
+              <button type="button" class="asm-btn" id="admin-asm-svb" onclick="selectAdminAsm('SVB')">SVB<span class="asm-btn-sub">SPILL-RESISTANT</span></button>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">1 — PUBLIC WATER SYSTEM</div>
+            <div class="form-row">
+              <div class="form-field"><span class="field-label">PWS Name</span><input type="text" class="field-input" id="imp-pws-name" value="City of Abilene Water Dept."></div>
+              <div class="form-field"><span class="field-label">PWS ID #</span><input type="text" class="field-input" id="imp-pws-id" value="TX1090001"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-field"><span class="field-label">PWS Contact Person</span><input type="text" class="field-input" id="imp-pws-contact" value="John Williams"></div>
+              <div class="form-field"><span class="field-label">PWS Mailing Address</span><input type="text" class="field-input" id="imp-pws-addr" value="PO Box 60, Abilene TX 79604"></div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">2 — LOCATION & DEVICE</div>
+            <div class="form-row full">
+              <div class="form-field">
+                <span class="field-label">Address of Service / Location</span>
+                <div class="ac-wrap" style="position:relative">
+                  <input type="text" class="field-input" id="imp-addr" placeholder="123 Main St, Abilene TX"
+                    autocomplete="off" oninput="adminAddrSearch(this.value)">
+                  <div id="sub-addr-dropdown" class="ac-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0"></div>
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-field"><span class="field-label">BPA Serves (what it protects)</span><input type="text" class="field-input" id="imp-bpa-serves" placeholder="Irrigation System, Boiler…"></div>
+              <div class="form-field"><span class="field-label">BPA Location (where installed)</span><input type="text" class="field-input" id="imp-bpa-location" placeholder="Meter Room, East Wall…"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <span class="field-label">Manufacturer</span>
+                <div class="ac-wrap" style="position:relative;z-index:20">
+                  <input type="text" class="field-input" id="imp-mfr" placeholder="Watts, Febco…" autocomplete="off" oninput="adminMfrSearch(this.value)">
+                  <div id="sub-mfr-dropdown" class="ac-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0"></div>
+                </div>
+              </div>
+              <div class="form-field">
+                <span class="field-label">Model #</span>
+                <div class="ac-wrap" style="position:relative">
+                  <input type="text" class="field-input" id="imp-model" placeholder="LF009…" autocomplete="off" oninput="adminModelSearch(this.value)">
+                  <div id="sub-model-dropdown" class="ac-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0"></div>
+                </div>
+              </div>
+            </div>
+            <div id="lf-check-result" style="display:none;border-radius:9px;padding:10px 12px;margin-bottom:8px;font-family:var(--mono);font-size:10px;line-height:1.6;margin-top:4px"></div>
+            <div class="form-row">
+              <div class="form-field"><span class="field-label">Serial #</span><input type="text" class="field-input" id="imp-serial" placeholder="SN-12345"></div>
+              <div class="form-field"><span class="field-label">Size</span><select class="field-input" id="imp-size"><option>3/4"</option><option>1"</option><option>1-1/4"</option><option>1-1/2"</option><option>2"</option><option>3"</option><option>4"</option></select></div>
+            </div>
+            <div style="margin-top:6px">
+              <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px">BYPASS ASSEMBLY (if present)</div>
+              <div class="form-row">
+                <div class="form-field"><span class="field-label">Bypass Manufacturer</span><input type="text" class="field-input" id="imp-bypass-mfr" placeholder="Optional"></div>
+                <div class="form-field"><span class="field-label">Bypass Model</span><input type="text" class="field-input" id="imp-bypass-model" placeholder="Optional"></div>
+              </div>
+              <div class="form-row">
+                <div class="form-field"><span class="field-label">Bypass Serial #</span><input type="text" class="field-input" id="imp-bypass-serial" placeholder="Optional"></div>
+                <div class="form-field"><span class="field-label">Bypass Size</span><input type="text" class="field-input" id="imp-bypass-size" placeholder='e.g. 1"'></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">3 — TEST INFO</div>
+            <div class="form-row">
+              <div class="form-field"><span class="field-label">Date</span><input type="date" class="field-input" id="imp-date"></div>
+              <div class="form-field"><span class="field-label">Time</span><input type="time" class="field-input" id="imp-time"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-field"><span class="field-label">Tester / Inspector Name</span><input type="text" class="field-input" id="imp-tester" placeholder="Tester Name"></div>
+              <div class="form-field">
+                <span class="field-label">Reason for Test</span>
+                <select class="field-input" id="imp-test-reason">
+                  <option value="Existing">Existing</option>
+                  <option value="New">New Installation</option>
+                  <option value="Replacement">Replacement</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">PRESSURE READINGS (PSID)</div>
+            <div class="form-field" id="f-check1" style="display:none">
+              <div class="psid-row">
+                <div class="psid-row-top"><span class="psid-label" id="lbl-check1">1ST CHECK VALVE</span></div>
+                <input type="number" step="0.1" min="0" class="psid-input" id="imp-check1" placeholder="0.0" oninput="updateResultBanner()">
+              </div>
+            </div>
+            <div class="form-field" id="f-check2" style="display:none">
+              <div class="psid-row">
+                <div class="psid-row-top"><span class="psid-label" id="lbl-check2">2ND CHECK VALVE</span></div>
+                <input type="number" step="0.1" min="0" class="psid-input" id="imp-check2" placeholder="0.0" oninput="updateResultBanner()">
+              </div>
+            </div>
+            <div class="form-field" id="f-relief" style="display:none">
+              <div class="psid-row">
+                <div class="psid-row-top"><span class="psid-label">RELIEF VALVE OPENED AT</span></div>
+                <input type="number" step="0.1" min="0" class="psid-input" id="imp-relief" placeholder="0.0" oninput="updateResultBanner()">
+              </div>
+            </div>
+            <div class="form-field" id="f-airinlet" style="display:none">
+              <div class="psid-row">
+                <div class="psid-row-top"><span class="psid-label">AIR INLET CHECK</span></div>
+                <input type="number" step="0.1" min="0" class="psid-input" id="imp-airinlet" placeholder="0.0" oninput="updateResultBanner()">
+              </div>
+            </div>
+            <div id="f-result-banner" style="display:none;margin-top:4px">
+              <div class="result-banner" id="result-banner"></div>
+              <div class="result-detail" id="result-detail"></div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">4 — DIFFERENTIAL PRESSURE GAUGE</div>
+            <div class="form-row">
+              <div class="form-field"><span class="field-label">Gauge Make / Model</span><input type="text" class="field-input" id="imp-gauge-model" placeholder="Watts Test Kit"></div>
+              <div class="form-field"><span class="field-label">Gauge Serial #</span><input type="text" class="field-input" id="imp-gauge-serial" placeholder="G-TF-00421"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-field"><span class="field-label">Date Tested for Accuracy</span><input type="date" class="field-input" id="imp-gauge-cal"></div>
+              <div class="form-field">
+                <span class="field-label">Gauge Used On</span>
+                <div style="display:flex;gap:14px;margin-top:6px">
+                  <label style="display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px;cursor:pointer"><input type="radio" name="imp-gauge-type" id="imp-gauge-potable" value="potable" checked> Potable</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px;cursor:pointer"><input type="radio" name="imp-gauge-type" id="imp-gauge-nonpotable" value="non-potable"> Non-Potable</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">5 — REPAIRS & MATERIALS USED</div>
+            <div class="toggle-row"><span class="toggle-label">Repairs were made</span><button type="button" class="toggle" id="admin-repairs-toggle" onclick="toggleAdminRepairs()"></button></div>
+            <div id="admin-repair-wrap" style="display:none;margin-top:10px">
+              <div class="form-field">
+                <span class="field-label" style="margin-bottom:8px;display:block">REPAIR DETAILS</span>
+                <textarea class="field-input" id="imp-repair-notes" rows="2" placeholder="Parts replaced, repairs made…" style="resize:vertical;font-size:13px"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">PHOTOS</div>
+            <div class="photo-zone">
+              <input type="file" accept="image/jpeg,image/png,image/webp" multiple id="admin-photo-input" onchange="handleAdminPhotos(this)">
+              <div class="photo-zone-icon">📷</div>
+              <div class="photo-zone-text">CLICK TO UPLOAD PHOTOS</div>
+            </div>
+            <div class="photo-preview" id="admin-photo-preview"></div>
+            <div id="admin-photo-count" style="font-family:var(--mono);font-size:10px;color:var(--accent);margin-top:6px"></div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">6 — CERTIFICATION & REMARKS</div>
+            <div class="form-row">
+              <div class="form-field"><span class="field-label">Cert #</span><input type="text" class="field-input" id="imp-cert" placeholder="TX-BPAT-12345"></div>
+              <div class="form-field"><span class="field-label">Firm</span><input type="text" class="field-input" id="imp-firm" placeholder="Your Company"></div>
+            </div>
+            <div class="form-row full" style="margin-top:8px">
+              <div class="form-field"><span class="field-label">Remarks</span><textarea class="field-input" id="imp-notes" rows="3" placeholder="Notes, conditions, recommendations…" style="resize:vertical"></textarea></div>
+            </div>
           </div>
         </div>
-        <div class="if-group" id="f-model">
-          <label class="sl">Model / Serial #</label>
-          <div style="position:relative">
-            <input type="text" class="si" id="imp-model" placeholder="LF009" autocomplete="off" oninput="adminModelSearch(this.value)" style="width:100%">
-            <div id="sub-model-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:500;background:var(--elevated);border:1.5px solid var(--accent);border-radius:10px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.8);max-height:240px;overflow-y:auto"></div>
-          </div>
-          <div id="lf-check-result" style="display:none;border-radius:8px;padding:8px 12px;margin-top:6px;font-family:var(--mono);font-size:11px;line-height:1.5"></div>
-        </div>
-        <!-- PSID Readings — shown/hidden per assembly type -->
-        <div class="if-group" id="f-check1" style="display:none">
-          <label class="sl" id="lbl-check1">1st Check (PSID)</label>
-          <input type="number" step="0.1" min="0" class="si" id="imp-check1" placeholder="e.g. 14.2" oninput="updateResultBanner()">
-        </div>
-        <div class="if-group" id="f-check2" style="display:none">
-          <label class="sl" id="lbl-check2">2nd Check (PSID)</label>
-          <input type="number" step="0.1" min="0" class="si" id="imp-check2" placeholder="e.g. 11.8" oninput="updateResultBanner()">
-        </div>
-        <div class="if-group" id="f-relief" style="display:none">
-          <label class="sl">Relief Valve Opened At (PSID)</label>
-          <input type="number" step="0.1" min="0" class="si" id="imp-relief" placeholder="e.g. 10.1" oninput="updateResultBanner()">
-        </div>
-        <div class="if-group" id="f-airinlet" style="display:none">
-          <label class="sl">Air Inlet Check (PSID)</label>
-          <input type="number" step="0.1" min="0" class="si" id="imp-airinlet" placeholder="e.g. 3.2" oninput="updateResultBanner()">
-        </div>
-        <!-- Auto-computed result banner -->
-        <div class="if-group full" id="f-result-banner" style="display:none">
-          <div id="result-banner" style="border-radius:8px;padding:10px 14px;font-family:var(--cond);font-size:20px;font-weight:900;text-align:center"></div>
-          <div id="result-detail" style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:6px;line-height:1.7;letter-spacing:.5px"></div>
-        </div>
+
         <!-- CSI fields -->
         <div class="if-group" id="f-csi-status" style="display:none">
           <label class="sl">CSI Status</label>
-          <select class="ss" id="imp-csi-status"><option value="compliant">Compliant</option><option value="noncompliant">Non-Compliant</option></select>
+          <select class="field-input" id="imp-csi-status"><option value="compliant">Compliant</option><option value="noncompliant">Non-Compliant</option></select>
         </div>
         <div class="if-group" id="f-reason" style="display:none">
           <label class="sl">Reason for Inspection</label>
-          <select class="ss" id="imp-reason">
+          <select class="field-input" id="imp-reason">
             <option>New Construction</option><option>Existing Service — Hazard Suspected</option><option>Material Improvement</option>
           </select>
         </div>
         <!-- Inspection fields -->
         <div class="if-group" id="f-biz-type" style="display:none">
           <label class="sl">Business Type</label>
-          <input type="text" class="si" id="imp-biz" placeholder="Restaurant, Hospital…">
+          <input type="text" class="field-input" id="imp-biz" placeholder="Restaurant, Hospital…">
         </div>
         <div class="if-group" id="f-hazard" style="display:none">
           <label class="sl">Hazard Rating (1-10)</label>
-          <input type="number" class="si" id="imp-hazard" min="1" max="10" value="5">
+          <input type="number" class="field-input" id="imp-hazard" min="1" max="10" value="5">
         </div>
         <div class="if-group" id="f-compliance" style="display:none">
           <label class="sl">Compliance Status</label>
-          <select class="ss" id="imp-compliance">
+          <select class="field-input" id="imp-compliance">
             <option value="compliant">Compliant</option><option value="partial">Partial</option>
             <option value="violation">Violation</option><option value="notInspected">Not Inspected</option>
           </select>
         </div>
-        <div class="if-group full">
+        <div class="if-group full" id="f-other-notes" style="display:none">
           <label class="sl">Remarks / Notes</label>
-          <textarea class="si" id="imp-notes" rows="3" placeholder="Repairs, non-compliance details…" style="resize:vertical"></textarea>
+          <textarea class="field-input" id="imp-other-notes" rows="3" placeholder="Repairs, non-compliance details…" style="resize:vertical"></textarea>
         </div>
       </div>
       <div style="display:flex;gap:10px">
-        <button class="btn btn-ac" style="flex:1" onclick="importRecord()">💾 Save to Dashboard</button>
+        <button class="btn btn-accent" id="admin-submit-btn" style="flex:1;font-size:16px;padding:16px;border-radius:14px;box-shadow:0 6px 24px rgba(249,166,30,.35)" onclick="importRecord()">✓ Save to Dashboard</button>
         <button class="btn btn-gh" style="flex:1" onclick="emailReport(null)">📧 Email to Yourself</button>
       </div>
     </div>
@@ -2419,6 +2618,11 @@ async function saveRecord(rec) {
         air_inlet:rec.air_inlet||'', remarks:rec.remarks||'',
         pws_name:rec.pwsName||'Abilene TX', pws_id:rec.pwsId||'',
         firm:rec.firm||'Backflow Check Pro',
+        bpa_serves:rec.bpaServes||'', bpa_location:rec.bpaLocation||'',
+        test_time:rec.testTime||'', test_reason:rec.testReason||'',
+        gauge_model:rec.gaugeModel||'', gauge_serial:rec.gaugeSerial||'',
+        gauge_cal:rec.gaugeCal||null, gauge_type:rec.gaugeType||'',
+        entered_by_admin:rec.entered_by_admin||false,
         lat:rec.lat||32.4487, lng:rec.lng||-99.7331 };
     } else if (rec.type === 'csi') {
       table = 'csi_reports';
@@ -3245,7 +3449,7 @@ function renderBF() {
     <td><span class="badge b-bf">${r.assembly}</span></td>
     <td class="td-mono">${r.mfr||'—'} ${r.model||''}</td>
     <td class="td-mono">${sanitize(r.serial)}</td>
-    <td>${sanitize(r.tester)}${staffBadge(r.tester_email)}</td>
+    <td>${sanitize(r.tester)}${staffBadge(r.tester_email)}${adminEntryBadge(r.entered_by_admin)}</td>
     <td><span class="badge ${r.result==='PASS'?'b-pass':'b-fail'}">${r.result==='PASS'?'✓':'✗'} ${r.result}</span></td>
     <td>${r.repairs?'<span style="color:var(--accent)">🔧 Yes</span>':'<span style="color:var(--muted)">—</span>'}</td>
     <td style="display:flex;gap:4px;align-items:center;padding:8px 6px">
@@ -3387,7 +3591,7 @@ function openModal(id) {
     ['Gauge Serial', r.gauge_serial||'—'], ['Gauge Cal Date', r.gauge_cal_date||'—'],
   ];
   document.getElementById('m-detail-cert').innerHTML = cert.map(([l,v])=>
-    `<div class="m-prop"><div class="m-prop-label">${l}</div><div class="m-prop-val">${sanitize(String(v))}${l==='Tester'?staffBadge(r.tester_email):''}</div></div>`
+    `<div class="m-prop"><div class="m-prop-label">${l}</div><div class="m-prop-val">${sanitize(String(v))}${l==='Tester'?staffBadge(r.tester_email)+adminEntryBadge(r.entered_by_admin):''}</div></div>`
   ).join('');
   document.getElementById('m-detail-remarks').innerHTML = r.remarks ?
     `<div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">REMARKS</div>
@@ -3435,14 +3639,49 @@ function toggleImportFields() {
   const asmType=el('imp-assembly')?.value||'RPZ';
   const csiF=['f-csi-status','f-reason'];
   const inspF=['f-biz-type','f-hazard','f-compliance'];
-  const allBf=['f-assembly','f-mfr','f-model','f-check1','f-check2','f-relief','f-airinlet','f-result-banner'];
-  [...allBf,...csiF,...inspF].forEach(id=>{const e=el(id);if(e)e.style.display='none'});
+  const bfWrap = el('backflow-tester-style');
+  [...csiF,...inspF].forEach(id=>{const e=el(id);if(e)e.style.display='none'});
+  if(bfWrap) bfWrap.style.display='none';
+  const otherNotes = el('f-other-notes'); if(otherNotes) otherNotes.style.display='none';
   if(t==='backflow') {
-    ['f-assembly','f-mfr','f-model'].forEach(id=>{const e=el(id);if(e)e.style.display='flex'});
+    if(bfWrap) bfWrap.style.display='block';
     setupPsidFields(asmType);
+  } else {
+    if(otherNotes) otherNotes.style.display='flex';
   }
   if(t==='csi') csiF.forEach(id=>{const e=el(id);if(e)e.style.display='flex'});
   if(t==='inspection') inspF.forEach(id=>{const e=el(id);if(e)e.style.display='flex'});
+}
+
+function selectAdminAsm(asm) {
+  el('imp-assembly').value = asm;
+  ['rpz','dcva','pvb','svb'].forEach(a => {
+    const btn = el('admin-asm-'+a);
+    if (btn) btn.className = 'asm-btn' + (a.toUpperCase()===asm ? ' active' : '');
+  });
+  setupPsidFields(asm);
+}
+
+function toggleAdminRepairs() {
+  const t = el('admin-repairs-toggle');
+  const wrap = el('admin-repair-wrap');
+  const on = !t.classList.contains('on');
+  t.className = 'toggle' + (on ? ' on' : '');
+  if (wrap) wrap.style.display = on ? 'block' : 'none';
+}
+
+let adminPhotoFiles = [];
+function handleAdminPhotos(input) {
+  adminPhotoFiles = [...input.files];
+  const prev = el('admin-photo-preview');
+  prev.innerHTML = '';
+  adminPhotoFiles.forEach(f => {
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(f);
+    img.className = 'photo-thumb';
+    prev.appendChild(img);
+  });
+  el('admin-photo-count').textContent = adminPhotoFiles.length ? `${adminPhotoFiles.length} photo${adminPhotoFiles.length>1?'s':''} selected` : '';
 }
 
 function setupPsidFields(asm) {
@@ -3451,16 +3690,16 @@ function setupPsidFields(asm) {
     const e=el(id); if(e) e.style.display='none';
   });
   if(asm==='RPZ') {
-    el('lbl-check1').textContent='1st Check Valve (PSID) — min 5.0';
-    el('lbl-check2').textContent='2nd Check Valve (PSID) — min 1.0';
-    ['f-check1','f-check2','f-relief','f-result-banner'].forEach(id=>{el(id).style.display='flex'});
+    el('lbl-check1').textContent='1ST CHECK VALVE — min 5.0 PSID to pass';
+    el('lbl-check2').textContent='2ND CHECK VALVE — min 1.0 PSID to pass';
+    ['f-check1','f-check2','f-relief','f-result-banner'].forEach(id=>{el(id).style.display='block'});
   } else if(asm==='DCVA') {
-    el('lbl-check1').textContent='1st Check Valve (PSID) — min 1.0';
-    el('lbl-check2').textContent='2nd Check Valve (PSID) — min 1.0';
-    ['f-check1','f-check2','f-result-banner'].forEach(id=>{el(id).style.display='flex'});
+    el('lbl-check1').textContent='1ST CHECK VALVE — min 1.0 PSID to pass';
+    el('lbl-check2').textContent='2ND CHECK VALVE — min 1.0 PSID to pass';
+    ['f-check1','f-check2','f-result-banner'].forEach(id=>{el(id).style.display='block'});
   } else if(asm==='PVB'||asm==='SVB') {
-    el('lbl-check1').textContent='Check Valve (PSID) — min 1.0';
-    ['f-check1','f-airinlet','f-result-banner'].forEach(id=>{el(id).style.display='flex'});
+    el('lbl-check1').textContent='CHECK VALVE — min 1.0 PSID to pass';
+    ['f-check1','f-airinlet','f-result-banner'].forEach(id=>{el(id).style.display='block'});
   }
   updateResultBanner();
 }
@@ -3521,11 +3760,14 @@ async function importRecord() {
   if(!addr){toast('Please enter an address','error');return;}
   const date=el('imp-date').value||new Date().toISOString().split('T')[0];
   const tester=el('imp-tester').value||'';
-  const notes=el('imp-notes').value;
+  const notes = t==='backflow' ? (el('imp-notes')?.value||'') : (el('imp-other-notes')?.value||'');
   let rec={id:t.toUpperCase().slice(0,2)+Date.now(),type:t,date,address:addr,tester,remarks:notes,
-    pwsName:'Abilene TX',pwsId:'',firm:'Backflow Check Pro',
+    pwsName: t==='backflow' ? (el('imp-pws-name')?.value||'Abilene TX') : 'Abilene TX',
+    pwsId: t==='backflow' ? (el('imp-pws-id')?.value||'') : '',
+    firm: t==='backflow' ? (el('imp-firm')?.value||'Backflow Check Pro') : 'Backflow Check Pro',
     lat: adminPickedLat ?? (32.4487+(Math.random()-.5)*.1),
-    lng: adminPickedLng ?? (-99.7331+(Math.random()-.5)*.1)};
+    lng: adminPickedLng ?? (-99.7331+(Math.random()-.5)*.1),
+    entered_by_admin: true};
   adminPickedLat = null; adminPickedLng = null; // reset so the next report doesn't inherit this one's pin
   if(t==='backflow') {
     const asm=el('imp-assembly').value.split(' ')[0];
@@ -3540,10 +3782,20 @@ async function importRecord() {
     const check2str=c2!==null?fmtPsid(c2,c2>=1?'Closed Tight':'Leaked'):'';
     const reliefStr=rv!==null?`${rv} psid — Opened At`:'';
     const airStr=ai!==null?`${ai} psid — ${ai>=1?'Opened':'Failed to Open'}`:'';
+    const repairsOn = el('admin-repairs-toggle')?.classList.contains('on') || false;
+    const bypassParts = [el('imp-bypass-mfr')?.value, el('imp-bypass-model')?.value, el('imp-bypass-serial')?.value, el('imp-bypass-size')?.value].filter(Boolean);
+    const bypassNote = bypassParts.length ? `Bypass: ${bypassParts.join(' / ')}. ` : '';
     Object.assign(rec,{assembly:asm,result,
-      mfr:el('imp-mfr').value,model:el('imp-model').value.split('/')[0].trim(),
-      serial:el('imp-model').value.split('/')[1]?.trim()||'',
-      repairs:false,check1:check1str,check2:check2str,relief:reliefStr||airStr,
+      mfr:el('imp-mfr').value, model:el('imp-model').value.trim(), serial:el('imp-serial')?.value.trim()||'',
+      size: el('imp-size')?.value || '',
+      bpaServes: el('imp-bpa-serves')?.value || '', bpaLocation: el('imp-bpa-location')?.value || '',
+      testTime: el('imp-time')?.value || '', testReason: el('imp-test-reason')?.value || 'Existing',
+      gaugeModel: el('imp-gauge-model')?.value || '', gaugeSerial: el('imp-gauge-serial')?.value || '',
+      gaugeCal: el('imp-gauge-cal')?.value || '',
+      gaugeType: document.querySelector('input[name="imp-gauge-type"]:checked')?.value || 'potable',
+      repairs: repairsOn, repairDetails: bypassNote + (repairsOn ? (el('imp-repair-notes')?.value||'') : ''),
+      certNum: el('imp-cert')?.value || '',
+      check1:check1str,check2:check2str,relief:reliefStr||airStr,
       psid_c1:c1,psid_c2:c2,psid_relief:rv,psid_airinlet:ai,
       fail_reasons:fails.join('; ')});
   }
@@ -3592,6 +3844,10 @@ function fd(d){if(!d)return'—';return new Date(d+'T12:00:00').toLocaleDateStri
 function staffBadge(email) {
   if (!email || !STAFF_EMAILS.has(String(email).toLowerCase().trim())) return '';
   return ' <span style="display:inline-block;background:rgba(100,149,237,.15);border:1px solid rgba(100,149,237,.35);color:#6495ed;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.5px;padding:2px 7px;border-radius:20px;vertical-align:middle;margin-left:6px;white-space:nowrap">CITY STAFF</span>';
+}
+function adminEntryBadge(enteredByAdmin) {
+  if (!enteredByAdmin) return '';
+  return ' <span class="admin-entry-badge" style="vertical-align:middle;margin-left:6px">ADMIN ENTRY</span>';
 }
 
 function toast(msg,type){const t=el('toast');t.textContent=msg;t.className='toast '+type+' show';setTimeout(()=>t.classList.remove('show'),3000)}
