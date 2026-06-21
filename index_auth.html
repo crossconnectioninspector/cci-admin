@@ -4727,7 +4727,7 @@ async function adminAddrSearch(q) {
   adminAddrTimer = setTimeout(async () => {
     try {
       // Photon (komoot.io) — OSM-based, built for live search-as-you-type, no API key required.
-      const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=5&lat=32.4487&lon=-99.7331&bbox=-99.90,32.30,-99.55,32.68`);
+      const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=5&lat=32.4487&lon=-99.7331&zoom=11&location_bias_scale=0.9&countrycode=US`);
       if (!res.ok) { dropdown.style.display='none'; return; }
       const geo = await res.json();
       const data = geo.features || [];
