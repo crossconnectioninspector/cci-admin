@@ -114,9 +114,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 /* BOTTOM NAV */
 .bottom-nav{
   height:74px;background:var(--surface);border-top:1px solid var(--border);
-  display:flex;align-items:stretch;flex-shrink:0;position:sticky;bottom:0;
+  display:flex;align-items:stretch;flex-shrink:0;position:fixed;bottom:0;left:0;right:0;z-index:500;
   padding-bottom:env(safe-area-inset-bottom);
 }
+.page-content{ padding-bottom:90px; }
 .bn-item{
   flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:4px;border:none;background:transparent;color:var(--muted);
@@ -712,7 +713,7 @@ select.field-input option{background:var(--elevated)}
     <button onclick="switchToWizard()" style="font-family:var(--mono);font-size:9px;color:#000;background:var(--accent);border:none;border-radius:7px;padding:6px 12px;cursor:pointer;font-weight:700;letter-spacing:.5px">← FIELD MODE</button>
   </div>
 
-  <div class="page-content" id="page-home" style="display:none;padding:0;background:var(--bg)">
+  <div class="page-content" id="page-home" style="display:none;padding:0 0 90px 0;background:var(--bg)">
 
   <!-- PROFILE HERO -->
   <div style="background:linear-gradient(160deg,#1a1f27 0%,#111417 100%);padding:24px 20px 20px;border-bottom:1px solid var(--border);position:relative;overflow:hidden">
@@ -1069,7 +1070,7 @@ select.field-input option{background:var(--elevated)}
   </div>
 
   <!-- ── PROFILE ── -->
-  <div class="page-content" id="page-profile" style="display:none;padding:0;background:var(--bg)">
+  <div class="page-content" id="page-profile" style="display:none;padding:0 0 90px 0;background:var(--bg)">
 
   <!-- HERO HEADER -->
   <div style="background:linear-gradient(160deg,#1a1f27 0%,#111417 100%);padding:24px 20px;border-bottom:1px solid var(--border);position:relative;overflow:hidden">
@@ -3451,7 +3452,7 @@ function initAddrAutocomplete(inputId, dropdownId) {
       try {
         // Photon (komoot.io) — OSM-based, built for live search-as-you-type, no API key required.
         // lat/lon bias + bbox keep results centered on and restricted to the Abilene area.
-        const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=5&lat=32.4487&lon=-99.7331&zoom=11&location_bias_scale=0.9&countrycode=US`,
+        const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=5&lat=32.4487&lon=-99.7331&zoom=11&location_bias_scale=0.9&countrycode=US&bbox=-100.21,32.00,-99.51,32.60`,
           { signal: addrAbortCtrl.signal });
         if (!res.ok) { dropdown.style.display = 'none'; return; }
         const geo = await res.json();
