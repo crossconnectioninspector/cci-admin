@@ -4726,8 +4726,19 @@ async function adminAddrSearch(q) {
   dropdown.innerHTML = '<div style="padding:12px 14px;font-family:var(--mono);font-size:11px;color:var(--muted)">🔍 SEARCHING…</div>';
   adminAddrTimer = setTimeout(async () => {
     try {
-      // Photon (komoot.io) — OSM-based, built for live search-as-you-type, no API key required.
-      // Search broadly, then keep only Taylor County results — restricts what's shown without starving the match itself.
+      // 1. Check our own Taylor County address database first — instant, exact, no dependency on OSM coverage.
+      const local = await searchLocalAddressesAdmin(q);
+      if (local.length) {
+        dropdown.innerHTML = local.map(r => {
+          const display = [r.full_address, r.city, r.state].filter(Boolean).join(', ');
+          const displayJs = display.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+          return `<div onclick="pickAdminAddr('${displayJs}','sub-addr','sub-addr-dropdown',null,null)"
+            style="padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:15px;font-weight:600;color:var(--text)"
+            onmouseover="this.style.background='rgba(249,166,30,.08)'" onmouseout="this.style.background=''">${display}</div>`;
+        }).join('');
+        return;
+      }
+      // 2. Nothing local yet — fall back to Photon (OSM).
       const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=10&lat=32.4487&lon=-99.7331&zoom=11&location_bias_scale=0.9&countrycode=US`);
       if (!res.ok) { dropdown.style.display='none'; return; }
       const geo = await res.json();
@@ -4751,12 +4762,35 @@ async function adminAddrSearch(q) {
   }, 300);
 }
 
+async function searchLocalAddressesAdmin(q) {
+  try {
+    const res = await fetch(`${SUPA_URL}/rest/v1/cad_addresses?full_address=ilike.*${encodeURIComponent(q)}*&select=full_address,city,state&order=has_exact_number.desc&limit=6`,
+      { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY } });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch(e) { return []; }
+}
+
 function pickAdminAddr(addr, inputId, dropId, lat, lon) { inputId = inputId || 'imp-addr'; dropId = dropId || 'sub-addr-dropdown';
   const input = document.getElementById(inputId);
   const drop = document.getElementById(dropId);
   if (input) input.value = addr;
   if (drop) drop.style.display = 'none';
-  if (lat != null && lon != null) { adminPickedLat = parseFloat(lat); adminPickedLng = parseFloat(lon); }
+  if (lat != null && lon != null) {
+    adminPickedLat = parseFloat(lat); adminPickedLng = parseFloat(lon);
+  } else {
+    // Local-database pick with no coordinates — geocode the confirmed exact address in the background.
+    adminPickedLat = null; adminPickedLng = null;
+    (async () => {
+      try {
+        const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(addr)}&limit=1&lat=32.4487&lon=-99.7331&zoom=11&location_bias_scale=0.9&countrycode=US`);
+        if (!res.ok) return;
+        const geo = await res.json();
+        const f = (geo.features || [])[0];
+        if (f) { adminPickedLat = f.geometry.coordinates[1]; adminPickedLng = f.geometry.coordinates[0]; }
+      } catch(e) {}
+    })();
+  }
 }
 
 // Device brand/model data

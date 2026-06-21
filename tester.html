@@ -3450,9 +3450,14 @@ function initAddrAutocomplete(inputId, dropdownId) {
     addrSearchTimer = setTimeout(async () => {
       addrAbortCtrl = new AbortController();
       try {
-        // Photon (komoot.io) — OSM-based, built for live search-as-you-type, no API key required.
-        // Search broadly (no hard geo filter, so partial-word matching has the full data it needs),
-        // then keep only Taylor County results below — restricts what's shown without starving the match itself.
+        // 1. Check our own Taylor County address database first — instant, exact, no dependency on OSM coverage.
+        const local = await searchLocalAddresses(q, addrAbortCtrl.signal);
+        if (local.length) {
+          dropdown.innerHTML = renderLocalSuggestions(local, inputId, dropdownId);
+          positionDropdown(input, dropdown);
+          return;
+        }
+        // 2. Nothing local yet (new construction, etc.) — fall back to Photon (OSM).
         const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=10&lat=32.4487&lon=-99.7331&zoom=11&location_bias_scale=0.9&countrycode=US`,
           { signal: addrAbortCtrl.signal });
         if (!res.ok) { dropdown.style.display = 'none'; return; }
@@ -3493,16 +3498,54 @@ function initAddrAutocomplete(inputId, dropdownId) {
   });
 }
 
+// Searches the Taylor County address database (built from County appraisal records) for a match.
+async function searchLocalAddresses(q, signal) {
+  try {
+    const res = await fetch(`${SUPA_URL}/rest/v1/cad_addresses?full_address=ilike.*${encodeURIComponent(q)}*&select=full_address,city,state&order=has_exact_number.desc&limit=6`,
+      { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY }, signal });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch(e) { return []; } // local lookup failing should never block the Photon fallback below
+}
+
+function renderLocalSuggestions(data, inputId, dropdownId) {
+  return data.map(r => {
+    const display = [r.full_address, r.city, r.state].filter(Boolean).join(', ');
+    const displayJs = display.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    return `<div class="ac-item" onclick="pickAddr('${displayJs}', null, null, '${inputId}', '${dropdownId}')">
+      <div class="ac-item-main">${display}</div>
+    </div>`;
+  }).join('');
+}
+
 function pickAddr(display, lat, lon, inputId, dropdownId) {
   const input = document.getElementById(inputId);
   const dropdown = document.getElementById(dropdownId);
   if (input) input.value = display;
   if (dropdown) dropdown.style.display = 'none';
-  pickedAddrLat = parseFloat(lat);
-  pickedAddrLng = parseFloat(lon);
+  if (lat != null && lon != null && !isNaN(lat) && !isNaN(lon)) {
+    pickedAddrLat = parseFloat(lat);
+    pickedAddrLng = parseFloat(lon);
+  } else {
+    // From our local Taylor County database, which has no coordinates of its own — do a one-time
+    // background geocode of this now-exact, confirmed address. Far more reliable than live partial-word search,
+    // since Photon just needs to match a complete real address instead of guessing what's still being typed.
+    pickedAddrLat = null; pickedAddrLng = null;
+    geocodeConfirmedAddress(display);
+  }
   const errEl = document.getElementById('err-' + inputId);
   if (errEl) errEl.textContent = '';
   if (input) input.classList.remove('field-input--error');
+}
+
+async function geocodeConfirmedAddress(display) {
+  try {
+    const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(display)}&limit=1&lat=32.4487&lon=-99.7331&zoom=11&location_bias_scale=0.9&countrycode=US`);
+    if (!res.ok) return;
+    const geo = await res.json();
+    const f = (geo.features || [])[0];
+    if (f) { pickedAddrLat = f.geometry.coordinates[1]; pickedAddrLng = f.geometry.coordinates[0]; }
+  } catch(e) { /* best effort — submission still works fine without a map pin */ }
 }
 
 function initMfrAutocomplete(inputId, dropdownId, modelInputId, modelDropdownId) {
