@@ -4727,10 +4727,15 @@ async function adminAddrSearch(q) {
   adminAddrTimer = setTimeout(async () => {
     try {
       // Photon (komoot.io) — OSM-based, built for live search-as-you-type, no API key required.
-      const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=5&lat=32.4487&lon=-99.7331&zoom=11&location_bias_scale=0.9&countrycode=US&bbox=-100.21,32.00,-99.51,32.60`);
+      // Search broadly, then keep only Taylor County results — restricts what's shown without starving the match itself.
+      const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=10&lat=32.4487&lon=-99.7331&zoom=11&location_bias_scale=0.9&countrycode=US`);
       if (!res.ok) { dropdown.style.display='none'; return; }
       const geo = await res.json();
-      const data = geo.features || [];
+      const TAYLOR_CO = { minLon:-100.21, minLat:32.00, maxLon:-99.51, maxLat:32.60 };
+      const data = (geo.features || []).filter(f => {
+        const [lon, lat] = f.geometry.coordinates;
+        return lon >= TAYLOR_CO.minLon && lon <= TAYLOR_CO.maxLon && lat >= TAYLOR_CO.minLat && lat <= TAYLOR_CO.maxLat;
+      }).slice(0, 5);
       if (!data.length) { dropdown.innerHTML = '<div style="padding:12px 14px;font-family:var(--mono);font-size:11px;color:var(--muted)">No matches — you can still type the full address</div>'; return; }
       dropdown.innerHTML = data.map((f) => {
         const p = f.properties || {};
