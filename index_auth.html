@@ -612,6 +612,23 @@ select.field-input option{background:var(--elevated)}
 .toggle::after{content:'';position:absolute;width:20px;height:20px;background:#fff;border-radius:10px;top:2px;left:2px;transition:left .25s;box-shadow:0 1px 4px rgba(0,0,0,.3)}
 .toggle.on::after{left:24px}
 
+/* CSI — TCEQ-20699 Certification of Compliance rows */
+.comp-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 2px;border-bottom:1px solid var(--border)}
+.comp-row:last-child{border-bottom:none}
+.comp-num{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--accent);flex-shrink:0;width:14px}
+.comp-text{font-size:12px;line-height:1.5;color:var(--text);flex:1}
+.comp-toggle{display:flex;gap:6px;flex-shrink:0}
+.comp-btn{padding:8px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--elevated);font-family:var(--mono);font-size:9px;letter-spacing:.5px;text-transform:uppercase;font-weight:700;cursor:pointer;color:var(--muted);transition:all .15s;white-space:nowrap}
+.comp-btn:hover{border-color:var(--muted)}
+.comp-btn.comp-yes.active{background:rgba(62,207,128,.15);border-color:var(--green);color:var(--green)}
+.comp-btn.comp-no.active{background:rgba(239,90,90,.15);border-color:var(--red);color:var(--red)}
+
+/* CSI — segmented single-select groups (materials used) */
+.seg-group{display:flex;gap:6px;flex-wrap:wrap}
+.seg-btn{padding:8px 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--elevated);font-family:var(--mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;font-weight:700;cursor:pointer;color:var(--muted);transition:all .15s}
+.seg-btn:hover{border-color:var(--muted)}
+.seg-btn.active{background:var(--accent);color:#000;border-color:var(--accent);box-shadow:0 3px 12px rgba(249,166,30,.25)}
+
 .photo-zone{border:2px dashed var(--border);border-radius:14px;padding:24px 16px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:var(--elevated)}
 .photo-zone:hover,.photo-zone:active{border-color:var(--accent);background:rgba(249,166,30,.04)}
 .photo-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
@@ -1376,16 +1393,143 @@ select.field-input option{background:var(--elevated)}
           </div>
         </div>
 
-        <!-- CSI fields -->
-        <div class="if-group" id="f-csi-status" style="display:none">
-          <label class="sl">CSI Status</label>
-          <select class="field-input" id="imp-csi-status"><option value="compliant">Compliant</option><option value="noncompliant">Non-Compliant</option></select>
-        </div>
-        <div class="if-group" id="f-reason" style="display:none">
-          <label class="sl">Reason for Inspection</label>
-          <select class="field-input" id="imp-reason">
-            <option>New Construction</option><option>Existing Service — Hazard Suspected</option><option>Material Improvement</option>
-          </select>
+        <!-- ── CSI: TCEQ-20699 Customer Service Inspection Certificate layout ── -->
+        <div id="csi-form-fields" style="display:none;grid-column:1/-1">
+
+          <div class="form-section">
+            <div class="form-section-title">1 — PUBLIC WATER SYSTEM</div>
+            <div class="form-row">
+              <div class="form-field"><span class="field-label">Name of PWS</span><input type="text" class="field-input" id="imp-csi-pws-name" value="City of Abilene Water Dept."></div>
+              <div class="form-field"><span class="field-label">PWS ID #</span><input type="text" class="field-input" id="imp-csi-pws-id" value="TX1090001"></div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">2 — LOCATION OF SERVICE</div>
+            <div class="form-row full">
+              <div class="form-field">
+                <span class="field-label">Address of Service / Location</span>
+                <div class="ac-wrap" style="position:relative">
+                  <input type="text" class="field-input" id="imp-csi-addr" placeholder="123 Main St, Abilene TX"
+                    autocomplete="off" oninput="adminAddrSearch(this.value,'csi-addr-dropdown','imp-csi-addr')">
+                  <div id="csi-addr-dropdown" class="ac-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0"></div>
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-field"><span class="field-label">Date of Inspection</span><input type="date" class="field-input" id="imp-csi-date"></div>
+              <div class="form-field"><span class="field-label">Time of Inspection</span><input type="time" class="field-input" id="imp-csi-time"></div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">3 — REASON FOR INSPECTION</div>
+            <select class="field-input" id="imp-csi-reason">
+              <option value="New construction">New construction</option>
+              <option value="Existing service where contaminant hazards are suspected">Existing service where contaminant hazards are suspected</option>
+              <option value="Material improvement, correction or expansion of distribution facilities">Material improvement, correction or expansion of distribution facilities</option>
+            </select>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">4 — CERTIFICATION OF COMPLIANCE</div>
+            <div style="font-family:var(--mono);font-size:9.5px;color:var(--muted);line-height:1.6;margin-bottom:8px">
+              Per 30 TAC §290.46(j)(4) — upon inspection of the private water distribution facilities connected to the public water supply, mark each item below.
+            </div>
+            <div class="comp-row" data-comp-id="1">
+              <div class="comp-num">1</div>
+              <div class="comp-text">No direct or indirect connection exists between the public water supply and a potential source of contamination — sources of contamination are isolated by an air gap or an approved backflow prevention assembly.</div>
+              <div class="comp-toggle">
+                <button type="button" class="comp-btn comp-yes active" onclick="setCsiComp(this,true)">Compliant</button>
+                <button type="button" class="comp-btn comp-no" onclick="setCsiComp(this,false)">Non-Compliant</button>
+              </div>
+            </div>
+            <div class="comp-row" data-comp-id="2">
+              <div class="comp-num">2</div>
+              <div class="comp-text">No cross-connection exists between the public water supply and a private water system. Where an air gap is not maintained, an approved reduced-pressure-principle backflow assembly is installed.</div>
+              <div class="comp-toggle">
+                <button type="button" class="comp-btn comp-yes active" onclick="setCsiComp(this,true)">Compliant</button>
+                <button type="button" class="comp-btn comp-no" onclick="setCsiComp(this,false)">Non-Compliant</button>
+              </div>
+            </div>
+            <div class="comp-row" data-comp-id="3">
+              <div class="comp-num">3</div>
+              <div class="comp-text">No connection exists that would allow water used for condensing, cooling, or industrial processes to return to the public water supply.</div>
+              <div class="comp-toggle">
+                <button type="button" class="comp-btn comp-yes active" onclick="setCsiComp(this,true)">Compliant</button>
+                <button type="button" class="comp-btn comp-no" onclick="setCsiComp(this,false)">Non-Compliant</button>
+              </div>
+            </div>
+            <div class="comp-row" data-comp-id="4">
+              <div class="comp-num">4</div>
+              <div class="comp-text">No pipe or pipe fitting containing more than 8.0% lead exists in private water distribution facilities installed on or after 7/1/1988 and prior to 1/4/2014.</div>
+              <div class="comp-toggle">
+                <button type="button" class="comp-btn comp-yes active" onclick="setCsiComp(this,true)">Compliant</button>
+                <button type="button" class="comp-btn comp-no" onclick="setCsiComp(this,false)">Non-Compliant</button>
+              </div>
+            </div>
+            <div class="comp-row" data-comp-id="5">
+              <div class="comp-num">5</div>
+              <div class="comp-text">Plumbing installed on or after 1/4/2014 bears labeling indicating ≤0.25% lead content. If not properly labeled, a written comment is provided in Remarks.</div>
+              <div class="comp-toggle">
+                <button type="button" class="comp-btn comp-yes active" onclick="setCsiComp(this,true)">Compliant</button>
+                <button type="button" class="comp-btn comp-no" onclick="setCsiComp(this,false)">Non-Compliant</button>
+              </div>
+            </div>
+            <div class="comp-row" data-comp-id="6">
+              <div class="comp-num">6</div>
+              <div class="comp-text">No solder or flux containing more than 0.2% lead exists in private water distribution facilities installed on or after 7/1/1988.</div>
+              <div class="comp-toggle">
+                <button type="button" class="comp-btn comp-yes active" onclick="setCsiComp(this,true)">Compliant</button>
+                <button type="button" class="comp-btn comp-no" onclick="setCsiComp(this,false)">Non-Compliant</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">5 — MATERIALS USED IN INSTALLATION</div>
+            <div class="form-field" style="margin-bottom:12px">
+              <span class="field-label">Service Lines</span>
+              <div class="seg-group" id="csi-servicelines-group">
+                <button type="button" class="seg-btn" onclick="setCsiSeg(this,'csi-servicelines-group')">Lead</button>
+                <button type="button" class="seg-btn" onclick="setCsiSeg(this,'csi-servicelines-group')">Copper</button>
+                <button type="button" class="seg-btn active" onclick="setCsiSeg(this,'csi-servicelines-group')">PVC</button>
+                <button type="button" class="seg-btn" onclick="setCsiSeg(this,'csi-servicelines-group')">Other</button>
+              </div>
+            </div>
+            <div class="form-field">
+              <span class="field-label">Solder</span>
+              <div class="seg-group" id="csi-solder-group">
+                <button type="button" class="seg-btn" onclick="setCsiSeg(this,'csi-solder-group')">Lead</button>
+                <button type="button" class="seg-btn active" onclick="setCsiSeg(this,'csi-solder-group')">Lead Free</button>
+                <button type="button" class="seg-btn" onclick="setCsiSeg(this,'csi-solder-group')">Solvent Weld</button>
+                <button type="button" class="seg-btn" onclick="setCsiSeg(this,'csi-solder-group')">Other</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">6 — INSPECTOR CERTIFICATION</div>
+            <div class="form-row">
+              <div class="form-field"><span class="field-label">Inspector Name (Print/Type)</span><input type="text" class="field-input" id="imp-csi-inspector" placeholder="Inspector Name"></div>
+              <div class="form-field">
+                <span class="field-label">License Type</span>
+                <select class="field-input" id="imp-csi-lictype">
+                  <option>TCEQ Licensed Customer Service Inspector</option>
+                  <option>Licensed Plumbing Inspector</option>
+                  <option>Licensed Plumber — Water Supply Protection Specialist</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-field"><span class="field-label">License #</span><input type="text" class="field-input" id="imp-csi-licnum" placeholder="License Number"></div>
+              <div class="form-field"><span class="field-label">Title of Inspector</span><input type="text" class="field-input" id="imp-csi-title" placeholder="e.g. CSI, Plumbing Inspector"></div>
+            </div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);line-height:1.7;margin-top:4px">
+              By saving, the inspector certifies this document will be retained by the PWS for a minimum of ten years and that they are legally responsible for the validity of the information provided.
+            </div>
+          </div>
+
         </div>
         <!-- Inspection fields -->
         <div class="if-group" id="f-biz-type" style="display:none">
@@ -3637,11 +3781,12 @@ function emailCurrentReport() {
 function toggleImportFields() {
   const t=el('imp-type').value;
   const asmType=el('imp-assembly')?.value||'RPZ';
-  const csiF=['f-csi-status','f-reason'];
   const inspF=['f-biz-type','f-hazard','f-compliance'];
   const bfWrap = el('backflow-tester-style');
-  [...csiF,...inspF].forEach(id=>{const e=el(id);if(e)e.style.display='none'});
+  const csiWrap = el('csi-form-fields');
+  inspF.forEach(id=>{const e=el(id);if(e)e.style.display='none'});
   if(bfWrap) bfWrap.style.display='none';
+  if(csiWrap) csiWrap.style.display='none';
   const otherNotes = el('f-other-notes'); if(otherNotes) otherNotes.style.display='none';
   if(t==='backflow') {
     if(bfWrap) bfWrap.style.display='block';
@@ -3649,7 +3794,7 @@ function toggleImportFields() {
   } else {
     if(otherNotes) otherNotes.style.display='flex';
   }
-  if(t==='csi') csiF.forEach(id=>{const e=el(id);if(e)e.style.display='flex'});
+  if(t==='csi') { if(csiWrap) csiWrap.style.display='block'; }
   if(t==='inspection') inspF.forEach(id=>{const e=el(id);if(e)e.style.display='flex'});
 }
 
@@ -3668,6 +3813,38 @@ function toggleAdminRepairs() {
   const on = !t.classList.contains('on');
   t.className = 'toggle' + (on ? ' on' : '');
   if (wrap) wrap.style.display = on ? 'block' : 'none';
+}
+
+// ── CSI (TCEQ-20699) — Certification of Compliance & Materials toggles ────────
+function setCsiComp(btn, val) {
+  const row = btn.closest('.comp-row');
+  if (!row) return;
+  row.querySelectorAll('.comp-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function getCsiComp(n) {
+  const row = document.querySelector(`.comp-row[data-comp-id="${n}"]`);
+  if (!row) return true;
+  const active = row.querySelector('.comp-btn.active');
+  return active ? active.classList.contains('comp-yes') : true;
+}
+function setCsiSeg(btn, groupId) {
+  const group = el(groupId);
+  if (!group) return;
+  group.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function getCsiSeg(groupId) {
+  const group = el(groupId);
+  if (!group) return '';
+  const active = group.querySelector('.seg-btn.active');
+  return active ? active.textContent.trim() : '';
+}
+function resetCsiForm() {
+  document.querySelectorAll('#csi-form-fields .comp-row').forEach(row => {
+    row.querySelectorAll('.comp-btn').forEach(b => b.classList.remove('active'));
+    const yes = row.querySelector('.comp-yes'); if (yes) yes.classList.add('active');
+  });
 }
 
 let adminPhotoFiles = [];
@@ -3756,14 +3933,21 @@ function updateResultBanner() {
 
 async function importRecord() {
   const t=el('imp-type').value;
-  const addr=el('imp-addr').value.trim();
+  let addr, date, tester;
+  if (t==='csi') {
+    addr = (el('imp-csi-addr')?.value||'').trim();
+    date = el('imp-csi-date')?.value || new Date().toISOString().split('T')[0];
+    tester = el('imp-csi-inspector')?.value || '';
+  } else {
+    addr = (el('imp-addr')?.value||'').trim();
+    date = el('imp-date')?.value || new Date().toISOString().split('T')[0];
+    tester = el('imp-tester')?.value || '';
+  }
   if(!addr){toast('Please enter an address','error');return;}
-  const date=el('imp-date').value||new Date().toISOString().split('T')[0];
-  const tester=el('imp-tester').value||'';
   const notes = t==='backflow' ? (el('imp-notes')?.value||'') : (el('imp-other-notes')?.value||'');
   let rec={id:t.toUpperCase().slice(0,2)+Date.now(),type:t,date,address:addr,tester,remarks:notes,
-    pwsName: t==='backflow' ? (el('imp-pws-name')?.value||'Abilene TX') : 'Abilene TX',
-    pwsId: t==='backflow' ? (el('imp-pws-id')?.value||'') : '',
+    pwsName: t==='backflow' ? (el('imp-pws-name')?.value||'Abilene TX') : t==='csi' ? (el('imp-csi-pws-name')?.value||'City of Abilene Water Dept.') : 'Abilene TX',
+    pwsId: t==='backflow' ? (el('imp-pws-id')?.value||'') : t==='csi' ? (el('imp-csi-pws-id')?.value||'') : '',
     firm: t==='backflow' ? (el('imp-firm')?.value||'Backflow Check Pro') : 'Backflow Check Pro',
     lat: adminPickedLat ?? (32.4487+(Math.random()-.5)*.1),
     lng: adminPickedLng ?? (-99.7331+(Math.random()-.5)*.1),
@@ -3799,9 +3983,22 @@ async function importRecord() {
       psid_c1:c1,psid_c2:c2,psid_relief:rv,psid_airinlet:ai,
       fail_reasons:fails.join('; ')});
   }
-  if(t==='csi') Object.assign(rec,{status:el('imp-csi-status').value,reason:el('imp-reason').value,
-    inspector:tester,licType:'Licensed Inspector',licNum:'',
-    c1:true,c2:true,c3:true,c4:true,c5:true,c6:true,serviceLines:'',solder:''});
+  if(t==='csi') {
+    const c1=getCsiComp(1), c2=getCsiComp(2), c3=getCsiComp(3), c4=getCsiComp(4), c5=getCsiComp(5), c6=getCsiComp(6);
+    const allCompliant = c1&&c2&&c3&&c4&&c5&&c6;
+    Object.assign(rec,{
+      status: allCompliant ? 'compliant' : 'noncompliant',
+      reason: el('imp-csi-reason')?.value || 'New construction',
+      inspector: tester,
+      licType: el('imp-csi-lictype')?.value || '',
+      licNum: el('imp-csi-licnum')?.value || '',
+      title: el('imp-csi-title')?.value || '',
+      testTime: el('imp-csi-time')?.value || '',
+      c1, c2, c3, c4, c5, c6,
+      serviceLines: getCsiSeg('csi-servicelines-group'),
+      solder: getCsiSeg('csi-solder-group')
+    });
+  }
   if(t==='inspection') Object.assign(rec,{owner:'',bizType:el('imp-biz').value,
     hazardRating:parseInt(el('imp-hazard').value)||5,complianceStatus:el('imp-compliance').value});
   toast('Saving to Supabase...','success');
@@ -3810,6 +4007,7 @@ async function importRecord() {
     DB.unshift(rec);
     if(deviceMap) rebuildDeviceMarkers();
     toast('Saved to database - visible on dashboard','success');
+    if(t==='csi') resetCsiForm();
     setTimeout(()=>nav('dashboard',document.querySelector('.nb')),1500);
   }
 }
@@ -4972,8 +5170,10 @@ let adminAddrTimer = null;
 let adminCurrentMfr = '';
 
 let adminPickedLat = null, adminPickedLng = null;
-async function adminAddrSearch(q) {
-  const dropdown = document.getElementById('sub-addr-dropdown');
+async function adminAddrSearch(q, dropdownId, inputId) {
+  dropdownId = dropdownId || 'sub-addr-dropdown';
+  inputId = inputId || 'imp-addr';
+  const dropdown = document.getElementById(dropdownId);
   if (!dropdown) return;
   adminPickedLat = null; adminPickedLng = null; // typed text no longer matches a picked suggestion
   clearTimeout(adminAddrTimer);
@@ -4988,7 +5188,7 @@ async function adminAddrSearch(q) {
         dropdown.innerHTML = local.map(r => {
           const display = [r.full_address, r.city, r.state].filter(Boolean).join(', ');
           const displayJs = display.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-          return `<div onclick="pickAdminAddr('${displayJs}','sub-addr','sub-addr-dropdown',null,null)"
+          return `<div onclick="pickAdminAddr('${displayJs}','${inputId}','${dropdownId}',null,null)"
             style="padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:15px;font-weight:600;color:var(--text)"
             onmouseover="this.style.background='rgba(249,166,30,.08)'" onmouseout="this.style.background=''">${display}</div>`;
         }).join('');
@@ -5010,7 +5210,7 @@ async function adminAddrSearch(q) {
         const display = parts.join(' ');
         const displayJs = display.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
         const lon = f.geometry.coordinates[0], lat = f.geometry.coordinates[1];
-        return `<div onclick="pickAdminAddr('${displayJs}','sub-addr','sub-addr-dropdown',${lat},${lon})"
+        return `<div onclick="pickAdminAddr('${displayJs}','${inputId}','${dropdownId}',${lat},${lon})"
           style="padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:15px;font-weight:600;color:var(--text)"
           onmouseover="this.style.background='rgba(249,166,30,.08)'" onmouseout="this.style.background=''">${display}</div>`;
       }).join('');
@@ -7598,6 +7798,156 @@ async function generateReportPDF(r) {
       sans(tsz, false); st(DARK);
       doc.text(label, x + sz + 4, cy + tsz * 0.35);
       return x + sz + 4 + doc.getTextWidth(label) + 8;
+    }
+
+    if (r.type === 'csi') {
+      filledRect(0, 0, W, H, WHITE);
+
+      const HDR = 46;
+      filledRect(0, 0, W, HDR, NAVY);
+      filledRect(0, 0, 7, HDR, ORANGE);
+      filledRect(ML, 7, 32, 32, ORANGE);
+      sans(8, true); st(DARK); doc.text('CSI', ML + 4, 25);
+      sans(13, true); st(WHITE); doc.text('Customer Service Inspection Certificate', ML + 42, 24);
+      sans(7.5, false); st([138, 180, 212]); doc.text('30 TAC \u00a7290.46(j)(4)  \u00b7  TCEQ Form 20699', ML + 42, 35);
+      sans(6, false); st([90, 134, 170]); doc.text('Must be on file with the PWS for each new connection \u2014 retain for a minimum of ten years.', ML + 42, 43);
+
+      const allCompliant = !!(r.c1 && r.c2 && r.c3 && r.c4 && r.c5 && r.c6);
+      const badgeW = 100;
+      filledRect(W - MR - badgeW, 9, badgeW, 28, allCompliant ? GREENB : REDB, allCompliant ? GREEN : RED, 1.5);
+      sans(10, true); st(allCompliant ? GREEN : RED);
+      doc.text(allCompliant ? 'COMPLIANT' : 'NON-COMPLIANT', W - MR - badgeW / 2, 27, { align: 'center' });
+      y = HDR + 4;
+
+      y = sec('1  Public Water System & Location of Service', y);
+      y = frow([
+        ['Name of Public Water System (PWS)', r.pwsName || r.pws_name || 'City of Abilene', 230],
+        ['PWS ID #', r.pwsId || r.pws_id || '\u2014', 90],
+        ['Date of Inspection', r.date || '\u2014', CW - 320],
+      ], y, 26);
+      y = frow([
+        ['Location of Service (Address)', r.address || '\u2014', CW],
+      ], y, 26);
+      y = frow([
+        ['Time of Inspection', r.testTime || r.time || '\u2014', 110],
+        ['Inspector Name (Print/Type)', r.inspector || r.tester || '\u2014', CW - 110],
+      ], y, 26);
+      y += 5;
+
+      y = sec('2  Reason for Inspection', y);
+      const REASONS = [
+        'New construction',
+        'Existing service where contaminant hazards are suspected',
+        'Material improvement, correction or expansion of distribution facilities',
+      ];
+      const RB_H = 14 * REASONS.length + 10;
+      filledRect(ML, y, CW, RB_H, GRAY1, GRAY3, 0.35);
+      REASONS.forEach((rn, i) => {
+        const ty = y + 12 + i * 14;
+        cbx(ML + 13, ty, (r.reason || 'New construction') === rn, 8);
+        sans(7.8, false); st(DARK);
+        doc.text(rn, ML + 24, ty + 2.5, { maxWidth: CW - 32 });
+      });
+      y += RB_H + 5;
+
+      y = sec('3  Certification of Compliance', y);
+      sans(6.8, false); st(MID);
+      const introLines = doc.splitTextToSize(
+        'I, ' + (r.inspector || r.tester || 'the undersigned inspector') + ', certify that, upon inspection of the private water distribution facility connected to the above-referenced service, the following conditions were found to be true:',
+        CW - 10
+      );
+      introLines.forEach((l, i) => doc.text(l, ML + 5, y + 8 + i * 9));
+      y += introLines.length * 9 + 6;
+
+      const COMP_ITEMS = [
+        'No direct or indirect connection exists between the public water supply and a potential source of contamination \u2014 sources of contamination are isolated by an air gap or an approved backflow prevention assembly.',
+        'No cross-connection exists between the public water supply and a private water system. Where an air gap is not maintained, an approved reduced-pressure-principle backflow assembly is installed.',
+        'No connection exists that would allow water used for condensing, cooling, or industrial processes to return to the public water supply.',
+        'No pipe or pipe fitting containing more than 8.0% lead exists in private water distribution facilities installed on or after 7/1/1988 and prior to 1/4/2014.',
+        'Plumbing installed on or after 1/4/2014 bears labeling indicating \u22640.25% lead content. If not properly labeled, a written comment is provided in Remarks.',
+        'No solder or flux containing more than 0.2% lead exists in private water distribution facilities installed on or after 7/1/1988.',
+      ];
+      const compVals = [r.c1, r.c2, r.c3, r.c4, r.c5, r.c6];
+      const NUMW = 16, STATW = 84, TXTW = CW - NUMW - STATW;
+      compVals.forEach((val, i) => {
+        sans(7.2, false);
+        const lines = doc.splitTextToSize(COMP_ITEMS[i], TXTW - 8);
+        const rowH = Math.max(lines.length * 9 + 8, 24);
+        const bg = i % 2 === 0 ? WHITE : GRAY1;
+        filledRect(ML, y, CW, rowH, bg, GRAY3, 0.3);
+        sans(8, true); st(MID);
+        doc.text(String(i + 1), ML + NUMW / 2, y + rowH / 2 + 3, { align: 'center' });
+        vln(ML + NUMW, y, y + rowH);
+        sans(7.2, false); st(DARK);
+        lines.forEach((l, li) => doc.text(l, ML + NUMW + 4, y + 9 + li * 9, { maxWidth: TXTW - 8 }));
+        vln(ML + NUMW + TXTW, y, y + rowH);
+        const stx = ML + NUMW + TXTW;
+        cbline(stx + 4, y + rowH * 0.35, val === true, 'Compliant', 6.5, 7);
+        cbline(stx + 4, y + rowH * 0.68, val !== true, 'Non-Compliant', 6.5, 7);
+        y += rowH;
+      });
+      y += 5;
+
+      y = sec('4  Materials Used in Installation', y);
+      const MH = 22;
+      filledRect(ML, y, CW, MH, GRAY1, GRAY3, 0.35);
+      sans(7.5, true); st(DARK); doc.text('Service Lines:', ML + 6, y + MH / 2 + 2.5);
+      cbline(ML + 80, y + MH / 2, true, r.serviceLines || '\u2014', 7, 7.5);
+      vln(ML + CW / 2, y, y + MH);
+      sans(7.5, true); st(DARK); doc.text('Solder:', ML + CW / 2 + 6, y + MH / 2 + 2.5);
+      cbline(ML + CW / 2 + 48, y + MH / 2, true, r.solder || '\u2014', 7, 7.5);
+      y += MH + 5;
+
+      y = sec('5  Remarks', y);
+      const rem = String(r.remarks || r.notes || '');
+      const remLines = doc.splitTextToSize(rem || '\u2014', CW - 10);
+      const rem_h = Math.max(remLines.length * 12 + 10, 26);
+      filledRect(ML, y, CW, rem_h, WHITE, GRAY3, 0.35);
+      sans(7.5, false); st(DARK);
+      remLines.forEach((l, i) => doc.text(l, ML + 5, y + 14 + i * 12));
+      y += rem_h + 5;
+
+      y = sec('6  Inspector Certification & Signature', y);
+      sans(6.5, false); st(MID);
+      const certLines = doc.splitTextToSize(
+        'By signing below, the inspector certifies this Customer Service Inspection Certificate will be retained by the PWS for a minimum of ten years and that they are legally responsible for the validity of the information provided herein.',
+        CW - 10
+      );
+      certLines.forEach((l, i) => doc.text(l, ML + 5, y + 8 + i * 9));
+      y += certLines.length * 9 + 6;
+
+      y = frow([
+        ['Inspector Name (Print/Type)', r.inspector || r.tester || '\u2014', 190],
+        ['License Type', r.licType || '\u2014', 220],
+        ['License #', r.licNum || '\u2014', CW - 410],
+      ], y, 26);
+
+      const SH = 30; let tx = ML;
+      [
+        ['Title of Inspector', r.title || '\u2014', 180],
+        ['Date / Time of Inspection', (r.date || '\u2014') + (r.testTime ? '  ' + r.testTime : ''), 160],
+        ['Signature of Inspector', null, CW - 340],
+      ].forEach((tf) => {
+        filledRect(tx, y, tf[2], SH, WHITE, GRAY3, 0.35);
+        mono(5.8, false); st(LITE); doc.text(tf[0].toUpperCase(), tx + 4, y + 9);
+        if (tf[1]) { sans(8.5, true); st(DARK); doc.text(String(tf[1]), tx + 4, y + 20, { maxWidth: tf[2] - 8 }); }
+        else { sd(GRAY3); slw(0.6); doc.line(tx + 8, y + 21, tx + tf[2] - 8, y + 21); }
+        tx += tf[2];
+      });
+      y += SH + 3;
+
+      const FH = 28, footY = H - FH;
+      filledRect(0, footY, W, FH, NAVY);
+      sd(ORANGE); slw(0.8); doc.line(0, footY, W, footY);
+      sans(6.5, true); st(WHITE);
+      doc.text('A Customer Service Inspection Certificate must be on file for each connection per 30 TAC \u00a7290.44(h) and \u00a7290.46(j).', W / 2, footY + 12, { align: 'center' });
+      sans(6, false); st([122, 171, 204]);
+      doc.text('TCEQ Form 20699 (Rev. 11-01-17)  \u00b7  Retain on file for a minimum of ten (10) years', W / 2, footY + 21, { align: 'center' });
+
+      const fname = 'BCP_CSI_' + (r.address || 'report').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 28) + '_' + (r.date || '').replace(/-/g, '') + '.pdf';
+      doc.save(fname);
+      if (typeof toast === 'function') toast('\ud83d\udcc4 CSI report downloaded!', 'success');
+      return;
     }
 
     function pNum(v){ if(v==null||v==='') return null; const n=parseFloat(String(v).replace(/[^\d.-]/g,'')); return isNaN(n)?null:n; }
