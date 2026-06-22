@@ -3389,153 +3389,110 @@ async function fetchAllRiskLocations() {
   if (riskLoading) return;
   riskLoading = true;
   riskStopped = false;
-  riskErrorCount = 0;
-  riskScanStartTime = Date.now();
   riskLocations = [];
   showStopBtn();
-  const seen = new Set();
 
-  function setHeader(msg, color='var(--accent)') {
-    const el2 = el('risk-header-counts');
-    if (el2) el2.innerHTML = `<span style="color:${color}">${msg}</span>`;
+  function setHeader(msg, color) {
+    const e = el('risk-header-counts');
+    if (e) e.innerHTML = `<span style="color:${color||'var(--accent)'}">${msg}</span>`;
   }
 
-  // ── SOURCE 1: CMS Healthcare Facilities (dialysis, hospitals, nursing homes)
-  // Filter to city BEFORE geocoding — only geocode the handful that match
+  // ── STEP 1: CMS Healthcare (dialysis, nursing homes, hospitals) ────────────
+  // Filter by city name before any geocoding — only 3-5 local facilities per type
   async function fetchCMS(datasetId, stateCode, cityName, label, hazardTag) {
     if (riskStopped) return;
-    setHeader(`CMS: scanning ${label}...`);
+    setHeader(`CMS: ${label}...`);
     try {
       const cat = HAZARD_CATEGORIES.find(c => c.tag === hazardTag);
       if (!cat) return;
-      // Filter by state AND city in the API call — only returns local facilities
-      const url = `https://data.cms.gov/data-api/v1/dataset/${datasetId}/data?filter%5Bstate%5D=${stateCode}&size=5000`;
-      const res = await fetch(url, {signal: AbortSignal.timeout(10000)});
-      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const res = await fetch(
+        `https://data.cms.gov/data-api/v1/dataset/${datasetId}/data?filter%5Bstate%5D=${stateCode}&size=5000`,
+        {signal: AbortSignal.timeout(10000)}
+      );
+      if (!res.ok) throw new Error('HTTP '+res.status);
       const rows = await res.json();
-
-      // Filter to matching city names before any geocoding
       const cityUp = cityName.toUpperCase();
-      const localRows = rows.filter(row => {
-        const c = (row['City/Town'] || row['city'] || row['City'] || '').toUpperCase().trim();
-        return c === cityUp || c.startsWith(cityUp);
-      });
-
-      setHeader(`CMS ${label}: ${localRows.length} in ${cityName}, geocoding...`);
+      const local = rows.filter(r => (r['City/Town']||r['city']||r['City']||'').toUpperCase().trim() === cityUp);
       let added = 0;
-      for (const row of localRows) {
+      for (const row of local) {
         if (riskStopped) break;
-        const name = row['Facility Name'] || row['provider_name'] || row['name'] || row['Organization Name'] || '';
-        const addr = row['Address Line 1'] || row['address'] || row['Street Address'] || row['address_line_1'] || '';
-        const city = row['City/Town'] || row['city'] || row['City'] || '';
-        const state = row['State'] || row['state'] || stateCode;
-        const zip  = row['ZIP Code'] || row['zip'] || row['Zip Code'] || '';
-        if (!name) continue;
-
-        const fullAddr = `${addr}, ${city}, ${state} ${zip}`.trim();
-        const key = 'cms|' + name.toLowerCase().slice(0,30);
-        if (seen.has(key)) continue;
-        seen.add(key);
-
-        // Try to get coordinates — CMS sometimes embeds them
-        let locLat = parseFloat(row['lat'] || row['Latitude'] || '');
-        let locLon = parseFloat(row['lon'] || row['lng'] || row['Longitude'] || '');
-
-        // Only geocode if no coordinates — and only for local facilities (fast, just a few)
-        if ((!locLat || isNaN(locLat)) && addr) {
-          try {
-            const geo = await fetch(
-              `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(addr+' '+city+' '+state)}&format=json&limit=1`,
-              {headers:{'User-Agent':'BCP-CityRisk/1.0 sniderbackflowsolutions@gmail.com'}, signal: AbortSignal.timeout(5000)}
-            );
-            const geoData = await geo.json();
-            if (geoData[0]) { locLat = parseFloat(geoData[0].lat); locLon = parseFloat(geoData[0].lon); }
-            await sleep(1100);
-          } catch(e) { /* skip */ }
-        }
-
-        if (!locLat || !locLon || isNaN(locLat) || isNaN(locLon)) continue;
-        if (!pointInAbileneBoundary(locLat, locLon)) continue;
-
-        riskLocations.push({
-          name, address: fullAddr, lat: locLat, lng: locLon,
-          category: cat.label, label: cat.label, device: cat.device,
-          rating: cat.rating, reason: cat.reason, cat: 'Health',
-          source: 'CMS'
-        });
-        added++;
+        const name = row['Facility Name']||row['provider_name']||row['name']||'';
+        const addr = row['Address Line 1']||row['address']||row['Street Address']||'';
+        const city = row['City/Town']||row['city']||row['City']||'';
+        const state = row['State']||row['state']||stateCode;
+        const zip  = row['ZIP Code']||row['zip']||'';
+        if (!name || !addr) continue;
+        const key = 'cms|'+name.toLowerCase().slice(0,30);
+        if (riskSeen.has(key)) continue;
+        // Geocode via Nominatim — only a handful of local facilities
+        try {
+          const geo = await fetch(
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(addr+' '+city+' '+state)}&format=json&limit=1`,
+            {headers:{'User-Agent':'BCP-CityRisk/1.0 sniderbackflowsolutions@gmail.com'},signal:AbortSignal.timeout(5000)}
+          );
+          const gd = await geo.json();
+          if (gd[0]) {
+            const lat = parseFloat(gd[0].lat), lng = parseFloat(gd[0].lon);
+            if (!isNaN(lat) && !isNaN(lng) && pointInAbileneBoundary(lat,lng)) {
+              riskSeen.add(key);
+              riskLocations.push({name,address:`${addr}, ${city}, ${state} ${zip}`.trim(),
+                lat,lng,category:cat.label,label:cat.label,device:cat.device,
+                rating:cat.rating,reason:cat.reason,cat:'Health',source:'CMS'});
+              added++;
+            }
+          }
+          await sleep(1100);
+        } catch(e2) {/* skip */}
       }
-      if (added > 0) rebuildRiskMarkersNew();
-      setHeader(`CMS ${label}: ${added} added`);
-    } catch(e) {
-      console.warn('CMS fetch failed for', label, '—', e.message, '— continuing with OSM');
-    }
+      if (added>0) rebuildRiskMarkersNew();
+    } catch(e) { console.warn('CMS',label,e.message); }
   }
 
-  // ── SOURCE 2: TCEQ Petroleum Storage Tank (PST) — open ArcGIS REST API
-  // Has lat/lon already — no geocoding needed
+  // ── STEP 2: TCEQ Petroleum Storage Tanks ──────────────────────────────────
   async function fetchTCEQPST() {
     if (riskStopped) return;
-    setHeader('TCEQ: scanning petroleum storage tanks...');
+    setHeader('TCEQ: petroleum storage tanks...');
     try {
-      // TCEQ PST open data via ArcGIS FeatureServer — filter by bbox
-      const [minLat, maxLat, minLon, maxLon] = BBOX.split(',').map(Number);
-      // ArcGIS geometry filter (xmin,ymin,xmax,ymax in WGS84)
-      const geom = encodeURIComponent(JSON.stringify({
-        xmin: minLon, ymin: minLat, xmax: maxLon, ymax: maxLat,
-        spatialReference: {wkid: 4326}
-      }));
-      const url = `https://services.arcgis.com/G61BkzSJ0vRpUS5k/arcgis/rest/services/PST_Facilities/FeatureServer/0/query?geometry=${geom}&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects&outFields=*&f=json&resultRecordCount=2000`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const [minLat,maxLat,minLon,maxLon] = BBOX.split(',').map(Number);
+      const geom = encodeURIComponent(JSON.stringify({xmin:minLon,ymin:minLat,xmax:maxLon,ymax:maxLat,spatialReference:{wkid:4326}}));
+      const res = await fetch(
+        `https://services.arcgis.com/G61BkzSJ0vRpUS5k/arcgis/rest/services/PST_Facilities/FeatureServer/0/query?geometry=${geom}&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects&outFields=*&f=json&resultRecordCount=2000`,
+        {signal:AbortSignal.timeout(10000)}
+      );
+      if (!res.ok) throw new Error('HTTP '+res.status);
       const data = await res.json();
-      if (!data.features) throw new Error('No features');
-
-      const cat = HAZARD_CATEGORIES.find(c => c.tag === 'amenity=fuel');
+      if (!data.features) return;
       let added = 0;
       for (const feat of data.features) {
         if (riskStopped) break;
         const p = feat.attributes;
-        const name = p.FACILITY_NAME || p.facility_name || 'PST Facility';
-        const addr = p.SITE_ADDRESS || p.address || '';
-        const city = p.CITY || p.city || '';
-        const lat  = feat.geometry?.y;
-        const lon  = feat.geometry?.x;
-
-        if (!lat || !lon || isNaN(lat) || isNaN(lon)) continue;
-        if (!pointInAbileneBoundary(lat, lon)) continue;
-
-        const key = 'pst|' + name.toLowerCase() + '|' + addr.toLowerCase();
-        if (seen.has(key)) continue;
-        seen.add(key);
-
-        riskLocations.push({
-          name, address: `${addr}, ${city}, TX`.trim(),
-          lat, lng: lon,
-          category: 'Petroleum Storage Tank',
-          label: 'Petroleum Storage Tank',
-          device: 'RPBA or AG',
-          rating: 9,
-          reason: 'Active petroleum storage tank on site. Underground fuel storage near water connections is a severe cross-connection hazard. Fuel contamination in the water supply requires full system decontamination.',
-          cat: 'Industrial',
-          source: 'TCEQ-PST'
-        });
+        const name = p.FACILITY_NAME||p.facility_name||'PST Facility';
+        const addr = p.SITE_ADDRESS||p.address||'';
+        const city = p.CITY||p.city||'';
+        const lat  = feat.geometry?.y, lon = feat.geometry?.x;
+        if (!lat||!lon||isNaN(lat)||isNaN(lon)) continue;
+        if (!pointInAbileneBoundary(lat,lon)) continue;
+        const key = 'pst|'+name.toLowerCase().slice(0,25)+'|'+Math.round(lat*1000);
+        if (riskSeen.has(key)) continue;
+        riskSeen.add(key);
+        riskLocations.push({name,address:`${addr}, ${city}, TX`.trim(),
+          lat,lng:lon,category:'Petroleum Storage Tank',label:'Petroleum Storage Tank',
+          device:'RPBA or AG',rating:9,
+          reason:'Active petroleum storage tank on site. Underground fuel storage is a severe cross-connection hazard — fuel contamination requires full system decontamination.',
+          cat:'Industrial',source:'TCEQ-PST'});
         added++;
       }
-      setHeader(`TCEQ PST: ${added} tank sites in city`);
-    } catch(e) {
-      console.warn('TCEQ PST fetch failed:', e.message);
-      // Fallback: PST locations already largely captured by amenity=fuel OSM tag
-    }
+      if (added>0) { rebuildRiskMarkersNew(); setHeader(`TCEQ PST: ${added} tank sites added`); }
+    } catch(e) { console.warn('TCEQ PST:',e.message); }
   }
 
-  // ── SOURCE 3: OSM / Overpass — proven 3-pass scan ──────────────────────────
+  // ── STEP 3: OSM 3-pass scan (the proven scan that was working) ────────────
   async function fetchOSM() {
     if (riskStopped) return;
 
-    // PASS 1: Fast broad query — gets most locations immediately
-    setHeader('OSM Pass 1: fast broad scan...');
-    const fastQuery = `[out:json][timeout:30];(
+    // Pass 1: Fast broad query
+    setHeader(`OSM Pass 1 — ${riskLocations.length} total so far...`);
+    const fastQ = `[out:json][timeout:30];(
       node["amenity"~"restaurant|fast_food|cafe|bar|hospital|clinic|doctors|dentist|pharmacy|veterinary|school|place_of_worship|fuel|car_wash|fire_station|bank|cinema|nursing_home|funeral_hall"](${ABILENE_BBOX});
       way["amenity"~"restaurant|fast_food|cafe|bar|hospital|clinic|doctors|dentist|pharmacy|veterinary|school|place_of_worship|fuel|car_wash|fire_station|bank|cinema|nursing_home|funeral_hall"](${ABILENE_BBOX});
       node["shop"~"car_repair|hairdresser|beauty|laundry|supermarket|pet|florist|car|tattoo|storage_rental"](${ABILENE_BBOX});
@@ -3545,17 +3502,17 @@ async function fetchAllRiskLocations() {
       node["healthcare"~"dialysis|physiotherapist"](${ABILENE_BBOX});
       node["craft"~"brewery|pest_control|plumber"](${ABILENE_BBOX});
     );out center tags;`;
+    const fastEls = await fetchOverpass(fastQ);
     if (!riskStopped) {
-      const fastEls = await fetchOverpass(fastQuery);
-      classifyAndAdd(fastEls, seen);
-      rebuildRiskMarkersNew();
-      setHeader(`OSM Pass 1 done — ${riskLocations.length} found. Running deep scan...`);
+      classifyAndAdd(fastEls, riskSeen);
+      rebuildRiskMarkersNew(); updateRiskStats();
+      setHeader(`OSM Pass 1 done — ${riskLocations.length} found. Deep scan next...`);
       await sleep(800);
     }
 
-    // PASS 2: Specific high-value tags deep scan
+    // Pass 2: Specific tags deep scan
     if (!riskStopped) {
-      setHeader('OSM Pass 2: deep specific tag scan...');
+      setHeader(`OSM Pass 2 — ${riskLocations.length} total...`);
       const specificTags = [
         'amenity=hospital','amenity=dentist','amenity=doctors','amenity=pharmacy',
         'amenity=veterinary','amenity=funeral_hall','amenity=nursing_home','amenity=clinic',
@@ -3571,46 +3528,44 @@ async function fetchAllRiskLocations() {
       ];
       const lines2 = specificTags.flatMap(t => {
         const [k,v] = t.split('=');
-        return [`node["${k}"="${v}"](${ABILENE_BBOX});`, `way["${k}"="${v}"](${ABILENE_BBOX});`];
+        return [`node["${k}"="${v}"](${ABILENE_BBOX});`,`way["${k}"="${v}"](${ABILENE_BBOX});`];
       });
-      const specificEls = await fetchOverpass(`[out:json][timeout:60];(${lines2.join('')});out center tags;`);
-      classifyAndAdd(specificEls, seen);
-      rebuildRiskMarkersNew();
-      setHeader(`OSM Pass 2 done — ${riskLocations.length} found. Running keyword scan...`);
-      await sleep(800);
+      const specEls = await fetchOverpass(`[out:json][timeout:60];(${lines2.join('')});out center tags;`);
+      if (!riskStopped) {
+        classifyAndAdd(specEls, riskSeen);
+        rebuildRiskMarkersNew(); updateRiskStats();
+        setHeader(`OSM Pass 2 done — ${riskLocations.length} found. Keyword scan next...`);
+        await sleep(800);
+      }
     }
 
-    // PASS 3: Nominatim keyword batches — catches chains not in OSM tags
+    // Pass 3: Nominatim keyword batches
     if (!riskStopped) {
       const kwBatches = [
-        {label:'Medical chains', terms:['dialysis abilene','urgent care abilene','concentra abilene']},
-        {label:'Hotels', terms:['hotel abilene tx','motel abilene tx']},
-        {label:'Gas stations', terms:['allsups abilene','stripes abilene','valero abilene','exxon abilene']},
-        {label:'Restaurants', terms:['whataburger abilene','sonic abilene','restaurant abilene']},
-        {label:'Grocery', terms:['united supermarket abilene','walmart abilene','heb abilene']},
-        {label:'Schools', terms:['abilene isd school','abilene christian university','mcmurry university']},
-        {label:'Churches', terms:['church abilene tx','first baptist abilene','first methodist abilene']},
-        {label:'Auto', terms:['car wash abilene','auto repair abilene','jiffy lube abilene']},
-        {label:'Fitness', terms:['gym abilene tx','planet fitness abilene','ymca abilene']},
-        {label:'Funeral', terms:['funeral home abilene','mortuary abilene']},
-        {label:'Storage', terms:['self storage abilene','extra space abilene']},
-        {label:'Pharmacy', terms:['walgreens abilene','cvs abilene','pharmacy abilene']},
-        {label:'Assisted living', terms:['nursing home abilene','assisted living abilene','memory care abilene']},
-        {label:'Auto dealers', terms:['car dealership abilene','ford dealer abilene','chevrolet abilene']},
-        {label:'Nail salons', terms:['nail salon abilene','nail spa abilene']},
-        {label:'Tattoo', terms:['tattoo shop abilene','tattoo studio abilene']},
-        {label:'Pest control', terms:['pest control abilene','exterminator abilene']},
-        {label:'Beauty', terms:['hair salon abilene','barber abilene','beauty salon abilene']},
-        {label:'Laundry', terms:['laundromat abilene','dry cleaner abilene','coin laundry abilene']},
-        {label:'Bowling', terms:['bowling abilene']},
-        {label:'Golf', terms:['golf course abilene','country club abilene']},
+        {label:'Medical',   terms:['dialysis abilene','urgent care abilene','concentra abilene','davita abilene']},
+        {label:'Hotels',    terms:['hotel abilene tx','motel abilene tx','inn abilene tx']},
+        {label:'Gas',       terms:['allsups abilene','stripes abilene','valero abilene','exxon abilene']},
+        {label:'Food',      terms:['whataburger abilene','sonic abilene','restaurant abilene tx']},
+        {label:'Grocery',   terms:['united supermarket abilene','walmart abilene','heb abilene']},
+        {label:'Schools',   terms:['abilene isd','abilene christian university','mcmurry university']},
+        {label:'Churches',  terms:['church abilene tx','first baptist abilene','first methodist abilene']},
+        {label:'Auto',      terms:['car wash abilene','auto repair abilene','jiffy lube abilene']},
+        {label:'Fitness',   terms:['gym abilene tx','planet fitness abilene','ymca abilene']},
+        {label:'Funeral',   terms:['funeral home abilene','mortuary abilene']},
+        {label:'Storage',   terms:['self storage abilene','extra space abilene']},
+        {label:'Pharmacy',  terms:['walgreens abilene','cvs abilene','pharmacy abilene tx']},
+        {label:'Care',      terms:['nursing home abilene','assisted living abilene','memory care abilene']},
+        {label:'Dealers',   terms:['car dealership abilene','ford abilene','chevrolet abilene']},
+        {label:'Beauty',    terms:['nail salon abilene','hair salon abilene','barber abilene']},
+        {label:'Laundry',   terms:['laundromat abilene','dry cleaner abilene']},
+        {label:'Rec',       terms:['bowling abilene','golf course abilene','country club abilene']},
       ];
       for (const batch of kwBatches) {
         if (riskStopped) break;
-        setHeader(`OSM keywords: ${batch.label} — ${riskLocations.length} total`);
+        setHeader(`Keywords: ${batch.label} — ${riskLocations.length} total`);
         for (const term of batch.terms) {
           if (riskStopped) break;
-          const found = await nominatimSearch(term, seen);
+          const found = await nominatimSearch(term, riskSeen);
           riskLocations.push(...found);
           await sleep(1200);
         }
@@ -3619,20 +3574,20 @@ async function fetchAllRiskLocations() {
     }
   }
 
-  // ── Run all sources in sequence ───────────────────────────────────────────
-  // CMS sources first (authoritative, deduped from OSM afterward)
-  await fetchCMS('23ew-n7w9', 'TX', 'ABILENE', 'Dialysis Centers', 'healthcare=dialysis');
-  if (!riskStopped) await fetchCMS('4pq5-9nnb', 'TX', 'ABILENE', 'Nursing Homes', 'amenity=nursing_home');
-  if (!riskStopped) await fetchCMS('xubh-q36u', 'TX', 'ABILENE', 'Hospitals', 'amenity=hospital');
+  // Use a module-level seen set so all sources share deduplication
+  const riskSeen = new Set();
 
-  // TCEQ PST — petroleum storage tanks with coordinates
+  // Run all sources
+  await fetchCMS('23ew-n7w9','TX','ABILENE','Dialysis Centers','healthcare=dialysis');
+  if (!riskStopped) await fetchCMS('4pq5-9nnb','TX','ABILENE','Nursing Homes','amenity=nursing_home');
+  if (!riskStopped) await fetchCMS('xubh-q36u','TX','ABILENE','Hospitals','amenity=hospital');
   if (!riskStopped) await fetchTCEQPST();
-
-  // OSM — broad keyword scan for everything else
   if (!riskStopped) await fetchOSM();
 
-  // Sort, cache, and render
-  riskLocations.sort((a, b) => b.rating - a.rating);
+  // Sort by rating descending
+  riskLocations.sort((a,b) => b.rating - a.rating);
+
+  // Save to cache
   try {
     localStorage.setItem('cci_risk_locations_v6', JSON.stringify(riskLocations));
     localStorage.setItem('cci_risk_ts_v6', Date.now().toString());
@@ -3644,10 +3599,12 @@ async function fetchAllRiskLocations() {
   updateRiskStats();
   buildCatMenu();
 
-  if (riskLocations.length === 0) {
-    setHeader('⚠ No data — check connection or tap ↻ to retry', 'var(--red)');
+  const total = riskLocations.length;
+  const hdr = el('risk-header-counts');
+  if (total === 0) {
+    if (hdr) hdr.innerHTML = '<span style="color:var(--red)">⚠ No data — tap ↻ Rescan to retry</span>';
   } else {
-    setHeader(`✓ ${riskLocations.length} locations loaded (CMS + TCEQ + OSM)`, 'var(--green)');
+    if (hdr) hdr.innerHTML = `<span style="color:var(--green)">✓ ${total} locations (CMS + TCEQ + OSM)</span>`;
     setTimeout(() => { const e=el('risk-header-counts'); if(e) e.innerHTML=''; }, 8000);
   }
 }
