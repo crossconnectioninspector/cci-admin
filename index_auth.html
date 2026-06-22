@@ -6,6 +6,11 @@
 <title>Backflow Check Pro — Admin Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600;700;900&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BCP Admin">
+<meta name="theme-color" content="#0B2545">
+<link rel="apple-touch-icon" href="bcp-icon.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
@@ -720,6 +725,7 @@ select.field-input option{background:var(--elevated)}
     <div class="sb-sec">Maps</div>
     <button class="nb" onclick="nav('device-map-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg></span>Device Map</button>
     <button class="nb" onclick="nav('city-risk-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>City Risk</button>
+    <button class="nb" onclick="nav('pools-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 014 10 15 15 0 01-4 10 15 15 0 01-4-10 15 15 0 014-10z"/></svg></span>Pools</button>
     <div class="sb-sec">Admin</div>
     <button class="nb" onclick="nav('users-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Users</button>
     <button class="nb" onclick="nav('comms-page',this)"><span class="nb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.86 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.77 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>Communications</button>
@@ -952,6 +958,48 @@ select.field-input option{background:var(--elevated)}
       </div>
       <div style="overflow-y:auto" id="cat-menu-list"></div>
     </div>
+  </div>
+</div>
+
+
+<!-- ── POOL COMPLIANCE MAP ── -->
+<div class="page" id="page-pools-page" style="padding:0;display:none;flex-direction:column;height:calc(100vh - 56px)">
+
+  <!-- Header -->
+  <div style="padding:10px 16px 8px;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border)">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px">POOL COMPLIANCE — CROSS-CONNECTION CONTROL</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px" id="pools-status">County-permitted pools — field verification worklist</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-family:var(--mono);font-size:11px;color:var(--accent)" id="pools-count">0 pools</span>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--green)" id="pools-verified-count">0 verified</span>
+        <button onclick="poolsRefresh()" class="btn btn-gh btn-sm" style="width:auto;font-size:11px">↻ Refresh</button>
+        <button id="pools-aerial-btn" onclick="poolsSetBasemap('aerial')" class="btn btn-gh btn-sm" style="width:auto;font-size:11px;background:var(--accent);color:#000">Aerial</button>
+        <button id="pools-street-btn" onclick="poolsSetBasemap('street')" class="btn btn-gh btn-sm" style="width:auto;font-size:11px">Street</button>
+      </div>
+    </div>
+
+    <!-- Filter + Search -->
+    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center">
+      <div style="position:relative;flex:1;min-width:180px">
+        <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="pools-search" placeholder="Search by address or prop ID…"
+          oninput="poolsFilter()"
+          style="width:100%;padding:8px 10px 8px 30px;background:var(--elevated);border:1.5px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;outline:none"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+      </div>
+      <button onclick="poolsSetFilter('all')" id="pools-f-all" class="rft active" style="font-size:12px">All</button>
+      <button onclick="poolsSetFilter('unverified')" id="pools-f-unverified" class="rft" style="font-size:12px;color:#ef5a5a">Needs Visit</button>
+      <button onclick="poolsSetFilter('verified')" id="pools-f-verified" class="rft" style="font-size:12px;color:#4caf79">Verified</button>
+    </div>
+  </div>
+
+  <!-- Map + Sidebar -->
+  <div style="flex:1;display:flex;min-height:0">
+    <div id="pools-map" style="flex:1;min-height:0"></div>
+    <div id="pools-sidebar" style="width:300px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);overflow-y:auto;font-size:12.5px"></div>
   </div>
 </div>
 
@@ -2925,14 +2973,14 @@ function nav(id, btn) {
   document.querySelectorAll('.nb').forEach(n=>n.classList.remove('active'));
   const _pg = document.getElementById('page-'+id);
   if (_pg) {
-    const flexPages = ['locations-page','city-risk-page','contacts-page','providers-page','assemblies-page','users-page','comms-page','bulk-notices-page','notif-page','settings-page','knowledge-page'];
+    const flexPages = ['locations-page','city-risk-page','pools-page','contacts-page','providers-page','assemblies-page','users-page','comms-page','bulk-notices-page','notif-page','settings-page','knowledge-page'];
     document.querySelectorAll('.page').forEach(p=>{ p.classList.remove('active'); p.style.display='none'; });
     _pg.classList.add('active');
     _pg.style.display = flexPages.includes(id) ? 'flex' : 'block';
   }
   if(btn) btn.classList.add('active');
   const titles = {
-    dashboard:'Dashboard','device-map-page':'Device Map','city-risk-page':'City Risk',
+    dashboard:'Dashboard','device-map-page':'Device Map','city-risk-page':'City Risk','pools-page':'Pool Compliance',
     'inspections-page':'Reporting','backflow-page':'Test Reports',
     'csi-page':'Inspections','search-page':'Search All','import-page':'Add Report',
     'locations-page':'Locations','contacts-page':'Contacts','providers-page':'Testers',
@@ -2945,6 +2993,7 @@ function nav(id, btn) {
   if(id==='dashboard') renderDashboard();
   if(id==='device-map-page') { setTimeout(()=>{ initDeviceMap(); }, 100); setTimeout(()=>{ if(deviceMap) deviceMap.invalidateSize(); },600); }
   if(id==='city-risk-page') { setTimeout(()=>{ initRiskMap(); }, 100); setTimeout(()=>{ if(riskMap) riskMap.invalidateSize(); },600); }
+  if(id==='pools-page') { setTimeout(()=>{ initPoolsMap(); }, 100); }
   if(id==='inspections-page') renderInspections();
   if(id==='backflow-page') renderBF();
   if(id==='csi-page') renderCSI();
@@ -8331,6 +8380,7 @@ const STAFF_PAGE_OPTIONS = [
   {id:'backflow-page',    label:'Test Reports'},
   {id:'device-map-page',  label:'Device Map'},
   {id:'city-risk-page',   label:'City Risk'},
+  {id:'pools-page',       label:'Pool Compliance'},
   {id:'notif-page',       label:'Notifications'},
 ];
 
@@ -8685,6 +8735,207 @@ function staffMgmt_hideMsg() {
 }
 
 // staffMgmt_load() is called automatically from nav() when users-page is opened.
+
+// ════════════════════════════════════════════════════════════════════════════
+// POOL COMPLIANCE MAP
+// ════════════════════════════════════════════════════════════════════════════
+let poolsMap = null, poolsCluster = null, poolsAerial = null, poolsStreet = null;
+let poolsData = [], poolsMarkerById = {};
+let poolsCurrentFilter = 'all';
+
+const POOLS_BOUNDARY = [[[32.5395809,-99.6816056],[32.5329890,-99.6816029],[32.5329901,-99.6844758],[32.5357197,-99.6844770],[32.5356439,-99.6869292],[32.5357503,-99.6869686],[32.5359177,-99.6869761],[32.5361965,-99.6867347],[32.5366054,-99.6867652],[32.5369828,-99.6869067],[32.5373732,-99.6872024],[32.5376121,-99.6875040],[32.5376914,-99.6875106],[32.5379118,-99.6874613],[32.5378954,-99.6873928],[32.5378997,-99.6870328],[32.5381419,-99.6869951],[32.5395757,-99.6858438],[32.5395809,-99.6816056]],[[32.6243596,-99.6793492],[32.6244341,-99.6712882],[32.6235264,-99.6716389],[32.6222881,-99.6703228],[32.6209653,-99.6697914],[32.6219313,-99.6590055],[32.6154048,-99.6581495],[32.6205287,-99.6547265],[32.6193273,-99.6518751],[32.6155658,-99.6541806],[32.6117337,-99.6544735],[32.6115679,-99.6555249],[32.6110580,-99.6556980],[32.6082470,-99.6549103],[32.5994316,-99.6551372],[32.5995350,-99.6654956],[32.5967021,-99.6667789],[32.5899610,-99.6667301],[32.5899319,-99.6751773],[32.5778509,-99.6751547],[32.5778403,-99.6771315],[32.5641335,-99.6771540],[32.5641764,-99.6653098],[32.5637800,-99.6652846],[32.5637666,-99.6645998],[32.5637776,-99.6601253],[32.5643064,-99.6601142],[32.5642395,-99.6277069],[32.5671279,-99.6279434],[32.5678621,-99.6183299],[32.5596909,-99.6174582],[32.5606297,-99.6072318],[32.5534166,-99.6064764],[32.5529150,-99.6119907],[32.5408537,-99.6119923],[32.5414183,-99.6059635],[32.5330309,-99.6050375],[32.5329872,-99.6119937],[32.5367857,-99.6119933],[32.5367237,-99.6222407],[32.5257294,-99.6222384],[32.5257353,-99.6288755],[32.5281815,-99.6291842],[32.5288483,-99.6299429],[32.5330045,-99.6299816],[32.5329556,-99.6393154],[32.5402717,-99.6393218],[32.5402643,-99.6480387],[32.5504282,-99.6480763],[32.5504243,-99.6395587],[32.5614431,-99.6395816],[32.5610265,-99.6781370],[32.5538259,-99.6781400],[32.5538239,-99.6745541],[32.5486243,-99.6745505],[32.5486544,-99.6858816],[32.5476472,-99.6859014],[32.5476483,-99.6793528],[32.5396840,-99.6857889],[32.5397153,-99.6875524],[32.5159542,-99.6872835],[32.5159223,-99.6906136],[32.5329282,-99.6908115],[32.5330307,-99.7097632],[32.5320672,-99.7107957],[32.5300340,-99.7102703],[32.5287094,-99.7106612],[32.5278419,-99.7092606],[32.5270337,-99.7092630],[32.5266808,-99.7123274],[32.5248468,-99.7123754],[32.5251925,-99.7139258],[32.5218353,-99.7135166],[32.5195595,-99.7139564],[32.5087058,-99.7193023],[32.5084167,-99.7052992],[32.5075310,-99.7052097],[32.5066957,-99.7058833],[32.5063345,-99.7069802],[32.5056006,-99.7066892],[32.5051725,-99.7056303],[32.5038470,-99.7044955],[32.5038547,-99.6873112],[32.4964800,-99.6872951],[32.4964444,-99.6737093],[32.4890640,-99.6738000],[32.4890960,-99.6394467],[32.4818046,-99.6394331],[32.4817915,-99.6308094],[32.4745245,-99.6307752],[32.4744397,-99.6862734],[32.4599851,-99.6682055],[32.4466897,-99.6481871],[32.4455647,-99.6456258],[32.4429416,-99.6362232],[32.4416033,-99.6362248],[32.4409131,-99.6335337],[32.4302793,-99.6333895],[32.4318987,-99.6397395],[32.4233279,-99.6396470],[32.4234561,-99.6565569],[32.4305170,-99.6565614],[32.4305031,-99.6599888],[32.4320327,-99.6601582],[32.4337287,-99.6614509],[32.4374669,-99.6613818],[32.4407090,-99.6739441],[32.4305699,-99.6738976],[32.4305962,-99.6653052],[32.3723049,-99.6656273],[32.3722460,-99.6829002],[32.3868473,-99.6828195],[32.3867841,-99.7058915],[32.3812810,-99.7058680],[32.3812812,-99.7050011],[32.3795412,-99.7049933],[32.3795402,-99.7082094],[32.3724750,-99.7082127],[32.3724724,-99.7166644],[32.3562628,-99.7166920],[32.3562386,-99.7327515],[32.3551017,-99.7315144],[32.3506205,-99.7315250],[32.3488725,-99.7341030],[32.3484588,-99.7338566],[32.3483323,-99.7365263],[32.3471160,-99.7366022],[32.3450325,-99.7349300],[32.3445394,-99.7349301],[32.3439606,-99.7362254],[32.3432066,-99.7362255],[32.3432583,-99.7423570],[32.3502465,-99.7420095],[32.3505480,-99.7717302],[32.3487672,-99.7717185],[32.3487464,-99.7691534],[32.3478926,-99.7691825],[32.3478699,-99.7673687],[32.3486172,-99.7671470],[32.3466361,-99.7671941],[32.3467036,-99.7900804],[32.3508189,-99.7875040],[32.3508585,-99.7900761],[32.3502808,-99.7904164],[32.3508623,-99.7925725],[32.3508850,-99.8083819],[32.3521477,-99.8079104],[32.3543099,-99.8085453],[32.3555435,-99.8082217],[32.3563493,-99.8058523],[32.3575476,-99.8045675],[32.3588399,-99.8054455],[32.3600177,-99.8051261],[32.3630472,-99.8029595],[32.3642759,-99.8037881],[32.3662247,-99.8032617],[32.3662627,-99.8046173],[32.3671117,-99.8049128],[32.3692362,-99.8039175],[32.3691895,-99.8013028],[32.3695309,-99.8011211],[32.3699854,-99.8018181],[32.3712851,-99.8012144],[32.3719994,-99.7998198],[32.3716387,-99.7971231],[32.3723474,-99.7970399],[32.3724896,-99.7965844],[32.3717184,-99.7942293],[32.3717303,-99.7921701],[32.3729603,-99.7906125],[32.3737005,-99.7905418],[32.3746406,-99.7912045],[32.3746214,-99.7889120],[32.3756406,-99.7887437],[32.3763982,-99.7874703],[32.3772247,-99.7871013],[32.3771877,-99.7804708],[32.3746887,-99.7804547],[32.3746869,-99.7778675],[32.3775971,-99.7775535],[32.3789404,-99.7768507],[32.3807474,-99.7772133],[32.3808754,-99.7768716],[32.3821193,-99.7774093],[32.3823394,-99.7781876],[32.3835540,-99.7779652],[32.3842898,-99.7784496],[32.3853285,-99.7774286],[32.3868646,-99.7776171],[32.3875106,-99.7758821],[32.3886812,-99.7756909],[32.3891370,-99.7766497],[32.3896299,-99.7761615],[32.3901668,-99.7766163],[32.3907128,-99.7763155],[32.3910165,-99.7767261],[32.3931678,-99.7767026],[32.3931663,-99.7960640],[32.3946647,-99.7960294],[32.3946999,-99.8126303],[32.3984208,-99.8134325],[32.3987679,-99.8129995],[32.4013416,-99.8129995],[32.4014469,-99.8280558],[32.3983572,-99.8281058],[32.3982868,-99.8388259],[32.4023075,-99.8399760],[32.4008862,-99.8464994],[32.3995973,-99.8462130],[32.3981287,-99.8549153],[32.4063428,-99.8573264],[32.4055091,-99.8612103],[32.4098083,-99.8662053],[32.4127365,-99.8675947],[32.4240645,-99.8673954],[32.4274158,-99.8644422],[32.4296848,-99.8641379],[32.4305357,-99.8600976],[32.4325132,-99.8601162],[32.4451666,-99.8631867],[32.4461460,-99.8572438],[32.4406464,-99.8555221],[32.4409185,-99.8537842],[32.4373334,-99.8529558],[32.4383461,-99.8480432],[32.4457518,-99.8502865],[32.4463293,-99.8468863],[32.4573261,-99.8498155],[32.4571700,-99.8436876],[32.4582660,-99.8456327],[32.4618704,-99.8466117],[32.4634882,-99.8381187],[32.4700433,-99.8137587],[32.4793876,-99.7877404],[32.4802154,-99.7874338],[32.4791860,-99.7903279],[32.4852091,-99.7921605],[32.4856747,-99.7910138],[32.4867663,-99.7909909],[32.4886589,-99.7931021],[32.4916455,-99.7930984],[32.4916447,-99.7938163],[32.4921835,-99.7938160],[32.4921779,-99.8018357],[32.4994788,-99.8038236],[32.5020227,-99.7905652],[32.5032975,-99.7905543],[32.5032940,-99.7899251],[32.5061578,-99.7944503],[32.5073178,-99.7884097],[32.5097791,-99.7891069],[32.5106691,-99.7847518],[32.5132066,-99.7834783],[32.5128974,-99.7826490],[32.5080125,-99.7850975],[32.5085234,-99.7833290],[32.5124227,-99.7813712],[32.5068565,-99.7694531],[32.5028402,-99.7694574],[32.5028339,-99.7646918],[32.5044044,-99.7642601],[32.5023546,-99.7588852],[32.5035081,-99.7576264],[32.5063633,-99.7562233],[32.5139124,-99.7539676],[32.5191263,-99.7545280],[32.5208999,-99.7552745],[32.5208765,-99.7504026],[32.5118916,-99.7425179],[32.5146310,-99.7391151],[32.5141351,-99.7384306],[32.5120054,-99.7384311],[32.5120001,-99.7361221],[32.5090166,-99.7338278],[32.5088775,-99.7312705],[32.5071058,-99.7287756],[32.5079595,-99.7282087],[32.5082853,-99.7272310],[32.5094598,-99.7272947],[32.5096126,-99.7281087],[32.5110901,-99.7272807],[32.5125368,-99.7274807],[32.5125761,-99.7264252],[32.5132540,-99.7259824],[32.5143655,-99.7271433],[32.5162569,-99.7271216],[32.5172599,-99.7284113],[32.5208515,-99.7275779],[32.5207429,-99.7236826],[32.5244852,-99.7236271],[32.5245130,-99.7257755],[32.5346666,-99.7252312],[32.5346767,-99.7241984],[32.5429475,-99.7241860],[32.5429373,-99.7225614],[32.5588961,-99.7223865],[32.5694130,-99.7200301],[32.5808757,-99.7196028],[32.5809115,-99.7133303],[32.5851515,-99.7114185],[32.5862248,-99.7114271],[32.5862846,-99.7109239],[32.5939203,-99.7077088],[32.5966785,-99.7068575],[32.5987653,-99.7068399],[32.5982148,-99.7049914],[32.5988230,-99.7038243],[32.6001401,-99.7027993],[32.6038929,-99.7024603],[32.6052483,-99.7010192],[32.6065656,-99.7007318],[32.6120036,-99.7009534],[32.6120562,-99.6880468],[32.6141531,-99.6868559],[32.6141772,-99.6855661],[32.6157851,-99.6856385],[32.6158087,-99.6843078],[32.6243119,-99.6843818],[32.6243596,-99.6793492]],[[32.5025725,-99.7668722],[32.5025722,-99.7694536],[32.4998310,-99.7693918],[32.4998427,-99.7655636],[32.5002800,-99.7654152],[32.5025624,-99.7647687],[32.5025725,-99.7668722]],[[32.5012085,-99.7475794],[32.5008561,-99.7495398],[32.4988520,-99.7505343],[32.4988833,-99.7434914],[32.5018492,-99.7435593],[32.5016886,-99.7450642],[32.5024217,-99.7450207],[32.5024373,-99.7470261],[32.5016649,-99.7470229],[32.5012085,-99.7475794]],[[32.3867675,-99.7223618],[32.3859255,-99.7223539],[32.3859469,-99.7187889],[32.3867700,-99.7188095],[32.3867675,-99.7223618]],[[32.3843872,-99.7251803],[32.3826913,-99.7251838],[32.3826886,-99.7229179],[32.3835270,-99.7229163],[32.3835284,-99.7224968],[32.3848065,-99.7225070],[32.3848035,-99.7251797],[32.3843872,-99.7251803]]];
+
+function initPoolsMap() {
+  if (poolsMap) { poolsMap.invalidateSize(); return; }
+  poolsMap = L.map('pools-map', {zoomControl:true}).setView([32.4487,-99.7331], 12);
+  poolsAerial = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {attribution:'Esri World Imagery',maxZoom:19}).addTo(poolsMap);
+  poolsStreet = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'&copy; OpenStreetMap',maxZoom:19});
+  POOLS_BOUNDARY.forEach(ring => L.polygon(ring, {color:'rgba(244,163,0,0.9)',weight:2,fillColor:'rgba(244,163,0,0.04)',fillOpacity:0.04,dashArray:'5,4'}).addTo(poolsMap));
+  poolsCluster = L.markerClusterGroup({maxClusterRadius:50});
+  poolsMap.addLayer(poolsCluster);
+  poolsLoadData();
+}
+
+async function poolsLoadData() {
+  const status = document.getElementById('pools-status');
+  if(status) status.textContent = 'Loading pools…';
+  try {
+    const headers = await getHeaders();
+    let all = [], from = 0, pageSize = 1000;
+    while(true) {
+      const res = await fetch(SUPA_URL+'/rest/v1/cad_pools?select=*', {headers:{...headers,'Range-Unit':'items','Range':`${from}-${from+pageSize-1}`}});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const page = await res.json();
+      all = all.concat(page);
+      if(page.length < pageSize) break;
+      from += pageSize;
+    }
+    poolsData = all;
+    poolsRebuildMarkers();
+    poolsRenderSidebar();
+    poolsUpdateStats();
+    const withCoords = poolsData.filter(p=>p.lat&&p.lon);
+    if(withCoords.length && poolsMap) poolsMap.fitBounds(L.latLngBounds(withCoords.map(p=>[p.lat,p.lon])),{padding:[30,30]});
+    if(status) status.textContent = 'County-permitted pools — field verification worklist';
+  } catch(e) {
+    if(status) status.textContent = 'Error: '+e.message;
+  }
+}
+
+async function poolsRefresh() { poolsData=[]; poolsMarkerById={}; await poolsLoadData(); }
+
+function poolsGetAddress(p) {
+  // mailing_street has the full number (e.g. "46 HOYLAKE DR") when the owner
+  // lives at the property. situs_address is the bare street name from CAD.
+  // Use mailing_street if it starts with a number — that's the physical address.
+  const mailing = (p.mailing_address || p.mailing_street || '').trim();
+  const situs   = (p.situs_address || '').trim();
+  const city    = (p.mailing_city  || 'Abilene').trim();
+  const state   = (p.mailing_state || 'TX').trim();
+  const useAddr = /^\d/.test(mailing) ? mailing : (situs || 'Prop '+p.prop_id);
+  return useAddr + ', ' + city + ', ' + state;
+}
+
+function poolsMatchesFilter(p) {
+  if(poolsCurrentFilter==='verified')   return p.verified;
+  if(poolsCurrentFilter==='unverified') return !p.verified;
+  return true;
+}
+
+function poolsMatchesSearch(p,q) {
+  if(!q) return true;
+  return poolsGetAddress(p).toLowerCase().includes(q) || String(p.prop_id).includes(q);
+}
+
+function poolsRebuildMarkers() {
+  if(!poolsCluster) return;
+  poolsCluster.clearLayers();
+  const q=(document.getElementById('pools-search')?.value||'').toLowerCase().trim();
+  poolsData.forEach(p=>{
+    if(!p.lat||!p.lon) return;
+    if(!poolsMatchesFilter(p)||!poolsMatchesSearch(p,q)) return;
+    let marker=poolsMarkerById[p.id];
+    if(!marker){
+      const icon=L.divIcon({className:'',html:`<div style="width:13px;height:13px;border-radius:50%;background:${p.verified?'#4caf79':'#F4A300'};border:2px solid #fff;box-shadow:0 0 3px rgba(0,0,0,.5)"></div>`,iconSize:[13,13],iconAnchor:[6.5,6.5]});
+      marker=L.marker([p.lat,p.lon],{icon});
+      marker.bindPopup(poolsPopupHtml(p));
+      poolsMarkerById[p.id]=marker;
+    }
+    poolsCluster.addLayer(marker);
+  });
+}
+
+function poolsPopupHtml(p) {
+  const addr=poolsGetAddress(p);
+  return `<div style="font-size:13px;min-width:210px">
+    <div style="font-weight:700;font-size:14px;margin-bottom:5px">${addr}</div>
+    <div style="margin:2px 0"><b style="color:#888">Prop ID:</b> ${p.prop_id}</div>
+    <div style="margin:2px 0"><b style="color:#888">Pool area:</b> ${p.pool_area_sqft??'—'} sqft</div>
+    <div style="margin:2px 0"><b style="color:#888">Value:</b> ${p.pool_value?'$'+Number(p.pool_value).toLocaleString():'—'}</div>
+    <div style="margin:2px 0"><b style="color:#888">Year built:</b> ${p.year_built??'—'}</div>
+    <button onclick="poolsToggleVerified('${p.id}')"
+      style="margin-top:8px;width:100%;background:${p.verified?'#4caf79':'#0B2545'};color:#fff;border:none;border-radius:6px;padding:7px 0;font-size:12.5px;font-weight:600;cursor:pointer">
+      ${p.verified?'✓ Verified in field':'Mark as verified'}
+    </button>
+  </div>`;
+}
+
+async function poolsToggleVerified(id) {
+  const pool=poolsData.find(p=>p.id===id);
+  if(!pool) return;
+  const newVal=!pool.verified;
+  try {
+    const headers=await getHeaders();
+    const res=await fetch(SUPA_URL+'/rest/v1/cad_pools?id=eq.'+id,{method:'PATCH',headers:{...headers,'Prefer':'return=minimal'},body:JSON.stringify({verified:newVal})});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    pool.verified=newVal;
+    const marker=poolsMarkerById[id];
+    if(marker){
+      marker.setIcon(L.divIcon({className:'',html:`<div style="width:13px;height:13px;border-radius:50%;background:${newVal?'#4caf79':'#F4A300'};border:2px solid #fff;box-shadow:0 0 3px rgba(0,0,0,.5)"></div>`,iconSize:[13,13],iconAnchor:[6.5,6.5]}));
+      marker.setPopupContent(poolsPopupHtml(pool));
+    }
+    poolsRenderSidebar();
+    poolsUpdateStats();
+  } catch(e) { alert('Update failed: '+e.message); }
+}
+
+function poolsRenderSidebar() {
+  const sidebar=document.getElementById('pools-sidebar');
+  if(!sidebar) return;
+  const q=(document.getElementById('pools-search')?.value||'').toLowerCase().trim();
+  const list=poolsData.filter(p=>poolsMatchesFilter(p)&&poolsMatchesSearch(p,q));
+  sidebar.innerHTML=list.slice(0,500).map(p=>{
+    const addr=poolsGetAddress(p);
+    return `<div onclick="poolsFocusPin('${p.id}')"
+      style="padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer"
+      onmouseover="this.style.background='var(--elevated)'" onmouseout="this.style.background='transparent'">
+      <div style="font-weight:700;color:var(--accent,#F4A300);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${addr}</div>
+      <div style="color:var(--muted);font-size:11px;margin-top:2px">Prop ${p.prop_id} · ${p.pool_area_sqft??'—'} sqft · Built ${p.year_built??'—'}</div>
+      <span style="display:inline-block;margin-top:4px;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:10px;background:${p.verified?'rgba(76,175,121,.15)':'rgba(244,163,0,.15)'};color:${p.verified?'#4caf79':'#F4A300'}">${p.verified?'VERIFIED':'NEEDS VISIT'}</span>
+    </div>`;
+  }).join('');
+}
+
+function poolsFocusPin(id) {
+  const pool=poolsData.find(p=>p.id===id);
+  const marker=poolsMarkerById[id];
+  if(!pool||!marker||!pool.lat) return;
+  poolsMap.setView([pool.lat,pool.lon],18);
+  setTimeout(()=>marker.openPopup(),400);
+}
+
+function poolsUpdateStats() {
+  const total=poolsData.length;
+  const verified=poolsData.filter(p=>p.verified).length;
+  const c=document.getElementById('pools-count');
+  const v=document.getElementById('pools-verified-count');
+  if(c) c.textContent=total+' pools';
+  if(v) v.textContent=verified+' verified';
+}
+
+function poolsSetFilter(f) {
+  poolsCurrentFilter=f;
+  ['all','unverified','verified'].forEach(id=>{
+    const btn=document.getElementById('pools-f-'+id);
+    if(btn) btn.classList.toggle('active',id===f);
+  });
+  poolsRebuildMarkers();
+  poolsRenderSidebar();
+}
+
+function poolsFilter() { poolsRebuildMarkers(); poolsRenderSidebar(); }
+
+function poolsSetBasemap(mode) {
+  if(!poolsMap) return;
+  if(mode==='aerial'){ poolsMap.removeLayer(poolsStreet); poolsMap.addLayer(poolsAerial); }
+  else { poolsMap.removeLayer(poolsAerial); poolsMap.addLayer(poolsStreet); }
+  const ab=document.getElementById('pools-aerial-btn');
+  const sb=document.getElementById('pools-street-btn');
+  if(ab){ ab.style.background=mode==='aerial'?'var(--accent)':''; ab.style.color=mode==='aerial'?'#000':''; }
+  if(sb){ sb.style.background=mode==='street'?'var(--accent)':''; sb.style.color=mode==='street'?'#000':''; }
+}
+
+// ── FIX: City Risk filteredRiskLocations was called but never defined ─────────
+function filteredRiskLocations() {
+  let data = currentRiskFilter ? riskLocations.filter(r=>matchRiskFilter(r)) : riskLocations;
+  if(riskSearchQuery) {
+    data=data.filter(r=>((r.name||'')+' '+(r.address||'')+' '+(r.category||'')).toLowerCase().includes(riskSearchQuery));
+  }
+  return data;
+}
+
+// ── FIX: City Risk filterRisk should call rebuildRiskMarkersNew not plotRiskMarkers ─
+const _origFilterRisk = typeof filterRisk === 'function' ? filterRisk : null;
+function filterRisk(f) {
+  currentRiskFilter = f === currentRiskFilter ? null : f;
+  rebuildRiskMarkersNew();
+  updateRiskStats();
+  ['severe','high','moderate','low','all'].forEach(id=>{
+    const btn=document.getElementById('risk-filter-'+id);
+    if(btn) btn.style.opacity=(!currentRiskFilter||currentRiskFilter===id)?'1':'0.4';
+  });
+}
+
 </script>
 
 <!-- Staff toggle switch styles -->
