@@ -5174,26 +5174,37 @@ async function startRiskScan() {
     if (countEl) countEl.textContent = riskLocations.length + ' locations found';
   }
 
-  // ── PASS 1: Broad Overpass queries ────────────────────────────────────────
-  // Fast first pass — specific high-value targets get results immediately
+  // ── PASS 1: Broad Overpass queries — split into 2 so neither times out ───
+  // Query A: amenity tags (restaurants, medical, schools, fuel etc)
   updateStatus('Scanning restaurants, medical, hotels…');
-  const fastQuery = `[out:json][timeout:30];(
+  const fastQueryA = `[out:json][timeout:60];(
     node["amenity"~"restaurant|fast_food|cafe|bar|hospital|clinic|doctors|dentist|pharmacy|veterinary|school|place_of_worship|fuel|car_wash|fire_station|bank|cinema|nursing_home|funeral_hall"](${BBOX});
     way["amenity"~"restaurant|fast_food|cafe|bar|hospital|clinic|doctors|dentist|pharmacy|veterinary|school|place_of_worship|fuel|car_wash|fire_station|bank|cinema|nursing_home|funeral_hall"](${BBOX});
-    node["shop"~"car_repair|hairdresser|beauty|laundry|supermarket|pet|florist|car|tattoo|storage_rental"](${BBOX});
-    way["shop"~"car_repair|hairdresser|beauty|laundry|supermarket|pet|florist|car|tattoo|storage_rental"](${BBOX});
-    node["leisure"~"golf_course|swimming_pool|fitness_centre|bowling_alley|sports_centre|stadium|spa"](${BBOX});
-    node["tourism"~"hotel|motel|aquarium|theme_park|camp_site"](${BBOX});
-    node["healthcare"~"dialysis|physiotherapist"](${BBOX});
-    node["craft"~"brewery|pest_control|plumber"](${BBOX});
+    node["healthcare"~"dialysis|physiotherapist|hospital"](${BBOX});
+    node["craft"~"brewery|pest_control|plumber|winery"](${BBOX});
   );out center tags;`;
-  
-  const fastElements = await fetchOverpass(fastQuery);
-  classifyAndAdd(fastElements, seen);
+  const fastElsA = await fetchOverpass(fastQueryA);
+  classifyAndAdd(fastElsA, seen);
+  rebuildRiskMarkersNew();
+  updateRiskStats();
+  updateStatus(`Found ${riskLocations.length} so far — scanning shops, leisure…`);
+  await sleep(800);
+
+  // Query B: shop, leisure, tourism tags
+  const fastQueryB = `[out:json][timeout:60];(
+    node["shop"~"car_repair|hairdresser|beauty|laundry|supermarket|pet|florist|car|tattoo|storage_rental|dry_cleaning|bakery|alcohol|convenience|grocery"](${BBOX});
+    way["shop"~"car_repair|hairdresser|beauty|laundry|supermarket|pet|florist|car|tattoo|storage_rental|dry_cleaning|bakery|alcohol|convenience|grocery"](${BBOX});
+    node["leisure"~"golf_course|swimming_pool|fitness_centre|bowling_alley|sports_centre|stadium|spa|water_park"](${BBOX});
+    way["leisure"~"golf_course|swimming_pool|fitness_centre|bowling_alley|sports_centre|stadium|spa"](${BBOX});
+    node["tourism"~"hotel|motel|aquarium|theme_park|camp_site|guest_house"](${BBOX});
+    way["tourism"~"hotel|motel"](${BBOX});
+  );out center tags;`;
+  const fastElsB = await fetchOverpass(fastQueryB);
+  classifyAndAdd(fastElsB, seen);
   rebuildRiskMarkersNew();
   updateRiskStats();
   updateStatus(`Found ${riskLocations.length} locations — continuing deep scan…`);
-  await sleep(1000);
+  await sleep(800);
 
   // ── PASS 2: Specific high-value tags ──────────────────────────────────────
   updateStatus('Deep scan: medical & specialty…');
@@ -5222,18 +5233,27 @@ async function startRiskScan() {
 
   // ── PASS 3: Nominatim keyword searches ────────────────────────────────────
   const kwBatches = [
-    {label:'Medical chains', terms:['dialysis abilene','urgent care abilene','concentra abilene']},
-    {label:'Hotels', terms:['hotel abilene tx','motel abilene tx']},
-    {label:'Gas stations', terms:['allsups abilene','stripes abilene','valero abilene','exxon abilene']},
-    {label:'Restaurants', terms:['whataburger abilene','sonic abilene','restaurant abilene']},
-    {label:'Grocery', terms:['united supermarket abilene','walmart abilene','heb abilene']},
-    {label:'Schools', terms:['abilene isd school','abilene christian university','mcmurry university']},
-    {label:'Churches', terms:['church abilene tx','first baptist abilene','first methodist abilene']},
-    {label:'Auto', terms:['car wash abilene','auto repair abilene','jiffy lube abilene']},
-    {label:'Fitness', terms:['gym abilene tx','planet fitness abilene','ymca abilene']},
-    {label:'Funeral', terms:['funeral home abilene','mortuary abilene']},
-    {label:'Storage', terms:['self storage abilene','extra space abilene']},
-    {label:'Pharmacy', terms:['walgreens abilene','cvs abilene','pharmacy abilene']},
+    {label:'Medical',    terms:['dialysis abilene','davita abilene','fresenius abilene','urgent care abilene','concentra abilene','hendrick medical abilene']},
+    {label:'Hospitals',  terms:['hospital abilene tx','hendrick hospital abilene','hendrick health abilene']},
+    {label:'Hotels',     terms:['hotel abilene tx','motel abilene tx','hampton inn abilene','hilton abilene','marriott abilene','holiday inn abilene','best western abilene','comfort inn abilene','la quinta abilene']},
+    {label:'Gas',        terms:['allsups abilene','stripes abilene tx','valero abilene','exxon abilene','shell station abilene','chevron abilene','conoco abilene']},
+    {label:'Fast food',  terms:['whataburger abilene','sonic drive-in abilene','mcdonalds abilene','burger king abilene','chick-fil-a abilene','taco bell abilene','subway abilene']},
+    {label:'Restaurants',terms:['restaurant abilene tx','ihop abilene','applebees abilene','chilis abilene','olive garden abilene','texas roadhouse abilene']},
+    {label:'Grocery',    terms:['united supermarket abilene','walmart abilene','market street abilene','brookshire brothers abilene','dollar general abilene']},
+    {label:'Schools',    terms:['abilene isd','abilene christian university','mcmurry university abilene','hardin-simmons university abilene','cisco college abilene']},
+    {label:'Churches',   terms:['church abilene tx','first baptist abilene','first methodist abilene','central church abilene','first presbyterian abilene']},
+    {label:'Auto',       terms:['car wash abilene','auto repair abilene','jiffy lube abilene','oil change abilene','christian brothers automotive abilene','take 5 oil abilene']},
+    {label:'Dealers',    terms:['ford dealer abilene','chevrolet abilene','toyota dealer abilene','honda dealer abilene','dodge dealer abilene']},
+    {label:'Fitness',    terms:['planet fitness abilene','ymca abilene','anytime fitness abilene','gym abilene tx']},
+    {label:'Funeral',    terms:['funeral home abilene','welch funeral abilene','Elliott-Hamil abilene','mortuary abilene']},
+    {label:'Storage',    terms:['self storage abilene','extra space abilene','public storage abilene','u-haul abilene']},
+    {label:'Pharmacy',   terms:['walgreens abilene','cvs pharmacy abilene','pharmacy abilene tx']},
+    {label:'Care',       terms:['nursing home abilene','assisted living abilene','memory care abilene','skilled nursing abilene']},
+    {label:'Nail/Beauty',terms:['nail salon abilene','nail spa abilene','hair salon abilene tx','barber abilene tx']},
+    {label:'Laundry',    terms:['laundromat abilene','dry cleaner abilene tx','coin laundry abilene']},
+    {label:'Pest/Clean', terms:['pest control abilene','exterminator abilene tx']},
+    {label:'Rec',        terms:['bowling abilene','golf course abilene','country club abilene','putt putt abilene']},
+    {label:'Coffee',     terms:['starbucks abilene','dutch bros abilene','coffee shop abilene tx']},
   ];
 
   for (const batch of kwBatches) {
