@@ -8770,7 +8770,7 @@ async function poolsLoadData() {
       if(page.length < pageSize) break;
       from += pageSize;
     }
-    poolsData = all;
+    poolsData = all.filter(p => p.lat && p.lon && pointInAbileneBoundary(parseFloat(p.lat), parseFloat(p.lon)));
     poolsRebuildMarkers();
     poolsRenderSidebar();
     poolsUpdateStats();
