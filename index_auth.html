@@ -4929,7 +4929,10 @@ function classifyByOSMTags(tags) {
 
 let riskLocations = [];
 let riskFilterRating_ = -1; // -1 = All, 0=Low, 1=Mod, 2=High, 3=Severe
-let riskScanRunning = false;
+let riskSelectedCat  = null; // null = All Categories
+let riskHealthOnly   = false;
+let riskShowList     = false;
+let riskScanRunning  = false;
 
 async function initRiskMap() {
   const mapEl = document.getElementById('risk-map');
@@ -8918,17 +8921,34 @@ function poolsSetBasemap(mode) {
 
 // ── FIX: City Risk filteredRiskLocations was called but never defined ─────────
 function filteredRiskLocations() {
-  let data = currentRiskFilter ? riskLocations.filter(r=>matchRiskFilter(r)) : riskLocations;
-  // also apply pill button rating filter (set by setRiskRating)
+  let data = riskLocations;
+
+  // 1. Rating pill buttons (Severe/High/Moderate/Low)
   if (typeof riskFilterRating_ !== 'undefined' && riskFilterRating_ !== -1) {
-    if (riskFilterRating_ === 3) data = data.filter(r => r.rating >= 9);
+    if      (riskFilterRating_ === 3) data = data.filter(r => r.rating >= 9);
     else if (riskFilterRating_ === 2) data = data.filter(r => r.rating >= 7 && r.rating < 9);
     else if (riskFilterRating_ === 1) data = data.filter(r => r.rating >= 5 && r.rating < 7);
     else if (riskFilterRating_ === 0) data = data.filter(r => r.rating < 5);
   }
-  if (riskSearchQuery) {
-    data = data.filter(r => ((r.name||'')+' '+(r.address||'')+' '+(r.category||'')).toLowerCase().includes(riskSearchQuery));
+
+  // 2. Category dropdown
+  if (riskSelectedCat) {
+    data = data.filter(r => (r.category || r.label) === riskSelectedCat);
   }
+
+  // 3. Health-only toggle
+  if (riskHealthOnly) {
+    data = data.filter(r => r.cat === 'Health');
+  }
+
+  // 4. Search box
+  if (riskSearchQuery) {
+    const q = riskSearchQuery.toLowerCase();
+    data = data.filter(r =>
+      ((r.name||'') + ' ' + (r.address||'') + ' ' + (r.category||r.label||'')).toLowerCase().includes(q)
+    );
+  }
+
   return data;
 }
 
