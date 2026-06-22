@@ -4928,6 +4928,7 @@ function classifyByOSMTags(tags) {
 }
 
 let riskLocations = [];
+let riskFilterRating_ = -1; // -1 = All, 0=Low, 1=Mod, 2=High, 3=Severe
 let riskScanRunning = false;
 
 async function initRiskMap() {
@@ -8918,8 +8919,15 @@ function poolsSetBasemap(mode) {
 // ── FIX: City Risk filteredRiskLocations was called but never defined ─────────
 function filteredRiskLocations() {
   let data = currentRiskFilter ? riskLocations.filter(r=>matchRiskFilter(r)) : riskLocations;
-  if(riskSearchQuery) {
-    data=data.filter(r=>((r.name||'')+' '+(r.address||'')+' '+(r.category||'')).toLowerCase().includes(riskSearchQuery));
+  // also apply pill button rating filter (set by setRiskRating)
+  if (typeof riskFilterRating_ !== 'undefined' && riskFilterRating_ !== -1) {
+    if (riskFilterRating_ === 3) data = data.filter(r => r.rating >= 9);
+    else if (riskFilterRating_ === 2) data = data.filter(r => r.rating >= 7 && r.rating < 9);
+    else if (riskFilterRating_ === 1) data = data.filter(r => r.rating >= 5 && r.rating < 7);
+    else if (riskFilterRating_ === 0) data = data.filter(r => r.rating < 5);
+  }
+  if (riskSearchQuery) {
+    data = data.filter(r => ((r.name||'')+' '+(r.address||'')+' '+(r.category||'')).toLowerCase().includes(riskSearchQuery));
   }
   return data;
 }
