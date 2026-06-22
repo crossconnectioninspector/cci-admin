@@ -4900,6 +4900,14 @@ let riskErrorCount = 0;
 let riskScanStartTime = 0;
 // alias — fetchAllRiskLocations calls overpassQuery, actual fn is fetchOverpass
 async function overpassQuery(q) { return fetchOverpass(q); }
+// Color helpers used by risk map rendering
+function ratingColorRisk(r) {
+  return r >= 9 ? '#ef5a5a' : r >= 7 ? '#f9a61e' : r >= 5 ? '#f0c040' : '#3ecf80';
+}
+function ratingColor(r) { return ratingColorRisk(r); }
+function riskHazardLabel(r) {
+  return r >= 9 ? 'SEVERE' : r >= 7 ? 'HIGH' : r >= 5 ? 'MODERATE' : 'LOW';
+}
 const VIEWBOX = '-99.86,32.33,-99.60,32.65';
 
 // Full Cross-Connection Control Program category table from Swift file
