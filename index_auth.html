@@ -4934,38 +4934,6 @@ let riskHealthOnly   = false;
 let riskShowList     = false;
 let riskScanRunning  = false;
 
-async function initRiskMap() {
-  const mapEl = document.getElementById('risk-map');
-  if (!mapEl) return;
-
-  if (!riskMap) {
-    riskMap = L.map('risk-map', { center:[32.4487,-99.7331], zoom:12 });
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-      { attribution:'© OSM © CARTO', maxZoom:19 }).addTo(riskMap);
-    riskMarkers = L.layerGroup().addTo(riskMap);
-
-    // Add Abilene boundary — 368 precision points
-    ABILENE_BOUNDARY.forEach(c => L.polygon(c, BOUNDARY_STYLE).addTo(riskMap));
-  }
-
-  riskMap.invalidateSize();
-
-  // Check cache
-  try {
-    const cached = localStorage.getItem('riskLocations_v8');
-    const ts = localStorage.getItem('riskLocations_v8_ts');
-    if (cached && ts && (Date.now() - parseInt(ts)) < 86400000) {
-      riskLocations = JSON.parse(cached);
-      rebuildRiskMarkersNew();
-      updateRiskStats();
-      return;
-    }
-  } catch(e) {}
-
-  // Start scan
-  if (!riskScanRunning) startRiskScan();
-}
-
 async function startRiskScan() {
   if (riskScanRunning) return;
   riskScanRunning = true;
@@ -5204,12 +5172,17 @@ function updateRiskStats() {
 
 function riskReset() { if(riskMap) { riskMap.setView([32.4487,-99.7331],12); riskMap.invalidateSize(); } }
 function clearRiskCache() {
+  localStorage.removeItem('cci_risk_locations_v6');
+  localStorage.removeItem('cci_risk_ts_v6');
   localStorage.removeItem('riskLocations_v7');
   localStorage.removeItem('riskLocations_v7_ts');
+  localStorage.removeItem('riskLocations_v8');
+  localStorage.removeItem('riskLocations_v8_ts');
   riskLocations = [];
+  riskLoading = false;
   riskScanRunning = false;
   if(riskMarkers) riskMarkers.clearLayers();
-  startRiskScan();
+  fetchAllRiskLocations();
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
