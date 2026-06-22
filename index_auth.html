@@ -3533,6 +3533,26 @@ async function fetchAllRiskLocations() {
       '7-eleven','circle k','loves','flying j','pilot','quiktrip','conoco','texaco','phillips 66'];
     const FOOD_TAGS = new Set(['amenity=restaurant','amenity=fast_food','amenity=cafe','amenity=bar','shop=bakery']);
 
+    // Fast first pass — broad query catches most locations immediately
+    setHeader('OSM fast scan — restaurants, medical, hotels...');
+    const fastQuery = `[out:json][timeout:30];(
+      node["amenity"~"restaurant|fast_food|cafe|bar|hospital|clinic|doctors|dentist|pharmacy|veterinary|school|place_of_worship|fuel|car_wash|fire_station|bank|cinema|nursing_home|funeral_hall"](${ABILENE_BBOX});
+      way["amenity"~"restaurant|fast_food|cafe|bar|hospital|clinic|doctors|dentist|pharmacy|veterinary|school|place_of_worship|fuel|car_wash|fire_station|bank|cinema|nursing_home|funeral_hall"](${ABILENE_BBOX});
+      node["shop"~"car_repair|hairdresser|beauty|laundry|supermarket|pet|florist|car|tattoo|storage_rental"](${ABILENE_BBOX});
+      way["shop"~"car_repair|hairdresser|beauty|laundry|supermarket|pet|florist|car|tattoo|storage_rental"](${ABILENE_BBOX});
+      node["leisure"~"golf_course|swimming_pool|fitness_centre|bowling_alley|sports_centre|stadium|spa"](${ABILENE_BBOX});
+      node["tourism"~"hotel|motel|aquarium|theme_park|camp_site"](${ABILENE_BBOX});
+      node["healthcare"~"dialysis|physiotherapist"](${ABILENE_BBOX});
+      node["craft"~"brewery|pest_control|plumber"](${ABILENE_BBOX});
+    );out center tags;`;
+    if (!riskStopped) {
+      const fastElements = await overpassQuery(fastQuery);
+      classifyAndAdd(fastElements, seen, GAS_KW, FOOD_TAGS);
+      rebuildRiskMarkersNew();
+      setHeader(`OSM fast scan done — ${riskLocations.length} found. Running deep scan...`);
+      await sleep(800);
+    }
+
     const allPairs = [
       ['amenity','hospital'],['amenity','clinic'],['amenity','doctors'],
       ['amenity','dentist'],['amenity','pharmacy'],['amenity','nursing_home'],
