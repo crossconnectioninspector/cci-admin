@@ -3401,58 +3401,60 @@ async function fetchAllRiskLocations() {
   }
 
   // ── SOURCE 1: CMS Healthcare Facilities (dialysis, hospitals, nursing homes)
-  // Live API — no download, no API key, filters to state, results paginated
+  // Filter to city BEFORE geocoding — only geocode the handful that match
   async function fetchCMS(datasetId, stateCode, cityName, label, hazardTag) {
     if (riskStopped) return;
     setHeader(`CMS: scanning ${label}...`);
     try {
       const cat = HAZARD_CATEGORIES.find(c => c.tag === hazardTag);
       if (!cat) return;
+      // Filter by state AND city in the API call — only returns local facilities
       const url = `https://data.cms.gov/data-api/v1/dataset/${datasetId}/data?filter%5Bstate%5D=${stateCode}&size=5000`;
-      const res = await fetch(url);
+      const res = await fetch(url, {signal: AbortSignal.timeout(10000)});
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const rows = await res.json();
+
+      // Filter to matching city names before any geocoding
+      const cityUp = cityName.toUpperCase();
+      const localRows = rows.filter(row => {
+        const c = (row['City/Town'] || row['city'] || row['City'] || '').toUpperCase().trim();
+        return c === cityUp || c.startsWith(cityUp);
+      });
+
+      setHeader(`CMS ${label}: ${localRows.length} in ${cityName}, geocoding...`);
       let added = 0;
-      for (const row of rows) {
+      for (const row of localRows) {
         if (riskStopped) break;
-        // CMS field names vary by dataset — try all common patterns
         const name = row['Facility Name'] || row['provider_name'] || row['name'] || row['Organization Name'] || '';
         const addr = row['Address Line 1'] || row['address'] || row['Street Address'] || row['address_line_1'] || '';
         const city = row['City/Town'] || row['city'] || row['City'] || '';
         const state = row['State'] || row['state'] || stateCode;
         const zip  = row['ZIP Code'] || row['zip'] || row['Zip Code'] || '';
-        const lat  = parseFloat(row['Geocoded Coordinate'] ? row['Geocoded Coordinate'].split(',')[0] : row['lat'] || '');
-        const lon  = parseFloat(row['Geocoded Coordinate'] ? row['Geocoded Coordinate'].split(',')[1] : row['lng'] || row['lon'] || '');
-
-        if (!name || !city) continue;
-
-        // For multi-city support: check if city is in our target area
-        // For now filter to TX cities within reasonable distance of BBOX
-        const cityUp = city.toUpperCase().trim();
-        if (state !== stateCode) continue;
+        if (!name) continue;
 
         const fullAddr = `${addr}, ${city}, ${state} ${zip}`.trim();
-        const key = name.toLowerCase() + '|' + fullAddr.toLowerCase();
+        const key = 'cms|' + name.toLowerCase().slice(0,30);
         if (seen.has(key)) continue;
         seen.add(key);
 
-        // Geocode if no coordinates in CMS data
-        let locLat = lat, locLon = lon;
-        if (!locLat || !locLon || isNaN(locLat) || isNaN(locLon)) {
-          // Use address-based placement via Nominatim (rate limited — only for verified sources)
+        // Try to get coordinates — CMS sometimes embeds them
+        let locLat = parseFloat(row['lat'] || row['Latitude'] || '');
+        let locLon = parseFloat(row['lon'] || row['lng'] || row['Longitude'] || '');
+
+        // Only geocode if no coordinates — and only for local facilities (fast, just a few)
+        if ((!locLat || isNaN(locLat)) && addr) {
           try {
-            const geo = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(addr+' '+city+' '+state)}&format=json&limit=1`, {
-              headers: {'User-Agent': 'BCP-CityRisk/1.0 sniderbackflowsolutions@gmail.com'}
-            });
+            const geo = await fetch(
+              `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(addr+' '+city+' '+state)}&format=json&limit=1`,
+              {headers:{'User-Agent':'BCP-CityRisk/1.0 sniderbackflowsolutions@gmail.com'}, signal: AbortSignal.timeout(5000)}
+            );
             const geoData = await geo.json();
             if (geoData[0]) { locLat = parseFloat(geoData[0].lat); locLon = parseFloat(geoData[0].lon); }
             await sleep(1100);
-          } catch(e) { /* skip if geocode fails */ }
+          } catch(e) { /* skip */ }
         }
 
         if (!locLat || !locLon || isNaN(locLat) || isNaN(locLon)) continue;
-
-        // Check inside Abilene boundary
         if (!pointInAbileneBoundary(locLat, locLon)) continue;
 
         riskLocations.push({
@@ -3463,9 +3465,10 @@ async function fetchAllRiskLocations() {
         });
         added++;
       }
-      setHeader(`CMS ${label}: ${added} found in city`);
+      if (added > 0) rebuildRiskMarkersNew();
+      setHeader(`CMS ${label}: ${added} added`);
     } catch(e) {
-      console.warn('CMS fetch failed for', label, e.message);
+      console.warn('CMS fetch failed for', label, '—', e.message, '— continuing with OSM');
     }
   }
 
