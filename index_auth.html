@@ -4956,7 +4956,7 @@ async function initRiskMap() {
     const ts = localStorage.getItem('riskLocations_v8_ts');
     if (cached && ts && (Date.now() - parseInt(ts)) < 86400000) {
       riskLocations = JSON.parse(cached);
-      plotRiskMarkers();
+      rebuildRiskMarkersNew();
       updateRiskStats();
       return;
     }
@@ -4995,7 +4995,7 @@ async function startRiskScan() {
   
   const fastElements = await fetchOverpass(fastQuery);
   classifyAndAdd(fastElements, seen);
-  plotRiskMarkers();
+  rebuildRiskMarkersNew();
   updateRiskStats();
   updateStatus(`Found ${riskLocations.length} locations — continuing deep scan…`);
   await sleep(1000);
@@ -5021,7 +5021,7 @@ async function startRiskScan() {
   });
   const specificEls = await fetchOverpass(`[out:json][timeout:60];(${lines.join('')});out center tags;`);
   classifyAndAdd(specificEls, seen);
-  plotRiskMarkers();
+  rebuildRiskMarkersNew();
   updateRiskStats();
   await sleep(800);
 
@@ -5046,7 +5046,7 @@ async function startRiskScan() {
     for (const term of batch.terms) {
       const found = await nominatimSearch(term, seen);
       riskLocations.push(...found);
-      plotRiskMarkers();
+      rebuildRiskMarkersNew();
       updateRiskStats();
       await sleep(1200); // Nominatim: 1 req/sec
     }
@@ -5182,7 +5182,7 @@ function matchRiskFilter(r) {
 
 function filterRisk(f) {
   currentRiskFilter = f === currentRiskFilter ? null : f;
-  plotRiskMarkers();
+  rebuildRiskMarkersNew();
   updateRiskStats();
   // Highlight active button
   ['severe','high','moderate','low','all'].forEach(id => {
