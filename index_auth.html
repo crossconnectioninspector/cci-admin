@@ -3331,8 +3331,8 @@ async function initRiskMap() {
   }
 
   // Show cache immediately — no blank map
-  const cached = localStorage.getItem('cci_risk_locations_v6');
-  const cachedTs = localStorage.getItem('cci_risk_ts_v6');
+  const cached = localStorage.getItem('riskLocations_v8') || localStorage.getItem('cci_risk_locations_v6');
+  const cachedTs = localStorage.getItem('riskLocations_v8_ts') || localStorage.getItem('cci_risk_ts_v6');
   const stale = !cachedTs || (Date.now() - parseInt(cachedTs)) > 86400000;
 
   if(cached) {
@@ -3346,8 +3346,8 @@ async function initRiskMap() {
 
   if(!stale && riskLocations.length > 0) return; // fresh cache — done
 
-  // Fetch fresh from Overpass + Nominatim
-  await fetchAllRiskLocations();
+  // Use startRiskScan — the proven 3-pass scan
+  if (!riskScanRunning) startRiskScan();
 }
 
 function stopRiskScan() {
@@ -5409,7 +5409,7 @@ function clearRiskCache() {
   riskLoading = false;
   riskScanRunning = false;
   if(riskMarkers) riskMarkers.clearLayers();
-  fetchAllRiskLocations();
+  startRiskScan();
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
