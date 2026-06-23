@@ -1960,13 +1960,11 @@ select.field-input option{background:var(--elevated)}
       <input id="asmMainSearch" type="text" placeholder="Search by serial number, address, type, make..." oninput="asmApplyFilters()" style="background:none;border:none;outline:none;color:var(--text);font-family:var(--sans);font-size:15px;width:100%">
     </div>
     <!-- Filter pills -->
-    <div style="display:flex;gap:5px;flex-wrap:wrap">
-      <button id="asmFilterAll"          onclick="asmSetFilter('all')"          style="padding:5px 12px;border-radius:6px;background:var(--accent);color:#000;font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:var(--sans)">All</button>
-      <button id="asmFilterFailed"       onclick="asmSetFilter('failed')"       style="padding:5px 12px;border-radius:6px;background:var(--elevated);color:var(--muted);font-size:13px;font-weight:600;border:1px solid var(--border);cursor:pointer;font-family:var(--sans)">Failed</button>
-      <button id="asmFilterOverdue"      onclick="asmSetFilter('overdue')"      style="padding:5px 12px;border-radius:6px;background:var(--elevated);color:var(--muted);font-size:13px;font-weight:600;border:1px solid var(--border);cursor:pointer;font-family:var(--sans)">Overdue</button>
-      <button id="asmFilterDue_soon"     onclick="asmSetFilter('due_soon')"     style="padding:5px 12px;border-radius:6px;background:var(--elevated);color:var(--muted);font-size:13px;font-weight:600;border:1px solid var(--border);cursor:pointer;font-family:var(--sans)">Due Soon</button>
-      <button id="asmFilterCurrent"      onclick="asmSetFilter('current')"      style="padding:5px 12px;border-radius:6px;background:var(--elevated);color:var(--muted);font-size:13px;font-weight:600;border:1px solid var(--border);cursor:pointer;font-family:var(--sans)">Current</button>
-      <button id="asmFilterNever_tested" onclick="asmSetFilter('never_tested')" style="padding:5px 12px;border-radius:6px;background:var(--elevated);color:var(--muted);font-size:13px;font-weight:600;border:1px solid var(--border);cursor:pointer;font-family:var(--sans)">Never Tested</button>
+    <div style="display:flex;gap:5px">
+      <button id="asmFilterAll" onclick="asmSetFilter('all')" style="padding:5px 12px;border-radius:6px;background:var(--accent);color:#000;font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:var(--sans)">All</button>
+      <button id="asmFilterPass" onclick="asmSetFilter('pass')" style="padding:5px 12px;border-radius:6px;background:var(--elevated);color:var(--muted);font-size:13px;font-weight:600;border:1px solid var(--border);cursor:pointer;font-family:var(--sans)">Pass</button>
+      <button id="asmFilterFail" onclick="asmSetFilter('fail')" style="padding:5px 12px;border-radius:6px;background:var(--elevated);color:var(--muted);font-size:13px;font-weight:600;border:1px solid var(--border);cursor:pointer;font-family:var(--sans)">Fail</button>
+      <button id="asmFilterOverdue" onclick="asmSetFilter('overdue')" style="padding:5px 12px;border-radius:6px;background:var(--elevated);color:var(--muted);font-size:13px;font-weight:600;border:1px solid var(--border);cursor:pointer;font-family:var(--sans)">Overdue</button>
     </div>
     <button onclick="asmExportCSV()" class="btn btn-gh btn-sm" style="height:38px;width:38px;padding:0;justify-content:center" title="Export CSV">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -5168,6 +5166,39 @@ async function startRiskScan() {
   riskScanRunning = true;
   riskLocations = [];
   const seen = new Set();
+
+  // ── Load verified_locations from Supabase first (instant, always consistent) ──
+  async function loadVerifiedLocations() {
+    try {
+      updateStatus('Loading verified locations from database...');
+      const headers = await getHeaders();
+      const res = await fetch(SUPA_URL + '/rest/v1/verified_locations?select=*', {
+        headers: { ...headers, 'Range-Unit':'items', 'Range':'0-4999' }
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const rows = await res.json();
+      let added = 0;
+      for (const r of rows) {
+        if (!r.lat || !r.lon) continue;
+        const key = `${(r.name||'').toLowerCase().slice(0,25)}_${Math.round(r.lat*1000)}_${Math.round(r.lon*1000)}`;
+        if (seen.has(key)) continue;
+        if (!pointInAbileneBoundary(parseFloat(r.lat), parseFloat(r.lon))) continue;
+        seen.add(key);
+        riskLocations.push({
+          name: r.name||'', lat: parseFloat(r.lat), lng: parseFloat(r.lon),
+          address: r.address||'', category: r.category||'', label: r.category||'',
+          device: r.device||'', rating: r.rating||5, reason: r.reason||'',
+          source: 'verified'
+        });
+        added++;
+      }
+      if (added > 0) { rebuildRiskMarkersNew(); updateRiskStats(); }
+      updateStatus(`✓ ${added} verified locations loaded. Running OSM scan for more...`);
+    } catch(e) {
+      console.warn('verified_locations load failed:', e.message, '— continuing with OSM scan');
+    }
+  }
+  await loadVerifiedLocations();
   const statusEl = document.getElementById('risk-status');
   const countEl = document.getElementById('risk-count');
 
@@ -6188,85 +6219,130 @@ document.addEventListener('click', function(e) {
 // ═══════════════════════════════════════════════════════
 //  ASSEMBLIES MODULE
 // ═══════════════════════════════════════════════════════
-// ── Assembly data — loaded live from device_compliance view ──────────────────
-let ASM_DATA = [];
-
-// Status helpers
-function asmStatusColor(s){return{current:'var(--green)',due_soon:'var(--yellow)',overdue:'var(--red)',failed:'var(--red)',never_tested:'var(--muted)'}[s]||'var(--muted)';}
-function asmStatusBg(s){return{current:'rgba(62,207,128,.12)',due_soon:'rgba(240,192,64,.12)',overdue:'rgba(239,90,90,.12)',failed:'rgba(239,90,90,.12)',never_tested:'rgba(154,165,184,.1)'}[s]||'rgba(154,165,184,.1)';}
-function asmStatusBorder(s){return{current:'rgba(62,207,128,.3)',due_soon:'rgba(240,192,64,.3)',overdue:'rgba(239,90,90,.3)',failed:'rgba(239,90,90,.3)',never_tested:'rgba(154,165,184,.25)'}[s]||'rgba(154,165,184,.25)';}
-function asmStatusLabel(s){return{current:'CURRENT',due_soon:'DUE SOON',overdue:'OVERDUE',failed:'FAILED',never_tested:'NEVER TESTED'}[s]||(s||'UNKNOWN').toUpperCase();}
-
-// Map device_compliance row → internal shape
-function asmMapRow(r){
-  return {
-    id:           r.device_id,
-    property_id:  r.property_id,
-    serial:       r.serial        || '—',
-    type:         r.assembly      || '—',
-    make:         r.manufacturer  || '—',
-    model:        r.model         || '—',
-    size:         r.size          || '—',
-    address:      r.address       || '—',
-    city:         r.city          || 'Abilene',
-    state:        r.state         || 'TX',
-    zip:          r.zip           || '',
-    account:      r.account_number|| '',
-    hazard:       r.hazard_level  || '',
-    property_type:r.property_type || '',
-    owner_name:   r.owner_name    || '',
-    owner_email:  r.owner_email   || '',
-    owner_phone:  r.owner_phone   || '',
-    status:       r.compliance_status || 'never_tested',
-    lastTested:   r.last_test_date|| '',
-    lastResult:   r.last_result   || '',
-    nextDue:      r.next_test_due || '',
-    testedBy:     r.last_tester_name || '',
-    testerCert:   r.last_tester_cert || '',
-    testerCertExpires: r.tester_cert_expires || '',
-    notes:        r.location_description || '',
-  };
-}
-
-// Load all assemblies from Supabase
-async function asmLoadData(){
-  const body=document.getElementById('asmTableBody');
-  if(body)body.innerHTML='<div style="text-align:center;padding:48px;color:var(--muted);font-family:var(--mono);font-size:11px;letter-spacing:1px">LOADING ASSEMBLIES…</div>';
-  try {
-    const headers=await getHeaders();
-    const res=await fetch(`${SUPA_URL}/rest/v1/device_compliance?order=address.asc,serial.asc`,{headers});
-    if(!res.ok)throw new Error('HTTP '+res.status+': '+await res.text());
-    const data=await res.json();
-    ASM_DATA=data.map(asmMapRow);
-    asmFiltered=[...ASM_DATA];
-    asmCurrentPage=1;
-    asmSetFilter('all');
-  } catch(e){
-    console.error('asmLoadData error:',e);
-    if(body)body.innerHTML=`<div style="text-align:center;padding:48px;color:var(--red);font-size:13px">Failed to load assemblies: ${e.message}</div>`;
-  }
-}
+const ASM_DATA = [
+  {id:1,serial:"RP-2291",type:"RPZ",make:"Watts",model:"009",size:'3/4"',leadFree:"Yes",status:"Pass",
+   address:"1423 N 1st St",city:"Abilene",state:"TX",zip:"79601",account:"ACC-00142",
+   hazard:"High",protection:"Public Water Supply",installed:"2023-03-10",
+   lastTested:"2025-11-14",lastResult:"Pass",nextDue:"2026-11-14",testedBy:"Matt Snider",
+   notes:"East side mechanical room. Accessible via rear entrance.",
+   reportHistory:[
+     {date:"2025-11-14",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"2.1 PSI"},
+     {date:"2024-11-08",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"2.3 PSI"},
+     {date:"2023-11-02",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"1.9 PSI"},
+   ],
+   communications:[
+     {date:"2025-09-14",type:"60-Day Notice",method:"Email",status:"Sent"},
+     {date:"2025-10-14",type:"30-Day Notice",method:"Email",status:"Sent"},
+     {date:"2025-11-07",type:"7-Day Notice",method:"Email + SMS",status:"Sent"},
+   ]},
+  {id:2,serial:"DC-0044",type:"DCVA",make:"Wilkins",model:"975XL",size:'1"',leadFree:"Yes",status:"Pass",
+   address:"1423 N 1st St",city:"Abilene",state:"TX",zip:"79601",account:"ACC-00142",
+   hazard:"High",protection:"Public Water Supply",installed:"2023-03-10",
+   lastTested:"2025-11-14",lastResult:"Pass",nextDue:"2026-11-14",testedBy:"Matt Snider",
+   notes:"East side mechanical room, second assembly.",
+   reportHistory:[
+     {date:"2025-11-14",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"1.8 PSI"},
+     {date:"2024-11-08",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"1.7 PSI"},
+   ],
+   communications:[
+     {date:"2025-09-14",type:"60-Day Notice",method:"Email",status:"Sent"},
+     {date:"2025-11-07",type:"7-Day Notice",method:"Email + SMS",status:"Sent"},
+   ]},
+  {id:3,serial:"RP-0881",type:"RPZ",make:"Febco",model:"860",size:'1"',leadFree:"No",status:"Overdue",
+   address:"3801 S Clack St",city:"Abilene",state:"TX",zip:"79606",account:"ACC-00389",
+   hazard:"High",protection:"Public Water Supply - Medical",installed:"2020-05-18",
+   lastTested:"2024-10-02",lastResult:"Pass",nextDue:"2025-10-02",testedBy:"Jorge Rodriguez",
+   notes:"Main mechanical room - building B. Facilities director contact.",
+   reportHistory:[
+     {date:"2024-10-02",result:"Pass",tester:"J. Rodriguez",cert:"TX-2209",reading:"3.1 PSI"},
+     {date:"2023-09-28",result:"Pass",tester:"J. Rodriguez",cert:"TX-2209",reading:"3.0 PSI"},
+   ],
+   communications:[
+     {date:"2025-07-02",type:"60-Day Notice",method:"Email",status:"Sent"},
+     {date:"2025-09-30",type:"Overdue Notice",method:"Email",status:"Sent"},
+     {date:"2025-10-14",type:"Overdue Notice",method:"Email",status:"Sent"},
+   ]},
+  {id:4,serial:"RP-0882",type:"RPZ",make:"Febco",model:"860",size:'1"',leadFree:"No",status:"Pass",
+   address:"3801 S Clack St",city:"Abilene",state:"TX",zip:"79606",account:"ACC-00389",
+   hazard:"High",protection:"Public Water Supply - Medical",installed:"2020-05-18",
+   lastTested:"2025-03-15",lastResult:"Pass",nextDue:"2026-03-15",testedBy:"Jorge Rodriguez",
+   notes:"Secondary building connection.",
+   reportHistory:[
+     {date:"2025-03-15",result:"Pass",tester:"J. Rodriguez",cert:"TX-2209",reading:"2.8 PSI"},
+   ],
+   communications:[
+     {date:"2025-01-15",type:"60-Day Notice",method:"Email",status:"Sent"},
+   ]},
+  {id:5,serial:"DC-0199",type:"DCVA",make:"Watts",model:"007",size:'3/4"',leadFree:"No",status:"Overdue",
+   address:"3801 S Clack St",city:"Abilene",state:"TX",zip:"79606",account:"ACC-00389",
+   hazard:"High",protection:"Irrigation System",installed:"2020-05-18",
+   lastTested:"2024-10-02",lastResult:"Pass",nextDue:"2025-10-02",testedBy:"Jorge Rodriguez",
+   notes:"Irrigation connection - east grounds.",
+   reportHistory:[
+     {date:"2024-10-02",result:"Pass",tester:"J. Rodriguez",cert:"TX-2209",reading:"2.2 PSI"},
+   ],
+   communications:[
+     {date:"2025-09-30",type:"Overdue Notice",method:"Email",status:"Sent"},
+   ]},
+  {id:6,serial:"PV-0034",type:"PVB",make:"Ames",model:"4000SS",size:'1/2"',leadFree:"Yes",status:"Pass",
+   address:"4150 Buffalo Gap Rd",city:"Abilene",state:"TX",zip:"79605",account:"ACC-00217",
+   hazard:"Medium",protection:"Irrigation",installed:"2022-01-12",
+   lastTested:"2026-01-22",lastResult:"Pass",nextDue:"2027-01-22",testedBy:"Matt Snider",
+   notes:"Garden center irrigation system. Access via garden center entrance.",
+   reportHistory:[
+     {date:"2026-01-22",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"1.2 PSI"},
+     {date:"2025-01-19",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"1.1 PSI"},
+   ],
+   communications:[
+     {date:"2025-11-22",type:"60-Day Notice",method:"Email",status:"Sent"},
+     {date:"2025-12-22",type:"30-Day Notice",method:"Email",status:"Sent"},
+   ]},
+  {id:7,serial:"RP-1145",type:"RPZ",make:"Watts",model:"009M3",size:'1"',leadFree:"Yes",status:"Fail",
+   address:"2018 Grape St",city:"Abilene",state:"TX",zip:"79601",account:"ACC-00504",
+   hazard:"Medium",protection:"Public Water Supply",installed:"2019-08-22",
+   lastTested:"2025-08-10",lastResult:"Fail",nextDue:"2026-08-10",testedBy:"Matt Snider",
+   notes:"Relief valve discharged continuously. Repair order issued. Awaiting retest.",
+   reportHistory:[
+     {date:"2025-08-10",result:"Fail",tester:"Matt Snider",cert:"TX-4421",reading:"FAIL - Relief valve discharge"},
+     {date:"2024-08-05",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"2.4 PSI"},
+   ],
+   communications:[
+     {date:"2025-06-10",type:"60-Day Notice",method:"Email",status:"Sent"},
+     {date:"2025-08-10",type:"Fail Notice",method:"Email + SMS",status:"Sent"},
+     {date:"2025-08-17",type:"Repair Follow-up",method:"Email",status:"Sent"},
+   ]},
+  {id:8,serial:"DC-0288",type:"DCVA",make:"Watts",model:"007M1",size:'3/4"',leadFree:"Yes",status:"Pass",
+   address:"2018 Grape St",city:"Abilene",state:"TX",zip:"79601",account:"ACC-00504",
+   hazard:"Medium",protection:"Irrigation",installed:"2019-08-22",
+   lastTested:"2025-08-10",lastResult:"Pass",nextDue:"2026-08-10",testedBy:"Matt Snider",
+   notes:"Irrigation system assembly.",
+   reportHistory:[
+     {date:"2025-08-10",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"1.6 PSI"},
+   ],
+   communications:[
+     {date:"2025-06-10",type:"60-Day Notice",method:"Email",status:"Sent"},
+   ]},
+];
 
 let asmFiltered=[...ASM_DATA],asmActiveId=null,asmCurrentPage=1,asmDetailOpen=false,asmCurrentFilter='all';
 
 function asmInit(){
-  asmFiltered=[];asmCurrentPage=1;asmDetailOpen=false;asmCurrentFilter='all';
+  asmFiltered=[...ASM_DATA];asmCurrentPage=1;asmDetailOpen=false;asmCurrentFilter='all';
   const p=document.getElementById('asmDetailPanel');if(p){p.style.width='0';p.style.opacity='0';}
-  asmLoadData();
+  asmSetFilter('all');
 }
 
 function asmSetFilter(f){
   asmCurrentFilter=f;
-  const filters=['all','failed','overdue','due_soon','current','never_tested'];
-  const colors={all:'var(--accent)',failed:'var(--red)',overdue:'var(--yellow)',due_soon:'var(--yellow)',current:'var(--green)',never_tested:'var(--muted)'};
-  filters.forEach(filter=>{
-    const id='asmFilter'+filter.charAt(0).toUpperCase()+filter.slice(1);
-    const btn=document.getElementById(id);
+  // Update button styles
+  ['all','pass','fail','overdue'].forEach(filter=>{
+    const btn=document.getElementById('asmFilter'+filter.charAt(0).toUpperCase()+filter.slice(1));
     if(!btn)return;
     const isActive=f===filter;
+    const colors={all:'var(--accent)',pass:'var(--green)',fail:'var(--red)',overdue:'var(--yellow)'};
     if(isActive){
-      btn.style.background=colors[filter];btn.style.color=['overdue','due_soon'].includes(filter)?'#000':'#000';
-      btn.style.border='none';btn.style.color='#000';
+      btn.style.background=colors[filter];btn.style.color=filter==='overdue'?'#000':'#000';
+      btn.style.border='none';
     } else {
       btn.style.background='var(--elevated)';btn.style.color='var(--muted)';btn.style.border='1px solid var(--border)';
     }
@@ -6277,14 +6353,9 @@ function asmSetFilter(f){
 function asmApplyFilters(){
   const ms=document.getElementById('asmMainSearch')?.value.trim().toLowerCase()||'';
   asmFiltered=ASM_DATA.filter(a=>{
-    const matchFilter=asmCurrentFilter==='all'||(a.status||'').toLowerCase()===asmCurrentFilter;
-    const matchSearch=!ms||
-      (a.serial||'').toLowerCase().includes(ms)||
-      (a.address||'').toLowerCase().includes(ms)||
-      (a.type||'').toLowerCase().includes(ms)||
-      (a.make||'').toLowerCase().includes(ms)||
-      (a.account||'').toLowerCase().includes(ms)||
-      (a.owner_name||'').toLowerCase().includes(ms);
+    const matchFilter=asmCurrentFilter==='all'||a.status.toLowerCase()===asmCurrentFilter;
+    const matchSearch=!ms||a.serial.toLowerCase().includes(ms)||a.address.toLowerCase().includes(ms)||
+      a.type.toLowerCase().includes(ms)||a.make.toLowerCase().includes(ms)||a.account.toLowerCase().includes(ms);
     return matchFilter&&matchSearch;
   });
   asmCurrentPage=1;asmRenderTable();
@@ -6323,9 +6394,9 @@ function asmRenderTable(){
 
   body.innerHTML=page.map(a=>{
     const isActive=asmActiveId===a.id;
-    const sc=asmStatusColor(a.status);
-    const sbg=asmStatusBg(a.status);
-    const sbr=asmStatusBorder(a.status);
+    const sc=a.status==='Pass'?'var(--green)':a.status==='Fail'?'var(--red)':'var(--yellow)';
+    const sbg=a.status==='Pass'?'rgba(76,175,121,.12)':a.status==='Fail'?'rgba(224,82,82,.12)':'rgba(240,192,64,.12)';
+    const sbr=a.status==='Pass'?'rgba(76,175,121,.3)':a.status==='Fail'?'rgba(224,82,82,.3)':'rgba(240,192,64,.3)';
     const days=asmDaysUntil(a.nextDue);
     const dueColor=days===null?'var(--muted)':days<0?'var(--red)':days<30?'var(--yellow)':'var(--green)';
     const dueLabel=days===null?'—':days<0?'OVERDUE':days===0?'TODAY':days+'d';
@@ -6349,7 +6420,7 @@ function asmRenderTable(){
         `<div style="font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(a.address)}, ${a.city}</div>`,
         `<div style="font-family:var(--mono);font-size:12px;color:var(--muted)">${sanitize(a.account)||'&mdash;'}</div>`,
         `<div style="font-family:var(--mono);font-size:12px;color:${dueColor};font-weight:${days!==null&&days<30?'700':'400'}">${dueLabel}</div>`,
-        `<span style="font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;background:${sbg};color:${sc};border:1px solid ${sbr}">${asmStatusLabel(a.status)}</span>`,
+        `<span style="font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;background:${sbg};color:${sc};border:1px solid ${sbr}">${a.status.toUpperCase()}</span>`,
       ];
     }
 
@@ -6377,11 +6448,11 @@ function asmSelectRow(id){
   // Status badge
   const badge=document.getElementById('asmDetailBadge');
   if(badge){
-    const sc=asmStatusColor(a.status);
-    const sbg=asmStatusBg(a.status);
-    const sbr=asmStatusBorder(a.status);
+    const sc=a.status==='Pass'?'var(--green)':a.status==='Fail'?'var(--red)':'var(--yellow)';
+    const sbg=a.status==='Pass'?'rgba(76,175,121,.14)':a.status==='Fail'?'rgba(224,82,82,.14)':'rgba(240,192,64,.14)';
+    const sbr=a.status==='Pass'?'rgba(76,175,121,.3)':a.status==='Fail'?'rgba(224,82,82,.3)':'rgba(240,192,64,.3)';
     badge.style.cssText=`font-family:var(--cond);font-weight:700;font-size:15px;padding:4px 12px;border-radius:5px;background:${sbg};color:${sc};border:1px solid ${sbr}`;
-    badge.textContent=asmStatusLabel(a.status);
+    badge.textContent=a.status.toUpperCase();
   }
 
   // Summary cards (like SwiftComply's compliance/assembly/last comm cards)
@@ -6649,7 +6720,7 @@ function asmSwitchTab(tab,btn){
   const body=document.getElementById('asmTabBody');if(!body||!a)return;
   if(tab==='details')body.innerHTML=asmRenderDetails(a);
   else if(tab==='location')body.innerHTML=asmRenderLocation(a);
-  else if(tab==='history'){body.innerHTML='';asmRenderHistory(a);}
+  else if(tab==='history')body.innerHTML=asmRenderHistory(a);
   else if(tab==='comms')body.innerHTML=asmRenderComms(a);
   else if(tab==='compliance')body.innerHTML=asmRenderCompliance(a);
   // If location tab, force map resize after tab animation settles
@@ -6767,50 +6838,25 @@ function asmRenderLocation(a){
   return html;
 }
 
-async function asmRenderHistory(a){
-  const body=document.getElementById('asmTabBody');
-  if(!body)return;
-  body.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-family:var(--mono);font-size:11px">Loading history…</div>';
-  try {
-    const headers=await getHeaders();
-    const res=await fetch(
-      `${SUPA_URL}/rest/v1/backflow_reports?device_id=eq.${a.id}&order=date.desc&select=date,result,tester,cert_num,psid_c1,psid_c2,psid_relief,repair_details,remarks,tester_email`,
-      {headers}
-    );
-    if(!res.ok)throw new Error('HTTP '+res.status);
-    const reports=await res.json();
-    if(!reports.length){
-      body.innerHTML=_ac('Report History','<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">No test reports on file for this device.</div>');
-      return;
-    }
-    const rows=reports.map((r,i)=>{
-      const sc=r.result==='PASS'?'var(--green)':r.result==='FAIL'?'var(--red)':'var(--muted)';
-      const sbg=r.result==='PASS'?'rgba(62,207,128,.12)':r.result==='FAIL'?'rgba(239,90,90,.12)':'rgba(154,165,184,.1)';
-      const sbr=r.result==='PASS'?'rgba(62,207,128,.3)':r.result==='FAIL'?'rgba(239,90,90,.3)':'rgba(154,165,184,.25)';
-      const psidParts=[
-        r.psid_c1!=null?'C1: '+r.psid_c1+' PSI':null,
-        r.psid_c2!=null?'C2: '+r.psid_c2+' PSI':null,
-        r.psid_relief!=null?'RV: '+r.psid_relief+' PSI':null,
-      ].filter(Boolean);
-      const psid=psidParts.length?psidParts.join(' · '):'—';
-      return `<div style="padding:12px;background:${i%2===0?'var(--elevated)':'var(--surface)'};border-radius:8px;margin-bottom:6px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <div style="font-family:var(--mono);font-size:12px;color:var(--muted)">${r.date||'—'}</div>
-          <span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${sc};background:${sbg};border:1px solid ${sbr};padding:2px 8px;border-radius:3px">${(r.result||'?')}</span>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-          <div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Tester</div><div style="font-size:13px;color:var(--text)">${sanitize(r.tester||'—')}</div></div>
-          <div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Cert #</div><div style="font-family:var(--mono);font-size:12px;color:var(--text)">${sanitize(r.cert_num||'—')}</div></div>
-          <div style="grid-column:1/-1"><div style="font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Readings</div><div style="font-size:13px;color:var(--text)">${sanitize(psid)}</div></div>
-          ${r.repair_details?`<div style="grid-column:1/-1"><div style="font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Repairs</div><div style="font-size:13px;color:var(--text)">${sanitize(r.repair_details)}</div></div>`:''}
-          ${r.remarks?`<div style="grid-column:1/-1"><div style="font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Remarks</div><div style="font-size:13px;color:var(--muted)">${sanitize(r.remarks)}</div></div>`:''}
-        </div>
-      </div>`;
-    }).join('');
-    body.innerHTML=_ac(`Report History (${reports.length})`,rows);
-  } catch(e){
-    body.innerHTML=_ac('Report History',`<div style="color:var(--red);font-size:13px;padding:12px">Failed to load history: ${e.message}</div>`);
-  }
+function asmRenderHistory(a){
+  if(!a.reportHistory||!a.reportHistory.length)return _ac('Report History','<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">No test reports on file.</div>');
+  const rows=a.reportHistory.map((r,i)=>{
+    const sc=r.result==='Pass'?'var(--green)':r.result==='Fail'?'var(--red)':'var(--yellow)';
+    const sbg=r.result==='Pass'?'rgba(76,175,121,.12)':'rgba(224,82,82,.12)';
+    const sbr=r.result==='Pass'?'rgba(76,175,121,.3)':'rgba(224,82,82,.3)';
+    return `<div style="padding:12px;background:${i%2===0?'var(--elevated)':'var(--surface)'};border-radius:8px;margin-bottom:6px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-family:var(--mono);font-size:12px;color:var(--muted)">${r.date}</div>
+        <span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${sc};background:${sbg};border:1px solid ${sbr};padding:2px 8px;border-radius:3px">${r.result.toUpperCase()}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase">Tester</div><div style="font-size:13px;color:var(--text)">${sanitize(r.tester)}</div></div>
+        <div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase">Cert #</div><div style="font-family:var(--mono);font-size:12px;color:var(--text)">${sanitize(r.cert)}</div></div>
+        <div style="grid-column:1/-1"><div style="font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase">Reading</div><div style="font-size:13px;color:var(--text)">${sanitize(r.reading)}</div></div>
+      </div>
+    </div>`;
+  }).join('');
+  return _ac('Report History ('+a.reportHistory.length+')',rows);
 }
 
 function asmRenderComms(a){
@@ -6831,21 +6877,18 @@ function asmRenderComms(a){
 }
 
 function asmRenderCompliance(a){
-  const sc=asmStatusColor(a.status);
+  const sc=a.status==='Pass'?'var(--green)':a.status==='Fail'?'var(--red)':'var(--yellow)';
   const days=asmDaysUntil(a.nextDue);
   const dueColor=days===null?'var(--muted)':days<0?'var(--red)':days<30?'var(--yellow)':'var(--green)';
-  const resultColor=a.lastResult==='PASS'?'var(--green)':a.lastResult==='FAIL'?'var(--red)':'var(--muted)';
   return _ac('Current Compliance Status',_ag([
-    ['Status','<span style="color:'+sc+'">'+asmStatusLabel(a.status)+'</span>'],
-    ['Last Test Result','<span style="color:'+resultColor+'">'+(a.lastResult||'—')+'</span>'],
-    ['Last Tested On',a.lastTested||'—'],
-    ['Tested By',sanitize(a.testedBy||'—')],
-    ['Tester Cert',sanitize(a.testerCert||'—')],
-    ['Next Due',a.nextDue||'—'],
+    ['Status','<span style="color:'+sc+'">'+a.status+'</span>'],
+    ['Last Test Result','<span style="color:'+(a.lastResult==='Pass'?'var(--green)':a.lastResult==='Fail'?'var(--red)':'var(--yellow)')+'">'+a.lastResult+'</span>'],
+    ['Last Tested On',a.lastTested],
+    ['Tested By',sanitize(a.testedBy)],
+    ['Next Due',a.nextDue],
     ['Days Until Due','<span style="color:'+dueColor+'">'+(days===null?'—':days<0?Math.abs(days)+' days overdue':days+' days')+'</span>'],
   ]))+
-  (a.notes?_ac('Location Notes',`<div style="font-size:13px;color:var(--muted);line-height:1.6;padding:9px 11px;background:var(--elevated);border:1px solid var(--border);border-radius:6px">${sanitize(a.notes)}</div>`):'') +
-  (a.status==='failed'?_ac('Failure Action Required',`<div style="font-size:13px;color:var(--red);line-height:1.6;padding:9px 11px;background:rgba(239,90,90,.08);border:1px solid rgba(239,90,90,.2);border-radius:6px">This device failed its last test. A repair and retest is required before compliance can be restored.</div>`):'') +
+  (a.notes&&a.lastResult==='Fail'?_ac('Failure Notes',`<div style="font-size:13px;color:var(--muted);line-height:1.6;padding:9px 11px;background:rgba(224,82,82,.08);border:1px solid rgba(224,82,82,.2);border-radius:6px">${sanitize(a.notes)}</div>`):'')+
   _ac('Add Test Report',`<button onclick="alert('Navigate to Add Report to submit a new test')" class="btn btn-ac" style="width:100%;justify-content:center">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     + Add Test Report
@@ -6859,76 +6902,33 @@ function asmCloseAdd(){
   ['aa-type','aa-leadfree','aa-hazard'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   ['aa-installed','aa-duedate'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
 }
-async function asmSaveAdd(){
-  const serial  = document.getElementById('aa-serial')?.value.trim();
-  const type    = document.getElementById('aa-type')?.value;
-  const address = document.getElementById('aa-address')?.value.trim();
-  const err     = document.getElementById('aa-error');
-  const saveBtn = document.querySelector('#asmAddModal .btn-ac');
-
+function asmSaveAdd(){
+  const serial=document.getElementById('aa-serial')?.value.trim();
+  const type=document.getElementById('aa-type')?.value;
+  const address=document.getElementById('aa-address')?.value.trim();
+  const err=document.getElementById('aa-error');
   if(!serial){if(err){err.textContent='Serial number is required.';err.style.display='block';}return;}
   if(!type){if(err){err.textContent='Assembly type is required.';err.style.display='block';}return;}
   if(!address){if(err){err.textContent='Service address is required.';err.style.display='block';}return;}
-  if(err)err.style.display='none';
-  if(saveBtn){saveBtn.disabled=true;saveBtn.textContent='Saving…';}
-
-  try {
-    const headers = await getHeaders();
-
-    // 1. Find or create property by address
-    const propSearch = await fetch(
-      `${SUPA_URL}/rest/v1/properties?address=eq.${encodeURIComponent(address)}&limit=1`,
-      {headers}
-    );
-    let propId;
-    const propRows = await propSearch.json();
-    if(propRows.length){
-      propId = propRows[0].id;
-    } else {
-      const propRes = await fetch(`${SUPA_URL}/rest/v1/properties`, {
-        method:'POST',
-        headers:{...headers,'Prefer':'return=representation'},
-        body:JSON.stringify({
-          address,
-          city:'Abilene', state:'TX',
-          zip: document.getElementById('aa-address')?.value.includes(',') ? '' : '',
-          hazard_level: document.getElementById('aa-hazard')?.value || null,
-        })
-      });
-      if(!propRes.ok) throw new Error('Property insert failed: '+await propRes.text());
-      const newProp = await propRes.json();
-      propId = newProp[0].id;
-    }
-
-    // 2. Insert device
-    const devRes = await fetch(`${SUPA_URL}/rest/v1/devices`, {
-      method:'POST',
-      headers:{...headers,'Prefer':'return=minimal'},
-      body:JSON.stringify({
-        property_id:   propId,
-        assembly:      type,
-        manufacturer:  document.getElementById('aa-make')?.value.trim()  || null,
-        model:         document.getElementById('aa-model')?.value.trim() || null,
-        size:          document.getElementById('aa-size')?.value.trim()  || null,
-        serial,
-        location_description: document.getElementById('aa-notes')?.value.trim() || null,
-        install_date:  document.getElementById('aa-installed')?.value    || null,
-        next_test_due: document.getElementById('aa-duedate')?.value      || null,
-        active:        true,
-        compliance_status: 'never_tested',
-      })
-    });
-    if(!devRes.ok) throw new Error('Device insert failed: '+await devRes.text());
-
-    asmCloseAdd();
-    toast('Assembly added successfully','success');
-    asmLoadData(); // Reload from Supabase
-
-  } catch(e){
-    if(err){err.textContent='Save failed: '+e.message;err.style.display='block';}
-  } finally {
-    if(saveBtn){saveBtn.disabled=false;saveBtn.textContent='Save Assembly';}
-  }
+  const newAsm={
+    id:ASM_DATA.length+1,serial,type,
+    make:document.getElementById('aa-make')?.value.trim()||'',
+    model:document.getElementById('aa-model')?.value.trim()||'',
+    size:document.getElementById('aa-size')?.value.trim()||'',
+    leadFree:document.getElementById('aa-leadfree')?.value||'Unknown',
+    status:'Pass',address,
+    city:'Abilene',state:'TX',zip:'',
+    account:document.getElementById('aa-account')?.value.trim()||'',
+    hazard:document.getElementById('aa-hazard')?.value||'',
+    protection:document.getElementById('aa-protection')?.value.trim()||'',
+    installed:document.getElementById('aa-installed')?.value||'',
+    lastTested:'',lastResult:'Pending',
+    nextDue:document.getElementById('aa-duedate')?.value||'',
+    testedBy:'',notes:document.getElementById('aa-notes')?.value.trim()||'',
+    reportHistory:[],communications:[]
+  };
+  ASM_DATA.push(newAsm);asmFiltered=[...ASM_DATA];asmCloseAdd();asmRenderTable();
+  // TODO: save to Supabase backflow_reports
 }
 function asmExportCSV(){
   const h=['Serial #','Type','Make','Model','Size','Address','Account','Status','Last Tested','Next Due'];
