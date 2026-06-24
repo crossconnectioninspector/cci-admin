@@ -2617,6 +2617,27 @@ Please contact our office to schedule your test..." style="font-size:13px;paddin
       <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Gauge Serial #</label><input type="text" id="sp-add-gauge" class="si" placeholder="GAU-00000" style="font-size:15px;padding:8px 11px"></div>
       <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Gauge Cal Expiry</label><input type="date" id="sp-add-caldate" class="si" style="font-size:15px;padding:8px 11px"></div>
       <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">License Expiry</label><input type="date" id="sp-add-licdate" class="si" style="font-size:15px;padding:8px 11px"></div>
+      <!-- Fireline license section -->
+      <div style="grid-column:1/-1;margin-top:8px;padding-top:12px;border-top:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <span style="font-size:16px">🔥</span>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;font-weight:700">Fireline Authorization (RME + SCR)</div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5">Required to submit test reports on fire suppression assemblies. Both an individual RME license and a company SCR registration must be on file and unexpired.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">RME License #</label><input type="text" id="sp-add-rme" class="si" placeholder="RME-G-000000" style="font-size:15px;padding:8px 11px"></div>
+      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">RME Type</label>
+        <select id="sp-add-rme-type" class="si" style="font-size:15px;padding:8px 11px">
+          <option value="">— Select —</option>
+          <option value="G">G — General (all systems)</option>
+          <option value="I">I — General Inspector</option>
+          <option value="D">D — Dwelling</option>
+          <option value="U">U — Underground</option>
+        </select>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">RME Expiry</label><input type="date" id="sp-add-rme-expires" class="si" style="font-size:15px;padding:8px 11px"></div>
+      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Company SCR #</label><input type="text" id="sp-add-scr" class="si" placeholder="SCR-0000" style="font-size:15px;padding:8px 11px"></div>
+      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">SCR Expiry</label><input type="date" id="sp-add-scr-expires" class="si" style="font-size:15px;padding:8px 11px"></div>
       <div style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Notes</label><textarea id="sp-add-notes" class="si" rows="2" placeholder="Additional notes..." style="font-size:15px;padding:8px 11px;resize:vertical"></textarea></div>
     </div>
     <div id="sp-add-error" style="display:none;background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.3);border-radius:7px;padding:10px 14px;font-size:13px;color:var(--red);margin-top:12px"></div>
@@ -6048,9 +6069,55 @@ document.addEventListener('click',function(e){if(!conDetailOpen)return;const pan
 // ═══════════════════════════════════════════════════════
 const SP_REQUIRED=['cert_number','company','license_exp','gauge_cal_date','gauge_serial'];
 const SP_REQUIRED_LABELS={cert_number:'Backflow Cert Number',company:'Company / Firm',license_exp:'License Expiration Date',gauge_cal_date:'Gauge Calibration Date',gauge_serial:'Gauge Serial Number'};
-const SP_DATA=[{id:1,name:"Matt Snider",email:"matt@backflowcheckpro.com",company:"Backflow Check Pro",cert_number:"TX-4421",phone:"(325) 555-0101",gauge_serial:"GAU-2291",gauge_cal_date:"2026-09-01",license_number:"LIC-0042",license_exp:"2027-03-15",testsRun:47,status:"active",approved_at:"2025-01-10",notes:"Lead tester.",testHistory:[{date:"2026-01-22",address:"4150 Buffalo Gap Rd",assembly:"PV-0034",result:"Pass"},{date:"2025-11-14",address:"1423 N 1st St",assembly:"RP-2291",result:"Pass"}]},{id:2,name:"Jorge Rodriguez",email:"j.rodriguez@abileneplumbing.com",company:"Abilene Plumbing Co.",cert_number:"TX-2209",phone:"(325) 555-0217",gauge_serial:"GAU-1144",gauge_cal_date:"2026-06-15",license_number:"LIC-0088",license_exp:"2026-11-30",testsRun:23,status:"active",approved_at:"2025-03-15",notes:"",testHistory:[{date:"2025-10-02",address:"3801 S Clack St",assembly:"RP-0881",result:"Pass"}]},{id:3,name:"Sandra Williams",email:"s.williams@williamsbackflow.com",company:"Williams Backflow LLC",cert_number:"TX-3387",phone:"(325) 555-0344",gauge_serial:"",gauge_cal_date:"",license_number:"",license_exp:"",testsRun:31,status:"pending",submitted_at:"2026-05-20",notes:"Missing gauge cal and license.",testHistory:[]},{id:4,name:"David Kim",email:"d.kim@kimmechanical.com",company:"Kim Mechanical Services",cert_number:"",phone:"(325) 555-0488",gauge_serial:"",gauge_cal_date:"",license_number:"",license_exp:"",testsRun:0,status:"pending",submitted_at:"2026-05-27",notes:"New — multiple fields missing.",testHistory:[]}];
+// ── Testers / Service Providers — live from Supabase ─────────────────────
+let SP_DATA = [];
+
+function spMapRow(r) {
+  const today = new Date();
+  const rmeExp  = r.rme_expires  ? new Date(r.rme_expires  + 'T12:00:00') : null;
+  const scrExp  = r.scr_expires  ? new Date(r.scr_expires  + 'T12:00:00') : null;
+  const fireline_authorized = !!(r.rme_number && rmeExp && rmeExp > today && r.scr_number && scrExp && scrExp > today);
+  return {
+    id:             r.id,
+    name:           r.name           || '',
+    email:          r.email          || '',
+    company:        r.firm           || '',
+    cert_number:    r.cert_num       || '',
+    phone:          r.phone          || '',
+    gauge_serial:   r.gauge_serial   || '',
+    gauge_cal_date: r.gauge_cal_due  || '',
+    license_number: r.cert_num       || '',
+    license_exp:    r.cert_expires   || '',
+    rme_number:     r.rme_number     || '',
+    rme_type:       r.rme_type       || '',
+    rme_expires:    r.rme_expires    || '',
+    scr_number:     r.scr_number     || '',
+    scr_expires:    r.scr_expires    || '',
+    fireline_authorized,
+    active:         r.active !== false,
+    status:         r.active !== false ? 'active' : 'inactive',
+    testsRun:       0, // loaded separately if needed
+    testHistory:    [],
+    notes:          r.notes || '',
+    approved_at:    r.created_at ? r.created_at.slice(0,10) : '',
+  };
+}
+
+async function spLoadData() {
+  try {
+    const headers = await getHeaders();
+    const res = await fetch(`${SUPA_URL}/rest/v1/testers?select=*&order=name.asc`, { headers });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    SP_DATA = data.map(spMapRow);
+    spApplyFilters();
+    spUpdatePendingBadge();
+  } catch(e) {
+    console.error('spLoadData:', e);
+  }
+}
 let spFiltered=[...SP_DATA],spActiveId=null,spCurrentPage=1,spDetailOpen=false,spCurrentTab='active';
-function spInit(){spLoadCommsFromStorage();spCurrentPage=1;spDetailOpen=false;const p=document.getElementById('spDetailPanel');if(p){p.style.width='0';p.style.opacity='0';}spSetTab('active');spUpdatePendingBadge();}
+function spInit(){spCurrentPage=1;spDetailOpen=false;const p=document.getElementById('spDetailPanel');if(p){p.style.width='0';p.style.opacity='0';}spSetTab('active');spLoadData();}
 function spUpdatePendingBadge(){const pending=SP_DATA.filter(t=>t.status==='pending').length;const badge=document.getElementById('spPendingBadge');if(badge){badge.textContent=pending;badge.style.display=pending>0?'inline':'none';}}
 function spSetTab(tab){spCurrentTab=tab;spCurrentPage=1;const btnA=document.getElementById('spTabActive'),btnP=document.getElementById('spTabPending');if(btnA){btnA.style.background=tab==='active'?'var(--accent)':'transparent';btnA.style.color=tab==='active'?'#000':'var(--muted)';}if(btnP){btnP.style.background=tab==='pending'?'var(--yellow)':'transparent';btnP.style.color=tab==='pending'?'#000':'var(--muted)';}spApplyFilters();}
 function spApplyFilters(){const ms=document.getElementById('spMainSearch')?.value.trim().toLowerCase()||'';spFiltered=SP_DATA.filter(t=>t.status===spCurrentTab&&(!ms||t.name.toLowerCase().includes(ms)||t.cert_number.toLowerCase().includes(ms)||t.company.toLowerCase().includes(ms)||t.email.toLowerCase().includes(ms)));spRenderTable();}
@@ -6131,12 +6198,93 @@ function spRequestInfo(){const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return
 function spReject(){const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return;if(!confirm('Reject '+t.name+'?'))return;t.status='rejected';spUpdatePendingBadge();spCloseDetail();spSetTab('pending');}
 
 function spSetStatus(status){const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return;t.status=status;const badge=document.getElementById('spDetailStatusBadge');if(badge){const sc=status==='active'?'var(--green)':'var(--red)';const sbg=status==='active'?'rgba(76,175,121,.14)':'rgba(224,82,82,.14)';const sbr=status==='active'?'rgba(76,175,121,.3)':'rgba(224,82,82,.3)';badge.style.cssText=`font-family:var(--cond);font-weight:700;font-size:13px;padding:4px 10px;border-radius:5px;background:${sbg};color:${sc};border:1px solid ${sbr}`;badge.textContent=status.toUpperCase();}const aBtn=document.getElementById('spStatusActive');const dBtn=document.getElementById('spStatusDisabled');const isActive=status==='active';if(aBtn){aBtn.style.borderColor=isActive?'var(--green)':'var(--border)';aBtn.style.background=isActive?'rgba(61,184,112,.12)':'var(--elevated)';aBtn.style.color=isActive?'var(--green)':'var(--muted)';}if(dBtn){dBtn.style.borderColor=!isActive?'var(--red)':'var(--border)';dBtn.style.background=!isActive?'rgba(224,82,82,.12)':'var(--elevated)';dBtn.style.color=!isActive?'var(--red)':'var(--muted)';}spRenderTable();if(typeof toast==='function')toast('Tester '+(isActive?'activated':'disabled'),'success');}
-function spRefresh(){spInit();const btn=event?.currentTarget;if(btn){const orig=btn.innerHTML;btn.innerHTML='&#x2713; Synced!';setTimeout(()=>{btn.innerHTML=orig;},2000);}}
+function spRefresh(){spLoadData();const btn=event?.currentTarget;if(btn){const orig=btn.innerHTML;btn.innerHTML='&#x2713; Synced!';setTimeout(()=>{btn.innerHTML=orig;},2000);}}
+
+function spOpenAdd(){const m=document.getElementById('spAddModal');if(m)m.style.display='flex';}
+function spCloseAdd(){
+  const m=document.getElementById('spAddModal');if(m)m.style.display='none';
+  ['sp-add-name','sp-add-company','sp-add-cert','sp-add-phone','sp-add-email',
+   'sp-add-gauge','sp-add-caldate','sp-add-licdate','sp-add-rme','sp-add-rme-type',
+   'sp-add-rme-expires','sp-add-scr','sp-add-scr-expires','sp-add-notes'
+  ].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const err=document.getElementById('sp-add-error');if(err)err.style.display='none';
+}
+
+async function spSaveAdd(){
+  const name    = document.getElementById('sp-add-name')?.value.trim();
+  const cert    = document.getElementById('sp-add-cert')?.value.trim();
+  const err     = document.getElementById('sp-add-error');
+  const saveBtn = document.querySelector('#spAddModal .btn-ac');
+  if(!name){if(err){err.textContent='Full name is required.';err.style.display='block';}return;}
+  if(!cert){if(err){err.textContent='Backflow cert number is required.';err.style.display='block';}return;}
+  if(err)err.style.display='none';
+  if(saveBtn){saveBtn.disabled=true;saveBtn.textContent='Saving…';}
+
+  const rme_number  = document.getElementById('sp-add-rme')?.value.trim()||null;
+  const rme_expires = document.getElementById('sp-add-rme-expires')?.value||null;
+  const scr_number  = document.getElementById('sp-add-scr')?.value.trim()||null;
+  const scr_expires = document.getElementById('sp-add-scr-expires')?.value||null;
+  const today       = new Date();
+  const fireline_authorized = !!(
+    rme_number && rme_expires && new Date(rme_expires+'T12:00:00') > today &&
+    scr_number && scr_expires && new Date(scr_expires+'T12:00:00') > today
+  );
+
+  try {
+    const headers = await getHeaders();
+    const res = await fetch(`${SUPA_URL}/rest/v1/testers`,{
+      method:'POST',
+      headers:{...headers,'Prefer':'return=minimal'},
+      body:JSON.stringify({
+        name,
+        cert_num:       cert,
+        firm:           document.getElementById('sp-add-company')?.value.trim()||null,
+        phone:          document.getElementById('sp-add-phone')?.value.trim()||null,
+        email:          document.getElementById('sp-add-email')?.value.trim()||null,
+        gauge_serial:   document.getElementById('sp-add-gauge')?.value.trim()||null,
+        gauge_cal_due:  document.getElementById('sp-add-caldate')?.value||null,
+        cert_expires:   document.getElementById('sp-add-licdate')?.value||null,
+        rme_number, rme_type: document.getElementById('sp-add-rme-type')?.value||null,
+        rme_expires, scr_number, scr_expires, fireline_authorized,
+        notes:          document.getElementById('sp-add-notes')?.value.trim()||null,
+        active:         true,
+      })
+    });
+    if(!res.ok)throw new Error('Save failed: '+await res.text());
+    spCloseAdd();
+    toast('Tester added successfully','success');
+    spLoadData();
+  } catch(e){
+    if(err){err.textContent=e.message;err.style.display='block';}
+  } finally {
+    if(saveBtn){saveBtn.disabled=false;saveBtn.textContent='Save Tester';}
+  }
+}
 function _sp(title,html){return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px"><div style="font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:1.4px;text-transform:uppercase;margin-bottom:13px;font-weight:600">${title}</div>${html}</div>`;}
 function _sg(pairs){return`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${pairs.map(([l,v])=>`<div><div style="font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px">${l}</div><div style="font-size:16px;color:var(--text);font-weight:500;line-height:1.4">${v||'<span style=color:var(--red)>Missing</span>'}</div></div>`).join('')}</div>`;}
 function spRenderInfo(t){const initials=t.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();const sc=t.status==='active'?'var(--green)':t.status==='pending'?'var(--yellow)':'var(--red)';return`<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px"><div style="width:52px;height:52px;border-radius:50%;background:${t.status==='pending'?'var(--yellow)':'var(--accent)'};display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:22px;color:#000;flex-shrink:0">${initials}</div><div><div style="font-family:var(--cond);font-weight:900;font-size:20px;color:var(--text);line-height:1.3;letter-spacing:.2px">${sanitize(t.name)}</div><div style="font-size:13px;color:var(--muted);margin-top:2px">${sanitize(t.company)||'No company'}</div><div style="font-size:12px;color:var(--muted);margin-top:1px">${sanitize(t.email)}</div></div></div>`+_sp('Contact & Profile',_sg([['Phone',sanitize(t.phone)],['Email',sanitize(t.email)],['Backflow Cert #',sanitize(t.cert_number)],['Company',sanitize(t.company)],['Tests Completed',t.testsRun+' total'],['Status',`<span style="color:${sc}">${t.status.toUpperCase()}</span>`]]))+(t.notes?_sp('Notes',`<div style="font-size:13px;color:var(--muted);line-height:1.6;padding:9px 11px;background:var(--elevated);border-radius:6px">${sanitize(t.notes)}</div>`):'');}
 function spRenderTests(t){if(!t.testHistory||!t.testHistory.length)return _sp('Test History','<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">No tests submitted yet.</div>');const rows=t.testHistory.map(h=>{const rc=h.result==='Pass'?'var(--green)':'var(--red)';return`<tr style="border-bottom:1px solid var(--border)"><td style="padding:8px;font-family:var(--mono);font-size:11px;color:var(--muted)">${h.date}</td><td style="padding:8px;font-size:13px;color:var(--text)">${sanitize(h.address)}</td><td style="padding:8px;font-family:var(--mono);font-size:11px;color:var(--muted)">${sanitize(h.assembly)}</td><td style="padding:8px"><span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${rc};padding:2px 7px;border-radius:3px;background:${h.result==='Pass'?'rgba(76,175,121,.12)':'rgba(224,82,82,.12)'};border:1px solid ${h.result==='Pass'?'rgba(76,175,121,.3)':'rgba(224,82,82,.3)'}">${h.result.toUpperCase()}</span></td></tr>`;}).join('');return _sp('Test History ('+t.testHistory.length+')','<table style="width:100%;border-collapse:collapse"><thead><tr style="border-bottom:1px solid var(--border)">'+['Date','Address','Assembly','Result'].map(h=>`<th style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;text-align:left;padding:5px 8px">${h}</th>`).join('')+'</tr></thead><tbody>'+rows+'</tbody></table>');}
-function spRenderCredentials(t){const cal=spCalStatus(t.gauge_cal_date);const lic=spCalStatus(t.license_exp);return _sp('Credentials & Equipment',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Backflow Cert #</div><div style="font-size:15px;color:${t.cert_number?'var(--text)':'var(--red)'};font-weight:500">${t.cert_number||'&#x26A0; Missing'}</div></div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">License #</div><div style="font-size:15px;color:${t.license_number?'var(--text)':'var(--red)'};font-weight:500">${t.license_number||'&#x26A0; Missing'}</div></div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">License Expiry</div><div style="font-size:15px;color:${lic.color};font-weight:500">${!t.license_exp?'&#x26A0; Missing':lic.label}</div></div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Gauge Serial #</div><div style="font-size:15px;color:${t.gauge_serial?'var(--text)':'var(--red)'};font-weight:500">${t.gauge_serial||'&#x26A0; Missing'}</div></div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Gauge Cal Expiry</div><div style="font-size:15px;color:${cal.color};font-weight:500">${!t.gauge_cal_date?'&#x26A0; Missing':cal.label}</div></div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Approved</div><div style="font-size:16px;color:var(--text);font-weight:500;line-height:1.4">${t.approved_at||'Not yet approved'}</div></div></div>`);}
+function spRenderCredentials(t){
+  const cal=spCalStatus(t.gauge_cal_date);
+  const lic=spCalStatus(t.license_exp);
+  const rmeExp=spCalStatus(t.rme_expires);
+  const scrExp=spCalStatus(t.scr_expires);
+  const fireIcon=t.fireline_authorized
+    ?`<span style="font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;background:rgba(239,90,90,.12);color:var(--red);border:1px solid rgba(239,90,90,.3)">🔥 FIRELINE AUTHORIZED</span>`
+    :`<span style="font-family:var(--mono);font-size:10px;color:var(--muted)">Not authorized for firelines</span>`;
+  return _sp('Credentials & Equipment',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Backflow Cert #</div><div style="font-size:15px;color:${t.cert_number?'var(--text)':'var(--red)'};font-weight:500">${t.cert_number||'&#x26A0; Missing'}</div></div>
+    <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">License Expiry</div><div style="font-size:15px;color:${lic.color};font-weight:500">${!t.license_exp?'&#x26A0; Missing':lic.label}</div></div>
+    <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Gauge Serial #</div><div style="font-size:15px;color:${t.gauge_serial?'var(--text)':'var(--red)'};font-weight:500">${t.gauge_serial||'&#x26A0; Missing'}</div></div>
+    <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Gauge Cal Expiry</div><div style="font-size:15px;color:${cal.color};font-weight:500">${!t.gauge_cal_date?'&#x26A0; Missing':cal.label}</div></div>
+  </div>`)+
+  _sp('🔥 Fireline Licensing',`<div style="margin-bottom:10px">${fireIcon}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">RME License #</div><div style="font-size:14px;color:${t.rme_number?'var(--text)':'var(--muted)'};font-weight:500">${t.rme_number||'—'} ${t.rme_type?'('+t.rme_type+')':''}</div></div>
+    <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">RME Expiry</div><div style="font-size:14px;color:${t.rme_expires?rmeExp.color:'var(--muted)'};font-weight:500">${t.rme_expires?rmeExp.label:'—'}</div></div>
+    <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Company SCR #</div><div style="font-size:14px;color:${t.scr_number?'var(--text)':'var(--muted)'};font-weight:500">${t.scr_number||'—'}</div></div>
+    <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">SCR Expiry</div><div style="font-size:14px;color:${t.scr_expires?scrExp.color:'var(--muted)'};font-weight:500">${t.scr_expires?scrExp.label:'—'}</div></div>
+  </div>`);
+}
 
 // ── TESTER COMMUNICATIONS LOG (mirrors location comms; persisted separately) ─
 function spRenderComms(t){
