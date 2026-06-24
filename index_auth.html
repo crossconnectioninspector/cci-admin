@@ -1042,6 +1042,10 @@ select.field-input option{background:var(--elevated)}
         <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:#4caf79" id="comp-n-current">—</div>
         <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Current</div>
       </div>
+      <div onclick="complianceSetFilter('NEVER TESTED')" id="comp-kpi-never" style="cursor:pointer;padding:8px 14px;border-radius:8px;background:rgba(154,165,184,.08);border:2px solid transparent;min-width:80px">
+        <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:#9aa5b8" id="comp-n-never">—</div>
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Never Tested</div>
+      </div>
     </div>
     <!-- Search + filter -->
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
@@ -2878,6 +2882,13 @@ async function loadAllData() {
     DB.sort((a,b) => (b.date||'') > (a.date||'') ? 1 : -1);
     console.log(`✅ Loaded ${DB.length} records (${bfNorm.length} backflow, ${csiNorm.length} CSI, ${inspNorm.length} inspections)`);
 
+    // device_compliance — for accurate KPI counts on dashboard
+    try {
+      const headers = await getHeaders();
+      const dcRes = await fetch(`${SUPA_URL}/rest/v1/device_compliance?select=device_id,compliance_status,next_test_due`, { headers });
+      if (dcRes.ok) window._deviceComplianceCache = await dcRes.json();
+    } catch(e) { window._deviceComplianceCache = []; }
+
     // Staff emails (for the CITY STAFF badge) — fired in the background, never blocks report data
     loadStaffEmails();
 
@@ -3182,15 +3193,24 @@ function buildDashboard() {
     return;
   }
 
-  // Latest test per device
+  // ── Device KPIs from device_compliance (single source of truth) ──────────
+  const devComp = window._deviceComplianceCache || [];
+  const total     = devComp.length  || devices.length;
+  const compliant = devComp.length
+    ? devComp.filter(r => r.compliance_status === 'current').length
+    : devices.filter(r=>r.result==='PASS'&&r.date&&new Date(r.date+'T12:00:00')>=oneYearAgo).length;
+  const nonComp   = devComp.length
+    ? devComp.filter(r => r.compliance_status === 'failed').length
+    : devices.filter(r=>r.result==='FAIL').length;
+  const overdue   = devComp.length
+    ? devComp.filter(r => r.compliance_status === 'overdue').length
+    : devices.filter(r=>!r.date||new Date(r.date+'T12:00:00')<oneYearAgo).length;
+  const compRate  = total>0?Math.round((compliant/total)*100):0;
+
+  // devices still used by pipeline + overdue aging widgets below
   const deviceMap = new Map();
   bf.forEach(r => { const key=(r.serial&&r.serial!=='')?r.serial:r.address; if(!deviceMap.has(key)||(r.date>deviceMap.get(key).date))deviceMap.set(key,r); });
-  const devices   = [...deviceMap.values()];
-  const total     = devices.length;
-  const compliant = devices.filter(r=>r.result==='PASS'&&r.date&&new Date(r.date+'T12:00:00')>=oneYearAgo).length;
-  const nonComp   = devices.filter(r=>r.result==='FAIL').length;
-  const overdue   = devices.filter(r=>!r.date||new Date(r.date+'T12:00:00')<oneYearAgo).length;
-  const compRate  = total>0?Math.round((compliant/total)*100):0;
+  const devices = [...deviceMap.values()];
 
   // Pipeline
   const due30=[],due60=[],due90=[];
@@ -6720,8 +6740,8 @@ function asmSwitchTab(tab,btn){
   const body=document.getElementById('asmTabBody');if(!body||!a)return;
   if(tab==='details')body.innerHTML=asmRenderDetails(a);
   else if(tab==='location')body.innerHTML=asmRenderLocation(a);
-  else if(tab==='history')body.innerHTML=asmRenderHistory(a);
-  else if(tab==='comms')body.innerHTML=asmRenderComms(a);
+  else if(tab==='history'){body.innerHTML='';asmRenderHistory(a);}
+  else if(tab==='comms'){body.innerHTML='';asmRenderComms(a);}
   else if(tab==='compliance')body.innerHTML=asmRenderCompliance(a);
   // If location tab, force map resize after tab animation settles
   if(tab==='location'){
@@ -6859,21 +6879,63 @@ function asmRenderHistory(a){
   return _ac('Report History ('+a.reportHistory.length+')',rows);
 }
 
-function asmRenderComms(a){
-  if(!a.communications||!a.communications.length)return _ac('Communications','<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">No communications logged.</div>');
-  const tl=a.communications.map(c=>{
-    const dc=c.status==='Sent'?'var(--green)':'var(--muted)';
-    return `<div style="display:flex;gap:10px;padding-bottom:14px">
-      <div style="display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0">
-        <div style="width:9px;height:9px;border-radius:50%;background:${dc};box-shadow:0 0 5px ${dc};margin-top:3px"></div>
-        <div style="flex:1;width:1px;background:var(--border);margin-top:3px"></div>
-      </div>
-      <div><div style="font-size:13px;font-weight:600;color:var(--text)">${c.type}</div>
-      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:1px">${c.date} &bull; ${c.method}</div>
-      <div style="margin-top:2px;font-family:var(--mono);font-size:10px;color:${dc}">&#x2713; ${c.status}</div></div>
-    </div>`;
-  }).join('');
-  return _ac('Communication History',`<div>${tl}</div>`);
+async function asmRenderComms(a){
+  const body=document.getElementById('asmTabBody');
+  if(!body)return;
+  body.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-family:var(--mono);font-size:11px">Loading communications…</div>';
+
+  const stageLabel={1:'1st Notice',2:'2nd Notice',3:'Final Notice',4:'Shutoff Referral'};
+  const stageColor={1:'var(--blue)',2:'var(--yellow)',3:'var(--accent)',4:'var(--red)'};
+
+  try {
+    const headers=await getHeaders();
+    // Query by serial since enforcement_notices is keyed by serial/address
+    const res=await fetch(
+      `${SUPA_URL}/rest/v1/enforcement_notices?serial=eq.${encodeURIComponent(a.serial)}&order=sent_at.desc&select=*`,
+      {headers}
+    );
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const notices=await res.json();
+
+    const logBtn=`<button onclick="asmLogNotice(${JSON.stringify(JSON.stringify(a))})"
+      class="btn btn-ac" style="width:100%;justify-content:center;margin-bottom:12px">
+      + Log Notice
+    </button>`;
+
+    if(!notices.length){
+      body.innerHTML=_ac('Enforcement Notices',logBtn+'<div style="text-align:center;padding:16px;color:var(--muted);font-size:13px">No notices on file for this device.</div>');
+      return;
+    }
+
+    const timeline=notices.map((n,i)=>{
+      const sc=stageColor[n.stage]||'var(--muted)';
+      const label=stageLabel[n.stage]||('Stage '+n.stage);
+      const sentDate=n.sent_at?new Date(n.sent_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
+      return `<div style="display:flex;gap:10px;padding-bottom:14px">
+        <div style="display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0">
+          <div style="width:9px;height:9px;border-radius:50%;background:${sc};box-shadow:0 0 5px ${sc};margin-top:3px;flex-shrink:0"></div>
+          ${i<notices.length-1?`<div style="flex:1;width:1px;background:var(--border);margin-top:3px"></div>`:''}
+        </div>
+        <div style="padding-bottom:4px">
+          <div style="font-size:13px;font-weight:600;color:var(--text)">${label}</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px">${sentDate} &bull; ${sanitize(n.method||'—')} &bull; ${sanitize(n.sent_by||'—')}</div>
+          ${n.response_deadline?`<div style="font-family:var(--mono);font-size:10px;color:var(--yellow);margin-top:2px">Deadline: ${n.response_deadline}</div>`:''}
+          ${n.notes?`<div style="font-size:12px;color:var(--muted);margin-top:3px">${sanitize(n.notes)}</div>`:''}
+        </div>
+      </div>`;
+    }).join('');
+
+    body.innerHTML=_ac(`Enforcement History (${notices.length})`,logBtn+`<div>${timeline}</div>`);
+  } catch(e){
+    body.innerHTML=_ac('Enforcement Notices',`<div style="color:var(--red);font-size:13px;padding:12px">Failed to load: ${e.message}</div>`);
+  }
+}
+
+function asmLogNotice(aJson){
+  const a=JSON.parse(aJson);
+  // Reuse the existing complianceSendNotice modal, pre-filled for this device
+  const fakeRow={address:a.address,account_number:a.account,serial:a.serial};
+  complianceSendNotice(JSON.stringify(fakeRow));
 }
 
 function asmRenderCompliance(a){
@@ -9226,23 +9288,41 @@ let complianceFilter = 'ALL';
 let complianceActiveId = null;
 
 const COMP_STATUS_CFG = {
-  'FAILED':   { color:'#ef5a5a', bg:'rgba(224,82,82,.12)',  label:'FAILED',   icon:'🛑' },
-  'OVERDUE':  { color:'#f9a61e', bg:'rgba(249,166,30,.12)', label:'OVERDUE',  icon:'⚠️' },
-  'DUE SOON': { color:'#f0c040', bg:'rgba(240,192,64,.12)', label:'DUE SOON', icon:'🟡' },
-  'CURRENT':  { color:'#4caf79', bg:'rgba(76,175,121,.12)', label:'CURRENT',  icon:'✅' },
-  'UNKNOWN':  { color:'#888',    bg:'rgba(128,128,128,.1)', label:'UNKNOWN',  icon:'❓' },
+  'FAILED':       { color:'#ef5a5a', bg:'rgba(224,82,82,.12)',   label:'FAILED',       icon:'🛑' },
+  'OVERDUE':      { color:'#f9a61e', bg:'rgba(249,166,30,.12)',  label:'OVERDUE',      icon:'⚠️' },
+  'DUE SOON':     { color:'#f0c040', bg:'rgba(240,192,64,.12)',  label:'DUE SOON',     icon:'🟡' },
+  'CURRENT':      { color:'#4caf79', bg:'rgba(76,175,121,.12)',  label:'CURRENT',      icon:'✅' },
+  'NEVER TESTED': { color:'#9aa5b8', bg:'rgba(154,165,184,.1)',  label:'NEVER TESTED', icon:'❓' },
+  'UNKNOWN':      { color:'#888',    bg:'rgba(128,128,128,.1)',  label:'UNKNOWN',      icon:'❓' },
 };
+
+// Normalize a device_compliance row into the shape the compliance page expects
+function normalizeCompRow(r) {
+  const statusMap = {
+    'failed':'FAILED', 'overdue':'OVERDUE',
+    'due_soon':'DUE SOON', 'current':'CURRENT', 'never_tested':'NEVER TESTED'
+  };
+  const today = new Date();
+  const daysOverdue = r.next_test_due
+    ? Math.floor((today - new Date(r.next_test_due + 'T12:00:00')) / (1000*60*60*24))
+    : 0;
+  return {
+    ...r,
+    compliance_status: statusMap[r.compliance_status] || 'UNKNOWN',
+    days_overdue: Math.max(0, daysOverdue),
+    last_tester: r.last_tester_name || '',
+  };
+}
 
 async function complianceInit() {
   const status = document.getElementById('comp-status-text');
   if (status) status.textContent = 'Loading compliance data…';
   try {
     const headers = await getHeaders();
-    // Page through the compliance_status view
     let all = [], from = 0, pageSize = 1000;
     while (true) {
       const res = await fetch(
-        SUPA_URL + '/rest/v1/compliance_status?select=*&order=days_overdue.desc.nullslast',
+        SUPA_URL + '/rest/v1/device_compliance?select=*&order=next_test_due.asc.nullslast',
         { headers: { ...headers, 'Range-Unit':'items', 'Range':`${from}-${from+pageSize-1}` } }
       );
       if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + await res.text());
@@ -9251,7 +9331,7 @@ async function complianceInit() {
       if (page.length < pageSize) break;
       from += pageSize;
     }
-    complianceData = all;
+    complianceData = all.map(normalizeCompRow);
     complianceRenderKPIs();
     complianceRender();
     if (status) status.textContent = `${all.length} devices tracked — last refreshed ${new Date().toLocaleTimeString()}`;
@@ -9262,19 +9342,20 @@ async function complianceInit() {
 }
 
 function complianceRenderKPIs() {
-  const counts = { ALL: complianceData.length, FAILED: 0, OVERDUE: 0, 'DUE SOON': 0, CURRENT: 0 };
+  const counts = { ALL: complianceData.length, FAILED: 0, OVERDUE: 0, 'DUE SOON': 0, CURRENT: 0, 'NEVER TESTED': 0 };
   complianceData.forEach(r => { if (counts[r.compliance_status] !== undefined) counts[r.compliance_status]++; });
-  document.getElementById('comp-n-all').textContent     = counts.ALL;
-  document.getElementById('comp-n-failed').textContent  = counts.FAILED;
-  document.getElementById('comp-n-overdue').textContent = counts.OVERDUE;
-  document.getElementById('comp-n-duesoon').textContent = counts['DUE SOON'];
-  document.getElementById('comp-n-current').textContent = counts.CURRENT;
+  document.getElementById('comp-n-all').textContent        = counts.ALL;
+  document.getElementById('comp-n-failed').textContent     = counts.FAILED;
+  document.getElementById('comp-n-overdue').textContent    = counts.OVERDUE;
+  document.getElementById('comp-n-duesoon').textContent    = counts['DUE SOON'];
+  document.getElementById('comp-n-current').textContent    = counts.CURRENT;
+  const neverEl = document.getElementById('comp-n-never');
+  if (neverEl) neverEl.textContent = counts['NEVER TESTED'];
 }
 
 function complianceSetFilter(f) {
   complianceFilter = f;
-  // Update KPI chip borders
-  const map = { 'ALL':'all','FAILED':'failed','OVERDUE':'overdue','DUE SOON':'duesoon','CURRENT':'current' };
+  const map = { 'ALL':'all','FAILED':'failed','OVERDUE':'overdue','DUE SOON':'duesoon','CURRENT':'current','NEVER TESTED':'never' };
   Object.entries(map).forEach(([k,id]) => {
     const el2 = document.getElementById('comp-kpi-' + id);
     if (el2) el2.style.borderColor = (k === f) ? 'var(--accent)' : 'transparent';
