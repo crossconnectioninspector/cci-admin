@@ -6327,14 +6327,14 @@ async function asmInit(){
     // Fetch devices with property and compliance data
     const devRes = await fetch(
       `${SUPA_URL}/rest/v1/devices?select=id,property_id,serial,assembly,manufacturer,model,size,location_description,next_test_due&order=serial.asc`,
-      { headers: getHeaders() }
+      { headers: await getHeaders() }
     );
     const devices = await devRes.json();
     
     // Fetch properties for address lookup
     const propRes = await fetch(
       `${SUPA_URL}/rest/v1/properties?select=id,address,account_number`,
-      { headers: getHeaders() }
+      { headers: await getHeaders() }
     );
     const properties = await propRes.json();
     const propMap = new Map(properties.map(p => [p.id, p]));
@@ -6342,7 +6342,7 @@ async function asmInit(){
     // Fetch compliance status for each device
     const compRes = await fetch(
       `${SUPA_URL}/rest/v1/device_compliance?select=device_id,compliance_status`,
-      { headers: getHeaders() }
+      { headers: await getHeaders() }
     );
     const compliance = await compRes.json();
     const compMap = new Map(compliance.map(c => [c.device_id, c.compliance_status]));
