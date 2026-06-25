@@ -6327,14 +6327,14 @@ async function asmInit(){
     // Fetch devices with property and compliance data
     const devRes = await fetch(
       `${SUPA_URL}/rest/v1/devices?select=id,property_id,serial,assembly,manufacturer,model,size,location_description,next_test_due&order=serial.asc`,
-      { headers: getHeaders() }
+      { headers: await getHeaders() }
     );
     const devices = await devRes.json();
     
     // Fetch properties for address lookup
     const propRes = await fetch(
       `${SUPA_URL}/rest/v1/properties?select=id,address,account_number`,
-      { headers: getHeaders() }
+      { headers: await getHeaders() }
     );
     const properties = await propRes.json();
     const propMap = new Map(properties.map(p => [p.id, p]));
@@ -6342,7 +6342,7 @@ async function asmInit(){
     // Fetch compliance status for each device
     const compRes = await fetch(
       `${SUPA_URL}/rest/v1/device_compliance?select=device_id,compliance_status`,
-      { headers: getHeaders() }
+      { headers: await getHeaders() }
     );
     const compliance = await compRes.json();
     const compMap = new Map(compliance.map(c => [c.device_id, c.compliance_status]));
@@ -6352,14 +6352,14 @@ async function asmInit(){
       const prop = propMap.get(d.property_id);
       const status = compMap.get(d.id) || 'never_tested';
       const statusMap = { passed: 'pass', failed: 'fail', overdue: 'overdue', current: 'pass', due_soon: 'pass', never_tested: 'overdue' };
-      // Parse city/state/zip from stored address string
+      // Parse city/state/zip out of stored address string e.g. "123 MAIN ST, ABILENE, TX 79601"
       const fullAddr = prop?.address || '';
       const addrParts = fullAddr.split(',').map(s => s.trim());
       const streetAddr = addrParts[0] || fullAddr;
       const cityPart = addrParts[1] || 'Abilene';
-      const stateZipStr = (addrParts[2] || 'TX').trim().split(' ');
-      const statePart = stateZipStr[0] || 'TX';
-      const zipPart = stateZipStr[1] || '';
+      const stateZipArr = (addrParts[2] || 'TX').trim().split(' ');
+      const statePart = stateZipArr[0] || 'TX';
+      const zipPart = stateZipArr[1] || '';
       return {
         id: d.id,
         serial: d.serial || '—',
@@ -6375,6 +6375,7 @@ async function asmInit(){
         location: d.location_description || '—',
         nextDue: d.next_test_due || '—',
         status: statusMap[status] || 'overdue',
+        // Fields populated from test reports (shown as — until reports are linked)
         lastResult: '—',
         lastTested: '—',
         hazard: '—',
@@ -6383,7 +6384,8 @@ async function asmInit(){
         installed: '—',
         testedBy: '—',
         notes: '',
-        communications: []
+        communications: [],
+        reportHistory: []
       };
     });
     
@@ -6790,8 +6792,8 @@ function asmSwitchTab(tab,btn){
   const body=document.getElementById('asmTabBody');if(!body||!a)return;
   if(tab==='details')body.innerHTML=asmRenderDetails(a);
   else if(tab==='location')body.innerHTML=asmRenderLocation(a);
-  else if(tab==='history')body.innerHTML=asmRenderHistory(a);
-  else if(tab==='comms')body.innerHTML=asmRenderComms(a);
+  else if(tab==='history'){body.innerHTML='';asmRenderHistory(a);}
+  else if(tab==='comms'){body.innerHTML='';asmRenderComms(a);}
   else if(tab==='compliance')body.innerHTML=asmRenderCompliance(a);
   // If location tab, force map resize after tab animation settles
   if(tab==='location'){
