@@ -644,6 +644,7 @@ select.field-input option{background:var(--elevated)}
 
 .ac-wrap{position:relative;width:100%;z-index:10}
 .ac-wrap:focus-within{z-index:300}
+.ac-dropdown{background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:400;max-height:220px;overflow-y:auto;}
 .ac-item{padding:14px 16px;font-size:14px;font-weight:600;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s;display:flex;flex-direction:column;gap:3px}
 .ac-item:last-child{border-bottom:none}
 .ac-item:active,.ac-item:hover{background:rgba(249,166,30,.12)}
@@ -1042,10 +1043,6 @@ select.field-input option{background:var(--elevated)}
         <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:#4caf79" id="comp-n-current">—</div>
         <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Current</div>
       </div>
-      <div onclick="complianceSetFilter('NEVER TESTED')" id="comp-kpi-never" style="cursor:pointer;padding:8px 14px;border-radius:8px;background:rgba(154,165,184,.08);border:2px solid transparent;min-width:80px">
-        <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:#9aa5b8" id="comp-n-never">—</div>
-        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Never Tested</div>
-      </div>
     </div>
     <!-- Search + filter -->
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
@@ -1400,22 +1397,60 @@ select.field-input option{background:var(--elevated)}
               </div>
             </div>
             <div class="form-row">
-              <div class="form-field"><span class="field-label">BPA Serves (what it protects)</span><input type="text" class="field-input" id="imp-bpa-serves" placeholder="Irrigation System, Boiler…"></div>
+              <div class="form-field"><span class="field-label">BPA Serves (Service Type)</span>
+                <select class="field-input" id="imp-bpa-serves" onchange="bpaServeChanged('imp-bpa-serves','imp-hazard')">
+                  <option value="">— Select Service Type —</option>
+                  <optgroup label="Common">
+                    <option value="Domestic">Domestic</option>
+                    <option value="Fireline">🔥 Fireline</option>
+                    <option value="Irrigation — Residential">Irrigation — Residential</option>
+                    <option value="Irrigation — Commercial">Irrigation — Commercial</option>
+                  </optgroup>
+                  <optgroup label="Food &amp; Beverage">  
+                    <option value="Food Service / Restaurant">Food Service / Restaurant</option>
+                    <option value="Carbonated Beverage / Soda">Carbonated Beverage / Soda</option>
+                    <option value="Coffee / Espresso Equipment">Coffee / Espresso Equipment</option>
+                    <option value="Ice Machine">Ice Machine</option>
+                  </optgroup>
+                  <optgroup label="Commercial">
+                    <option value="Boiler / Steam Heat">Boiler / Steam Heat</option>
+                    <option value="Chiller / HVAC Cooling">Chiller / HVAC Cooling</option>
+                    <option value="Car Wash">Car Wash</option>
+                    <option value="Pool / Spa / Fountain">Pool / Spa / Fountain</option>
+                    <option value="Laundry / Dry Cleaning">Laundry / Dry Cleaning</option>
+                    <option value="Dialysis / Medical">Dialysis / Medical</option>
+                    <option value="Laboratory / Research">Laboratory / Research</option>
+                    <option value="Dental / Orthodontic">Dental / Orthodontic</option>
+                  </optgroup>
+                  <optgroup label="Industrial / High Hazard">
+                    <option value="Chemical Feed / Injection">Chemical Feed / Injection</option>
+                    <option value="Industrial Process">Industrial Process</option>
+                    <option value="Pesticide / Herbicide">Pesticide / Herbicide</option>
+                    <option value="Radiator / Auto Service">Radiator / Auto Service</option>
+                    <option value="Reclaimed Water Connection">Reclaimed Water Connection</option>
+                  </optgroup>
+                  <optgroup label="Other">
+                    <option value="Auxiliary Water Supply">Auxiliary Water Supply</option>
+                    <option value="Decorative Water Feature">Decorative Water Feature</option>
+                    <option value="Other">Other (specify in notes)</option>
+                  </optgroup>
+                </select>
+              </div>
               <div class="form-field"><span class="field-label">BPA Location (where installed)</span><input type="text" class="field-input" id="imp-bpa-location" placeholder="Meter Room, East Wall…"></div>
             </div>
             <div class="form-row">
               <div class="form-field">
                 <span class="field-label">Manufacturer</span>
-                <div class="ac-wrap" style="position:relative;z-index:20">
+                <div class="ac-wrap" style="position:relative;z-index:20;overflow:hidden">
                   <input type="text" class="field-input" id="imp-mfr" placeholder="Watts, Febco…" autocomplete="off" oninput="adminMfrSearch(this.value)">
-                  <div id="sub-mfr-dropdown" class="ac-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0"></div>
+                  <div id="sub-mfr-dropdown" class="ac-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:100"></div>
                 </div>
               </div>
               <div class="form-field">
                 <span class="field-label">Model #</span>
-                <div class="ac-wrap" style="position:relative">
+                <div class="ac-wrap" style="position:relative;z-index:20;overflow:hidden">
                   <input type="text" class="field-input" id="imp-model" placeholder="LF009…" autocomplete="off" oninput="adminModelSearch(this.value)">
-                  <div id="sub-model-dropdown" class="ac-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0"></div>
+                  <div id="sub-model-dropdown" class="ac-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:100"></div>
                 </div>
               </div>
             </div>
@@ -2617,27 +2652,6 @@ Please contact our office to schedule your test..." style="font-size:13px;paddin
       <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Gauge Serial #</label><input type="text" id="sp-add-gauge" class="si" placeholder="GAU-00000" style="font-size:15px;padding:8px 11px"></div>
       <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Gauge Cal Expiry</label><input type="date" id="sp-add-caldate" class="si" style="font-size:15px;padding:8px 11px"></div>
       <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">License Expiry</label><input type="date" id="sp-add-licdate" class="si" style="font-size:15px;padding:8px 11px"></div>
-      <!-- Fireline license section -->
-      <div style="grid-column:1/-1;margin-top:8px;padding-top:12px;border-top:1px solid var(--border)">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-          <span style="font-size:16px">🔥</span>
-          <div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;font-weight:700">Fireline Authorization (RME + SCR)</div>
-        </div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5">Required to submit test reports on fire suppression assemblies. Both an individual RME license and a company SCR registration must be on file and unexpired.</div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">RME License #</label><input type="text" id="sp-add-rme" class="si" placeholder="RME-G-000000" style="font-size:15px;padding:8px 11px"></div>
-      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">RME Type</label>
-        <select id="sp-add-rme-type" class="si" style="font-size:15px;padding:8px 11px">
-          <option value="">— Select —</option>
-          <option value="G">G — General (all systems)</option>
-          <option value="I">I — General Inspector</option>
-          <option value="D">D — Dwelling</option>
-          <option value="U">U — Underground</option>
-        </select>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">RME Expiry</label><input type="date" id="sp-add-rme-expires" class="si" style="font-size:15px;padding:8px 11px"></div>
-      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Company SCR #</label><input type="text" id="sp-add-scr" class="si" placeholder="SCR-0000" style="font-size:15px;padding:8px 11px"></div>
-      <div style="display:flex;flex-direction:column;gap:4px"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">SCR Expiry</label><input type="date" id="sp-add-scr-expires" class="si" style="font-size:15px;padding:8px 11px"></div>
       <div style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1"><label style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Notes</label><textarea id="sp-add-notes" class="si" rows="2" placeholder="Additional notes..." style="font-size:15px;padding:8px 11px;resize:vertical"></textarea></div>
     </div>
     <div id="sp-add-error" style="display:none;background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.3);border-radius:7px;padding:10px 14px;font-size:13px;color:var(--red);margin-top:12px"></div>
@@ -2903,13 +2917,6 @@ async function loadAllData() {
     DB.sort((a,b) => (b.date||'') > (a.date||'') ? 1 : -1);
     console.log(`✅ Loaded ${DB.length} records (${bfNorm.length} backflow, ${csiNorm.length} CSI, ${inspNorm.length} inspections)`);
 
-    // device_compliance — for accurate KPI counts on dashboard
-    try {
-      const headers = await getHeaders();
-      const dcRes = await fetch(`${SUPA_URL}/rest/v1/device_compliance?select=device_id,compliance_status,next_test_due`, { headers });
-      if (dcRes.ok) window._deviceComplianceCache = await dcRes.json();
-    } catch(e) { window._deviceComplianceCache = []; }
-
     // Staff emails (for the CITY STAFF badge) — fired in the background, never blocks report data
     loadStaffEmails();
 
@@ -3095,7 +3102,7 @@ function toggleTheme() {
   }
 })();
 
-function nav(id, btn) {
+async function nav(id, btn) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nb').forEach(n=>n.classList.remove('active'));
   const _pg = document.getElementById('page-'+id);
@@ -3131,7 +3138,7 @@ function nav(id, btn) {
   if(id==='comms-page') commsInit();
   if(id==='bulk-notices-page') bulkInit();
   if(id==='notif-page') setTimeout(notifInit, 100);
-  if(id==='assemblies-page'){ asmExitFullscreen(); asmInit(); }
+  if(id==='assemblies-page'){ asmExitFullscreen(); await asmInit(); }
   if(id==='users-page') staffMgmt_load();
 }
 
@@ -3214,24 +3221,15 @@ function buildDashboard() {
     return;
   }
 
-  // ── Device KPIs from device_compliance (single source of truth) ──────────
-  const devComp = window._deviceComplianceCache || [];
-  const total     = devComp.length  || devices.length;
-  const compliant = devComp.length
-    ? devComp.filter(r => r.compliance_status === 'current').length
-    : devices.filter(r=>r.result==='PASS'&&r.date&&new Date(r.date+'T12:00:00')>=oneYearAgo).length;
-  const nonComp   = devComp.length
-    ? devComp.filter(r => r.compliance_status === 'failed').length
-    : devices.filter(r=>r.result==='FAIL').length;
-  const overdue   = devComp.length
-    ? devComp.filter(r => r.compliance_status === 'overdue').length
-    : devices.filter(r=>!r.date||new Date(r.date+'T12:00:00')<oneYearAgo).length;
-  const compRate  = total>0?Math.round((compliant/total)*100):0;
-
-  // devices still used by pipeline + overdue aging widgets below
+  // Latest test per device
   const deviceMap = new Map();
   bf.forEach(r => { const key=(r.serial&&r.serial!=='')?r.serial:r.address; if(!deviceMap.has(key)||(r.date>deviceMap.get(key).date))deviceMap.set(key,r); });
-  const devices = [...deviceMap.values()];
+  const devices   = [...deviceMap.values()];
+  const total     = devices.length;
+  const compliant = devices.filter(r=>r.result==='PASS'&&r.date&&new Date(r.date+'T12:00:00')>=oneYearAgo).length;
+  const nonComp   = devices.filter(r=>r.result==='FAIL').length;
+  const overdue   = devices.filter(r=>!r.date||new Date(r.date+'T12:00:00')<oneYearAgo).length;
+  const compRate  = total>0?Math.round((compliant/total)*100):0;
 
   // Pipeline
   const due30=[],due60=[],due90=[];
@@ -4080,6 +4078,59 @@ function emailCurrentReport() {
 }
 
 // ── IMPORT ────────────────────────────────────────────────────────────────────
+// ── Service type → hazard auto-assign ────────────────────────────────────
+const BPA_SERVE_HAZARD = {
+  'Fireline':                   { level:'High', rating:9 },
+  'Chemical Feed / Injection':  { level:'High', rating:10 },
+  'Industrial Process':         { level:'High', rating:9 },
+  'Pesticide / Herbicide':      { level:'High', rating:10 },
+  'Dialysis / Medical':         { level:'High', rating:9 },
+  'Laboratory / Research':      { level:'High', rating:9 },
+  'Reclaimed Water Connection': { level:'High', rating:9 },
+  'Food Service / Restaurant':  { level:'High', rating:7 },
+  'Carbonated Beverage / Soda': { level:'High', rating:7 },
+  'Car Wash':                   { level:'High', rating:7 },
+  'Pool / Spa / Fountain':      { level:'High', rating:8 },
+  'Boiler / Steam Heat':        { level:'Medium', rating:6 },
+  'Chiller / HVAC Cooling':     { level:'Medium', rating:5 },
+  'Laundry / Dry Cleaning':     { level:'Medium', rating:6 },
+  'Dental / Orthodontic':       { level:'High', rating:7 },
+  'Radiator / Auto Service':    { level:'Medium', rating:6 },
+  'Coffee / Espresso Equipment':{ level:'Medium', rating:5 },
+  'Ice Machine':                { level:'Medium', rating:5 },
+  'Irrigation — Commercial':    { level:'Medium', rating:5 },
+  'Auxiliary Water Supply':     { level:'Medium', rating:5 },
+  'Decorative Water Feature':   { level:'Medium', rating:4 },
+  'Domestic':                   { level:'Low',    rating:2 },
+  'Irrigation — Residential':   { level:'Low',    rating:3 },
+};
+
+function bpaServeChanged(serveId, hazardId) {
+  const serve   = document.getElementById(serveId)?.value;
+  const hazard  = BPA_SERVE_HAZARD[serve];
+  if (!hazard) return;
+  const numEl = document.getElementById(hazardId);
+  if (numEl && numEl.tagName === 'INPUT') numEl.value = hazard.rating;
+  if (numEl && numEl.tagName === 'SELECT') {
+    numEl.value = hazard.level;
+    numEl.style.borderColor = hazard.level==='High'?'var(--red)':hazard.level==='Medium'?'var(--yellow)':'var(--green)';
+    setTimeout(()=>{ if(numEl) numEl.style.borderColor=''; }, 2000);
+  }
+  const warn = document.getElementById('fireline-warning');
+  if (serve === 'Fireline') {
+    if (!warn) {
+      const el = document.getElementById(serveId);
+      const w = document.createElement('div');
+      w.id = 'fireline-warning';
+      w.style.cssText = 'margin-top:6px;font-size:11px;color:var(--red);font-family:var(--mono);padding:6px 10px;background:rgba(239,90,90,.08);border:1px solid rgba(239,90,90,.2);border-radius:5px';
+      w.textContent = '🔥 Fireline — tester must hold valid RME + SCR license';
+      el?.closest('.form-field')?.appendChild(w);
+    }
+  } else {
+    if (warn) warn.remove();
+  }
+}
+
 function toggleImportFields() {
   const t=el('imp-type').value;
   const asmType=el('imp-assembly')?.value||'RPZ';
@@ -5598,13 +5649,20 @@ function pickAdminAddr(addr, inputId, dropId, lat, lon) { inputId = inputId || '
 
 // Device brand/model data
 const ADMIN_DEVICES = {
-  'Watts':    { models: ['LF009','LF009M2','LF007','LF007M2','LF800M4','LF800MKII','009','007'], lf:{'LF009':true,'LF009M2':true,'LF007':true,'LF007M2':true,'LF800M4':true,'LF800MKII':true,'009':false,'007':false} },
-  'Febco':    { models: ['LF825Y','LF825YA','LF860','LF765','825Y','860'], lf:{'LF825Y':true,'LF825YA':true,'LF860':true,'LF765':true,'825Y':false,'860':false} },
-  'Wilkins':  { models: ['LF375XL','LF375A','LF350XL','LF720A','375XL','350XL'], lf:{'LF375XL':true,'LF375A':true,'LF350XL':true,'LF720A':true,'375XL':false,'350XL':false} },
-  'Ames':     { models: ['LF4000SS','LF2000SS','4000SS','2000SS'], lf:{'LF4000SS':true,'LF2000SS':true,'4000SS':false,'2000SS':false} },
-  'Apollo':   { models: ['LF4ALF','LF4A','LF4CIV','4ALF'], lf:{'LF4ALF':true,'LF4A':true,'LF4CIV':true,'4ALF':false} },
-  'Conbraco': { models: ['LF4ALF','LF4CIV'], lf:{'LF4ALF':true,'LF4CIV':true} },
+  'Watts':    { models: ['LF009','LF009M2','LF007','LF007M2','LF800M4','LF800MKII','009','007'], lf:{'LF009':true,'LF009M2':true,'LF007':true,'LF007M2':true,'LF800M4':true,'LF800MKII':true,'009':false,'007':false} },  
+  'Febco':    { models: ['LF825Y','LF825YA','LF860','LF765','825Y','860','LF876V'], lf:{'LF825Y':true,'LF825YA':true,'LF860':true,'LF765':true,'825Y':false,'860':false,'LF876V':true} },
+  'Wilkins':  { models: ['LF375XL','LF375A','LF350XL','LF720A','LF975XL','375XL','350XL','975XL'], lf:{'LF375XL':true,'LF375A':true,'LF350XL':true,'LF720A':true,'LF975XL':true,'375XL':false,'350XL':false,'975XL':false} },
+  'Ames':     { models: ['LF4000SS','LF2000SS','LF3000SS','LF5000SS','4000SS','2000SS'], lf:{'LF4000SS':true,'LF2000SS':true,'LF3000SS':true,'LF5000SS':true,'4000SS':false,'2000SS':false} },
+  'Apollo':   { models: ['LF4ALF','LF4A','LF4CIV','LF4BLF','4ALF','RP4A'], lf:{'LF4ALF':true,'LF4A':true,'LF4CIV':true,'LF4BLF':true,'4ALF':false,'RP4A':false} },
+  'Conbraco': { models: ['LF4ALF','LF4CIV','LF4BLF'], lf:{'LF4ALF':true,'LF4CIV':true,'LF4BLF':true} },
   'Cash Acme':{ models: ['LF3'], lf:{'LF3':true} },
+  'Deringer': { models: ['LF8','LF8A','LF8B','8A'], lf:{'LF8':true,'LF8A':true,'LF8B':true,'8A':false} },
+  'Mueller':  { models: ['LF300A','LF300B','LF400A','300A','400A'], lf:{'LF300A':true,'LF300B':true,'LF400A':true,'300A':false,'400A':false} },
+  'Flomatic': { models: ['LF7A','LF7B','7A','7B'], lf:{'LF7A':true,'LF7B':true,'7A':false,'7B':false} },
+  'Caleffi':  { models: ['LF520','LF526','520','526'], lf:{'LF520':true,'LF526':true,'520':false,'526':false} },
+  'Nibco':    { models: ['LF-T113','LF-T480','T113','T480'], lf:{'LF-T113':true,'LF-T480':true,'T113':false,'T480':false} },
+  'Zurn':     { models: ['LF1-500XL','LF2-500XL','1-500XL','2-500XL'], lf:{'LF1-500XL':true,'LF2-500XL':true,'1-500XL':false,'2-500XL':false} },
+  'Merit':    { models: ['LFM400','LFM500','M400','M500'], lf:{'LFM400':true,'LFM500':true,'M400':false,'M500':false} },
 };
 
 function adminMfrSearch(q) {
@@ -6069,55 +6127,9 @@ document.addEventListener('click',function(e){if(!conDetailOpen)return;const pan
 // ═══════════════════════════════════════════════════════
 const SP_REQUIRED=['cert_number','company','license_exp','gauge_cal_date','gauge_serial'];
 const SP_REQUIRED_LABELS={cert_number:'Backflow Cert Number',company:'Company / Firm',license_exp:'License Expiration Date',gauge_cal_date:'Gauge Calibration Date',gauge_serial:'Gauge Serial Number'};
-// ── Testers / Service Providers — live from Supabase ─────────────────────
-let SP_DATA = [];
-
-function spMapRow(r) {
-  const today = new Date();
-  const rmeExp  = r.rme_expires  ? new Date(r.rme_expires  + 'T12:00:00') : null;
-  const scrExp  = r.scr_expires  ? new Date(r.scr_expires  + 'T12:00:00') : null;
-  const fireline_authorized = !!(r.rme_number && rmeExp && rmeExp > today && r.scr_number && scrExp && scrExp > today);
-  return {
-    id:             r.id,
-    name:           r.name           || '',
-    email:          r.email          || '',
-    company:        r.firm           || '',
-    cert_number:    r.cert_num       || '',
-    phone:          r.phone          || '',
-    gauge_serial:   r.gauge_serial   || '',
-    gauge_cal_date: r.gauge_cal_due  || '',
-    license_number: r.cert_num       || '',
-    license_exp:    r.cert_expires   || '',
-    rme_number:     r.rme_number     || '',
-    rme_type:       r.rme_type       || '',
-    rme_expires:    r.rme_expires    || '',
-    scr_number:     r.scr_number     || '',
-    scr_expires:    r.scr_expires    || '',
-    fireline_authorized,
-    active:         r.active !== false,
-    status:         r.active !== false ? 'active' : 'inactive',
-    testsRun:       0, // loaded separately if needed
-    testHistory:    [],
-    notes:          r.notes || '',
-    approved_at:    r.created_at ? r.created_at.slice(0,10) : '',
-  };
-}
-
-async function spLoadData() {
-  try {
-    const headers = await getHeaders();
-    const res = await fetch(`${SUPA_URL}/rest/v1/testers?select=*&order=name.asc`, { headers });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    SP_DATA = data.map(spMapRow);
-    spApplyFilters();
-    spUpdatePendingBadge();
-  } catch(e) {
-    console.error('spLoadData:', e);
-  }
-}
+const SP_DATA=[{id:1,name:"Matt Snider",email:"matt@backflowcheckpro.com",company:"Backflow Check Pro",cert_number:"TX-4421",phone:"(325) 555-0101",gauge_serial:"GAU-2291",gauge_cal_date:"2026-09-01",license_number:"LIC-0042",license_exp:"2027-03-15",testsRun:47,status:"active",approved_at:"2025-01-10",notes:"Lead tester.",testHistory:[{date:"2026-01-22",address:"4150 Buffalo Gap Rd",assembly:"PV-0034",result:"Pass"},{date:"2025-11-14",address:"1423 N 1st St",assembly:"RP-2291",result:"Pass"}]},{id:2,name:"Jorge Rodriguez",email:"j.rodriguez@abileneplumbing.com",company:"Abilene Plumbing Co.",cert_number:"TX-2209",phone:"(325) 555-0217",gauge_serial:"GAU-1144",gauge_cal_date:"2026-06-15",license_number:"LIC-0088",license_exp:"2026-11-30",testsRun:23,status:"active",approved_at:"2025-03-15",notes:"",testHistory:[{date:"2025-10-02",address:"3801 S Clack St",assembly:"RP-0881",result:"Pass"}]},{id:3,name:"Sandra Williams",email:"s.williams@williamsbackflow.com",company:"Williams Backflow LLC",cert_number:"TX-3387",phone:"(325) 555-0344",gauge_serial:"",gauge_cal_date:"",license_number:"",license_exp:"",testsRun:31,status:"pending",submitted_at:"2026-05-20",notes:"Missing gauge cal and license.",testHistory:[]},{id:4,name:"David Kim",email:"d.kim@kimmechanical.com",company:"Kim Mechanical Services",cert_number:"",phone:"(325) 555-0488",gauge_serial:"",gauge_cal_date:"",license_number:"",license_exp:"",testsRun:0,status:"pending",submitted_at:"2026-05-27",notes:"New — multiple fields missing.",testHistory:[]}];
 let spFiltered=[...SP_DATA],spActiveId=null,spCurrentPage=1,spDetailOpen=false,spCurrentTab='active';
-function spInit(){spCurrentPage=1;spDetailOpen=false;const p=document.getElementById('spDetailPanel');if(p){p.style.width='0';p.style.opacity='0';}spSetTab('active');spLoadData();}
+function spInit(){spLoadCommsFromStorage();spCurrentPage=1;spDetailOpen=false;const p=document.getElementById('spDetailPanel');if(p){p.style.width='0';p.style.opacity='0';}spSetTab('active');spUpdatePendingBadge();}
 function spUpdatePendingBadge(){const pending=SP_DATA.filter(t=>t.status==='pending').length;const badge=document.getElementById('spPendingBadge');if(badge){badge.textContent=pending;badge.style.display=pending>0?'inline':'none';}}
 function spSetTab(tab){spCurrentTab=tab;spCurrentPage=1;const btnA=document.getElementById('spTabActive'),btnP=document.getElementById('spTabPending');if(btnA){btnA.style.background=tab==='active'?'var(--accent)':'transparent';btnA.style.color=tab==='active'?'#000':'var(--muted)';}if(btnP){btnP.style.background=tab==='pending'?'var(--yellow)':'transparent';btnP.style.color=tab==='pending'?'#000':'var(--muted)';}spApplyFilters();}
 function spApplyFilters(){const ms=document.getElementById('spMainSearch')?.value.trim().toLowerCase()||'';spFiltered=SP_DATA.filter(t=>t.status===spCurrentTab&&(!ms||t.name.toLowerCase().includes(ms)||t.cert_number.toLowerCase().includes(ms)||t.company.toLowerCase().includes(ms)||t.email.toLowerCase().includes(ms)));spRenderTable();}
@@ -6198,93 +6210,12 @@ function spRequestInfo(){const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return
 function spReject(){const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return;if(!confirm('Reject '+t.name+'?'))return;t.status='rejected';spUpdatePendingBadge();spCloseDetail();spSetTab('pending');}
 
 function spSetStatus(status){const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return;t.status=status;const badge=document.getElementById('spDetailStatusBadge');if(badge){const sc=status==='active'?'var(--green)':'var(--red)';const sbg=status==='active'?'rgba(76,175,121,.14)':'rgba(224,82,82,.14)';const sbr=status==='active'?'rgba(76,175,121,.3)':'rgba(224,82,82,.3)';badge.style.cssText=`font-family:var(--cond);font-weight:700;font-size:13px;padding:4px 10px;border-radius:5px;background:${sbg};color:${sc};border:1px solid ${sbr}`;badge.textContent=status.toUpperCase();}const aBtn=document.getElementById('spStatusActive');const dBtn=document.getElementById('spStatusDisabled');const isActive=status==='active';if(aBtn){aBtn.style.borderColor=isActive?'var(--green)':'var(--border)';aBtn.style.background=isActive?'rgba(61,184,112,.12)':'var(--elevated)';aBtn.style.color=isActive?'var(--green)':'var(--muted)';}if(dBtn){dBtn.style.borderColor=!isActive?'var(--red)':'var(--border)';dBtn.style.background=!isActive?'rgba(224,82,82,.12)':'var(--elevated)';dBtn.style.color=!isActive?'var(--red)':'var(--muted)';}spRenderTable();if(typeof toast==='function')toast('Tester '+(isActive?'activated':'disabled'),'success');}
-function spRefresh(){spLoadData();const btn=event?.currentTarget;if(btn){const orig=btn.innerHTML;btn.innerHTML='&#x2713; Synced!';setTimeout(()=>{btn.innerHTML=orig;},2000);}}
-
-function spOpenAdd(){const m=document.getElementById('spAddModal');if(m)m.style.display='flex';}
-function spCloseAdd(){
-  const m=document.getElementById('spAddModal');if(m)m.style.display='none';
-  ['sp-add-name','sp-add-company','sp-add-cert','sp-add-phone','sp-add-email',
-   'sp-add-gauge','sp-add-caldate','sp-add-licdate','sp-add-rme','sp-add-rme-type',
-   'sp-add-rme-expires','sp-add-scr','sp-add-scr-expires','sp-add-notes'
-  ].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  const err=document.getElementById('sp-add-error');if(err)err.style.display='none';
-}
-
-async function spSaveAdd(){
-  const name    = document.getElementById('sp-add-name')?.value.trim();
-  const cert    = document.getElementById('sp-add-cert')?.value.trim();
-  const err     = document.getElementById('sp-add-error');
-  const saveBtn = document.querySelector('#spAddModal .btn-ac');
-  if(!name){if(err){err.textContent='Full name is required.';err.style.display='block';}return;}
-  if(!cert){if(err){err.textContent='Backflow cert number is required.';err.style.display='block';}return;}
-  if(err)err.style.display='none';
-  if(saveBtn){saveBtn.disabled=true;saveBtn.textContent='Saving…';}
-
-  const rme_number  = document.getElementById('sp-add-rme')?.value.trim()||null;
-  const rme_expires = document.getElementById('sp-add-rme-expires')?.value||null;
-  const scr_number  = document.getElementById('sp-add-scr')?.value.trim()||null;
-  const scr_expires = document.getElementById('sp-add-scr-expires')?.value||null;
-  const today       = new Date();
-  const fireline_authorized = !!(
-    rme_number && rme_expires && new Date(rme_expires+'T12:00:00') > today &&
-    scr_number && scr_expires && new Date(scr_expires+'T12:00:00') > today
-  );
-
-  try {
-    const headers = await getHeaders();
-    const res = await fetch(`${SUPA_URL}/rest/v1/testers`,{
-      method:'POST',
-      headers:{...headers,'Prefer':'return=minimal'},
-      body:JSON.stringify({
-        name,
-        cert_num:       cert,
-        firm:           document.getElementById('sp-add-company')?.value.trim()||null,
-        phone:          document.getElementById('sp-add-phone')?.value.trim()||null,
-        email:          document.getElementById('sp-add-email')?.value.trim()||null,
-        gauge_serial:   document.getElementById('sp-add-gauge')?.value.trim()||null,
-        gauge_cal_due:  document.getElementById('sp-add-caldate')?.value||null,
-        cert_expires:   document.getElementById('sp-add-licdate')?.value||null,
-        rme_number, rme_type: document.getElementById('sp-add-rme-type')?.value||null,
-        rme_expires, scr_number, scr_expires, fireline_authorized,
-        notes:          document.getElementById('sp-add-notes')?.value.trim()||null,
-        active:         true,
-      })
-    });
-    if(!res.ok)throw new Error('Save failed: '+await res.text());
-    spCloseAdd();
-    toast('Tester added successfully','success');
-    spLoadData();
-  } catch(e){
-    if(err){err.textContent=e.message;err.style.display='block';}
-  } finally {
-    if(saveBtn){saveBtn.disabled=false;saveBtn.textContent='Save Tester';}
-  }
-}
+function spRefresh(){spInit();const btn=event?.currentTarget;if(btn){const orig=btn.innerHTML;btn.innerHTML='&#x2713; Synced!';setTimeout(()=>{btn.innerHTML=orig;},2000);}}
 function _sp(title,html){return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px"><div style="font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:1.4px;text-transform:uppercase;margin-bottom:13px;font-weight:600">${title}</div>${html}</div>`;}
 function _sg(pairs){return`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${pairs.map(([l,v])=>`<div><div style="font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px">${l}</div><div style="font-size:16px;color:var(--text);font-weight:500;line-height:1.4">${v||'<span style=color:var(--red)>Missing</span>'}</div></div>`).join('')}</div>`;}
 function spRenderInfo(t){const initials=t.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();const sc=t.status==='active'?'var(--green)':t.status==='pending'?'var(--yellow)':'var(--red)';return`<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px"><div style="width:52px;height:52px;border-radius:50%;background:${t.status==='pending'?'var(--yellow)':'var(--accent)'};display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:900;font-size:22px;color:#000;flex-shrink:0">${initials}</div><div><div style="font-family:var(--cond);font-weight:900;font-size:20px;color:var(--text);line-height:1.3;letter-spacing:.2px">${sanitize(t.name)}</div><div style="font-size:13px;color:var(--muted);margin-top:2px">${sanitize(t.company)||'No company'}</div><div style="font-size:12px;color:var(--muted);margin-top:1px">${sanitize(t.email)}</div></div></div>`+_sp('Contact & Profile',_sg([['Phone',sanitize(t.phone)],['Email',sanitize(t.email)],['Backflow Cert #',sanitize(t.cert_number)],['Company',sanitize(t.company)],['Tests Completed',t.testsRun+' total'],['Status',`<span style="color:${sc}">${t.status.toUpperCase()}</span>`]]))+(t.notes?_sp('Notes',`<div style="font-size:13px;color:var(--muted);line-height:1.6;padding:9px 11px;background:var(--elevated);border-radius:6px">${sanitize(t.notes)}</div>`):'');}
 function spRenderTests(t){if(!t.testHistory||!t.testHistory.length)return _sp('Test History','<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">No tests submitted yet.</div>');const rows=t.testHistory.map(h=>{const rc=h.result==='Pass'?'var(--green)':'var(--red)';return`<tr style="border-bottom:1px solid var(--border)"><td style="padding:8px;font-family:var(--mono);font-size:11px;color:var(--muted)">${h.date}</td><td style="padding:8px;font-size:13px;color:var(--text)">${sanitize(h.address)}</td><td style="padding:8px;font-family:var(--mono);font-size:11px;color:var(--muted)">${sanitize(h.assembly)}</td><td style="padding:8px"><span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${rc};padding:2px 7px;border-radius:3px;background:${h.result==='Pass'?'rgba(76,175,121,.12)':'rgba(224,82,82,.12)'};border:1px solid ${h.result==='Pass'?'rgba(76,175,121,.3)':'rgba(224,82,82,.3)'}">${h.result.toUpperCase()}</span></td></tr>`;}).join('');return _sp('Test History ('+t.testHistory.length+')','<table style="width:100%;border-collapse:collapse"><thead><tr style="border-bottom:1px solid var(--border)">'+['Date','Address','Assembly','Result'].map(h=>`<th style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;text-align:left;padding:5px 8px">${h}</th>`).join('')+'</tr></thead><tbody>'+rows+'</tbody></table>');}
-function spRenderCredentials(t){
-  const cal=spCalStatus(t.gauge_cal_date);
-  const lic=spCalStatus(t.license_exp);
-  const rmeExp=spCalStatus(t.rme_expires);
-  const scrExp=spCalStatus(t.scr_expires);
-  const fireIcon=t.fireline_authorized
-    ?`<span style="font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;background:rgba(239,90,90,.12);color:var(--red);border:1px solid rgba(239,90,90,.3)">🔥 FIRELINE AUTHORIZED</span>`
-    :`<span style="font-family:var(--mono);font-size:10px;color:var(--muted)">Not authorized for firelines</span>`;
-  return _sp('Credentials & Equipment',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-    <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Backflow Cert #</div><div style="font-size:15px;color:${t.cert_number?'var(--text)':'var(--red)'};font-weight:500">${t.cert_number||'&#x26A0; Missing'}</div></div>
-    <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">License Expiry</div><div style="font-size:15px;color:${lic.color};font-weight:500">${!t.license_exp?'&#x26A0; Missing':lic.label}</div></div>
-    <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Gauge Serial #</div><div style="font-size:15px;color:${t.gauge_serial?'var(--text)':'var(--red)'};font-weight:500">${t.gauge_serial||'&#x26A0; Missing'}</div></div>
-    <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Gauge Cal Expiry</div><div style="font-size:15px;color:${cal.color};font-weight:500">${!t.gauge_cal_date?'&#x26A0; Missing':cal.label}</div></div>
-  </div>`)+
-  _sp('🔥 Fireline Licensing',`<div style="margin-bottom:10px">${fireIcon}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-    <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">RME License #</div><div style="font-size:14px;color:${t.rme_number?'var(--text)':'var(--muted)'};font-weight:500">${t.rme_number||'—'} ${t.rme_type?'('+t.rme_type+')':''}</div></div>
-    <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">RME Expiry</div><div style="font-size:14px;color:${t.rme_expires?rmeExp.color:'var(--muted)'};font-weight:500">${t.rme_expires?rmeExp.label:'—'}</div></div>
-    <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Company SCR #</div><div style="font-size:14px;color:${t.scr_number?'var(--text)':'var(--muted)'};font-weight:500">${t.scr_number||'—'}</div></div>
-    <div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">SCR Expiry</div><div style="font-size:14px;color:${t.scr_expires?scrExp.color:'var(--muted)'};font-weight:500">${t.scr_expires?scrExp.label:'—'}</div></div>
-  </div>`);
-}
+function spRenderCredentials(t){const cal=spCalStatus(t.gauge_cal_date);const lic=spCalStatus(t.license_exp);return _sp('Credentials & Equipment',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Backflow Cert #</div><div style="font-size:15px;color:${t.cert_number?'var(--text)':'var(--red)'};font-weight:500">${t.cert_number||'&#x26A0; Missing'}</div></div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">License #</div><div style="font-size:15px;color:${t.license_number?'var(--text)':'var(--red)'};font-weight:500">${t.license_number||'&#x26A0; Missing'}</div></div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">License Expiry</div><div style="font-size:15px;color:${lic.color};font-weight:500">${!t.license_exp?'&#x26A0; Missing':lic.label}</div></div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Gauge Serial #</div><div style="font-size:15px;color:${t.gauge_serial?'var(--text)':'var(--red)'};font-weight:500">${t.gauge_serial||'&#x26A0; Missing'}</div></div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Gauge Cal Expiry</div><div style="font-size:15px;color:${cal.color};font-weight:500">${!t.gauge_cal_date?'&#x26A0; Missing':cal.label}</div></div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Approved</div><div style="font-size:16px;color:var(--text);font-weight:500;line-height:1.4">${t.approved_at||'Not yet approved'}</div></div></div>`);}
 
 // ── TESTER COMMUNICATIONS LOG (mirrors location comms; persisted separately) ─
 function spRenderComms(t){
@@ -6387,117 +6318,88 @@ document.addEventListener('click', function(e) {
 // ═══════════════════════════════════════════════════════
 //  ASSEMBLIES MODULE
 // ═══════════════════════════════════════════════════════
-const ASM_DATA = [
-  {id:1,serial:"RP-2291",type:"RPZ",make:"Watts",model:"009",size:'3/4"',leadFree:"Yes",status:"Pass",
-   address:"1423 N 1st St",city:"Abilene",state:"TX",zip:"79601",account:"ACC-00142",
-   hazard:"High",protection:"Public Water Supply",installed:"2023-03-10",
-   lastTested:"2025-11-14",lastResult:"Pass",nextDue:"2026-11-14",testedBy:"Matt Snider",
-   notes:"East side mechanical room. Accessible via rear entrance.",
-   reportHistory:[
-     {date:"2025-11-14",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"2.1 PSI"},
-     {date:"2024-11-08",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"2.3 PSI"},
-     {date:"2023-11-02",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"1.9 PSI"},
-   ],
-   communications:[
-     {date:"2025-09-14",type:"60-Day Notice",method:"Email",status:"Sent"},
-     {date:"2025-10-14",type:"30-Day Notice",method:"Email",status:"Sent"},
-     {date:"2025-11-07",type:"7-Day Notice",method:"Email + SMS",status:"Sent"},
-   ]},
-  {id:2,serial:"DC-0044",type:"DCVA",make:"Wilkins",model:"975XL",size:'1"',leadFree:"Yes",status:"Pass",
-   address:"1423 N 1st St",city:"Abilene",state:"TX",zip:"79601",account:"ACC-00142",
-   hazard:"High",protection:"Public Water Supply",installed:"2023-03-10",
-   lastTested:"2025-11-14",lastResult:"Pass",nextDue:"2026-11-14",testedBy:"Matt Snider",
-   notes:"East side mechanical room, second assembly.",
-   reportHistory:[
-     {date:"2025-11-14",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"1.8 PSI"},
-     {date:"2024-11-08",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"1.7 PSI"},
-   ],
-   communications:[
-     {date:"2025-09-14",type:"60-Day Notice",method:"Email",status:"Sent"},
-     {date:"2025-11-07",type:"7-Day Notice",method:"Email + SMS",status:"Sent"},
-   ]},
-  {id:3,serial:"RP-0881",type:"RPZ",make:"Febco",model:"860",size:'1"',leadFree:"No",status:"Overdue",
-   address:"3801 S Clack St",city:"Abilene",state:"TX",zip:"79606",account:"ACC-00389",
-   hazard:"High",protection:"Public Water Supply - Medical",installed:"2020-05-18",
-   lastTested:"2024-10-02",lastResult:"Pass",nextDue:"2025-10-02",testedBy:"Jorge Rodriguez",
-   notes:"Main mechanical room - building B. Facilities director contact.",
-   reportHistory:[
-     {date:"2024-10-02",result:"Pass",tester:"J. Rodriguez",cert:"TX-2209",reading:"3.1 PSI"},
-     {date:"2023-09-28",result:"Pass",tester:"J. Rodriguez",cert:"TX-2209",reading:"3.0 PSI"},
-   ],
-   communications:[
-     {date:"2025-07-02",type:"60-Day Notice",method:"Email",status:"Sent"},
-     {date:"2025-09-30",type:"Overdue Notice",method:"Email",status:"Sent"},
-     {date:"2025-10-14",type:"Overdue Notice",method:"Email",status:"Sent"},
-   ]},
-  {id:4,serial:"RP-0882",type:"RPZ",make:"Febco",model:"860",size:'1"',leadFree:"No",status:"Pass",
-   address:"3801 S Clack St",city:"Abilene",state:"TX",zip:"79606",account:"ACC-00389",
-   hazard:"High",protection:"Public Water Supply - Medical",installed:"2020-05-18",
-   lastTested:"2025-03-15",lastResult:"Pass",nextDue:"2026-03-15",testedBy:"Jorge Rodriguez",
-   notes:"Secondary building connection.",
-   reportHistory:[
-     {date:"2025-03-15",result:"Pass",tester:"J. Rodriguez",cert:"TX-2209",reading:"2.8 PSI"},
-   ],
-   communications:[
-     {date:"2025-01-15",type:"60-Day Notice",method:"Email",status:"Sent"},
-   ]},
-  {id:5,serial:"DC-0199",type:"DCVA",make:"Watts",model:"007",size:'3/4"',leadFree:"No",status:"Overdue",
-   address:"3801 S Clack St",city:"Abilene",state:"TX",zip:"79606",account:"ACC-00389",
-   hazard:"High",protection:"Irrigation System",installed:"2020-05-18",
-   lastTested:"2024-10-02",lastResult:"Pass",nextDue:"2025-10-02",testedBy:"Jorge Rodriguez",
-   notes:"Irrigation connection - east grounds.",
-   reportHistory:[
-     {date:"2024-10-02",result:"Pass",tester:"J. Rodriguez",cert:"TX-2209",reading:"2.2 PSI"},
-   ],
-   communications:[
-     {date:"2025-09-30",type:"Overdue Notice",method:"Email",status:"Sent"},
-   ]},
-  {id:6,serial:"PV-0034",type:"PVB",make:"Ames",model:"4000SS",size:'1/2"',leadFree:"Yes",status:"Pass",
-   address:"4150 Buffalo Gap Rd",city:"Abilene",state:"TX",zip:"79605",account:"ACC-00217",
-   hazard:"Medium",protection:"Irrigation",installed:"2022-01-12",
-   lastTested:"2026-01-22",lastResult:"Pass",nextDue:"2027-01-22",testedBy:"Matt Snider",
-   notes:"Garden center irrigation system. Access via garden center entrance.",
-   reportHistory:[
-     {date:"2026-01-22",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"1.2 PSI"},
-     {date:"2025-01-19",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"1.1 PSI"},
-   ],
-   communications:[
-     {date:"2025-11-22",type:"60-Day Notice",method:"Email",status:"Sent"},
-     {date:"2025-12-22",type:"30-Day Notice",method:"Email",status:"Sent"},
-   ]},
-  {id:7,serial:"RP-1145",type:"RPZ",make:"Watts",model:"009M3",size:'1"',leadFree:"Yes",status:"Fail",
-   address:"2018 Grape St",city:"Abilene",state:"TX",zip:"79601",account:"ACC-00504",
-   hazard:"Medium",protection:"Public Water Supply",installed:"2019-08-22",
-   lastTested:"2025-08-10",lastResult:"Fail",nextDue:"2026-08-10",testedBy:"Matt Snider",
-   notes:"Relief valve discharged continuously. Repair order issued. Awaiting retest.",
-   reportHistory:[
-     {date:"2025-08-10",result:"Fail",tester:"Matt Snider",cert:"TX-4421",reading:"FAIL - Relief valve discharge"},
-     {date:"2024-08-05",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"2.4 PSI"},
-   ],
-   communications:[
-     {date:"2025-06-10",type:"60-Day Notice",method:"Email",status:"Sent"},
-     {date:"2025-08-10",type:"Fail Notice",method:"Email + SMS",status:"Sent"},
-     {date:"2025-08-17",type:"Repair Follow-up",method:"Email",status:"Sent"},
-   ]},
-  {id:8,serial:"DC-0288",type:"DCVA",make:"Watts",model:"007M1",size:'3/4"',leadFree:"Yes",status:"Pass",
-   address:"2018 Grape St",city:"Abilene",state:"TX",zip:"79601",account:"ACC-00504",
-   hazard:"Medium",protection:"Irrigation",installed:"2019-08-22",
-   lastTested:"2025-08-10",lastResult:"Pass",nextDue:"2026-08-10",testedBy:"Matt Snider",
-   notes:"Irrigation system assembly.",
-   reportHistory:[
-     {date:"2025-08-10",result:"Pass",tester:"Matt Snider",cert:"TX-4421",reading:"1.6 PSI"},
-   ],
-   communications:[
-     {date:"2025-06-10",type:"60-Day Notice",method:"Email",status:"Sent"},
-   ]},
-];
+let ASM_DATA = [];
 
 let asmFiltered=[...ASM_DATA],asmActiveId=null,asmCurrentPage=1,asmDetailOpen=false,asmCurrentFilter='all';
 
-function asmInit(){
-  asmFiltered=[...ASM_DATA];asmCurrentPage=1;asmDetailOpen=false;asmCurrentFilter='all';
-  const p=document.getElementById('asmDetailPanel');if(p){p.style.width='0';p.style.opacity='0';}
-  asmSetFilter('all');
+async function asmInit(){
+  try {
+    // Fetch devices with property and compliance data
+    const devRes = await fetch(
+      `${SUPA_URL}/rest/v1/devices?select=id,property_id,serial,assembly,manufacturer,model,size,location_description,next_test_due&order=serial.asc`,
+      { headers: getHeaders() }
+    );
+    const devices = await devRes.json();
+    
+    // Fetch properties for address lookup
+    const propRes = await fetch(
+      `${SUPA_URL}/rest/v1/properties?select=id,address,account_number`,
+      { headers: getHeaders() }
+    );
+    const properties = await propRes.json();
+    const propMap = new Map(properties.map(p => [p.id, p]));
+    
+    // Fetch compliance status for each device
+    const compRes = await fetch(
+      `${SUPA_URL}/rest/v1/device_compliance?select=device_id,compliance_status`,
+      { headers: getHeaders() }
+    );
+    const compliance = await compRes.json();
+    const compMap = new Map(compliance.map(c => [c.device_id, c.compliance_status]));
+    
+    // Map to ASM_DATA format
+    ASM_DATA = devices.map(d => {
+      const prop = propMap.get(d.property_id);
+      const status = compMap.get(d.id) || 'never_tested';
+      const statusMap = { passed: 'pass', failed: 'fail', overdue: 'overdue', current: 'pass', due_soon: 'pass', never_tested: 'overdue' };
+      // Parse city/state/zip from stored address string
+      const fullAddr = prop?.address || '';
+      const addrParts = fullAddr.split(',').map(s => s.trim());
+      const streetAddr = addrParts[0] || fullAddr;
+      const cityPart = addrParts[1] || 'Abilene';
+      const stateZipStr = (addrParts[2] || 'TX').trim().split(' ');
+      const statePart = stateZipStr[0] || 'TX';
+      const zipPart = stateZipStr[1] || '';
+      return {
+        id: d.id,
+        serial: d.serial || '—',
+        type: d.assembly || '—',
+        make: d.manufacturer || '—',
+        model: d.model || '—',
+        size: d.size || '—',
+        address: streetAddr || '—',
+        city: cityPart,
+        state: statePart,
+        zip: zipPart,
+        account: prop?.account_number || '—',
+        location: d.location_description || '—',
+        nextDue: d.next_test_due || '—',
+        status: statusMap[status] || 'overdue',
+        lastResult: '—',
+        lastTested: '—',
+        hazard: '—',
+        protection: '—',
+        leadFree: '—',
+        installed: '—',
+        testedBy: '—',
+        notes: '',
+        communications: []
+      };
+    });
+    
+    asmFiltered=[...ASM_DATA];
+    asmCurrentPage=1;
+    asmDetailOpen=false;
+    asmCurrentFilter='all';
+    const p=document.getElementById('asmDetailPanel');
+    if(p){p.style.width='0';p.style.opacity='0';}
+    asmSetFilter('all');
+  } catch(e) {
+    console.error('ASM load failed:', e);
+    asmFiltered=[...ASM_DATA];
+    asmCurrentPage=1;
+    asmSetFilter('all');
+  }
 }
 
 function asmSetFilter(f){
@@ -6592,7 +6494,7 @@ function asmRenderTable(){
       ];
     }
 
-    return `<div onclick="asmSelectRow(${a.id})" style="display:grid;grid-template-columns:${cols};padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;align-items:center;background:${isActive?'rgba(249,166,30,.06)':'transparent'};border-left:3px solid ${isActive?'var(--accent)':'transparent'}"
+    return `<div onclick="asmSelectRow('${a.id}')" style="display:grid;grid-template-columns:${cols};padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;align-items:center;background:${isActive?'rgba(249,166,30,.06)':'transparent'};border-left:3px solid ${isActive?'var(--accent)':'transparent'}"
       onmouseover="if(!${isActive})this.style.background='var(--elevated)'" onmouseout="this.style.background='${isActive?'rgba(249,166,30,.06)':'transparent'}'">
       ${cells.map(c=>`<div style="padding:0 6px;overflow:hidden">${c}</div>`).join('')}
     </div>`;
@@ -6888,8 +6790,8 @@ function asmSwitchTab(tab,btn){
   const body=document.getElementById('asmTabBody');if(!body||!a)return;
   if(tab==='details')body.innerHTML=asmRenderDetails(a);
   else if(tab==='location')body.innerHTML=asmRenderLocation(a);
-  else if(tab==='history'){body.innerHTML='';asmRenderHistory(a);}
-  else if(tab==='comms'){body.innerHTML='';asmRenderComms(a);}
+  else if(tab==='history')body.innerHTML=asmRenderHistory(a);
+  else if(tab==='comms')body.innerHTML=asmRenderComms(a);
   else if(tab==='compliance')body.innerHTML=asmRenderCompliance(a);
   // If location tab, force map resize after tab animation settles
   if(tab==='location'){
@@ -7027,63 +6929,21 @@ function asmRenderHistory(a){
   return _ac('Report History ('+a.reportHistory.length+')',rows);
 }
 
-async function asmRenderComms(a){
-  const body=document.getElementById('asmTabBody');
-  if(!body)return;
-  body.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-family:var(--mono);font-size:11px">Loading communications…</div>';
-
-  const stageLabel={1:'1st Notice',2:'2nd Notice',3:'Final Notice',4:'Shutoff Referral'};
-  const stageColor={1:'var(--blue)',2:'var(--yellow)',3:'var(--accent)',4:'var(--red)'};
-
-  try {
-    const headers=await getHeaders();
-    // Query by serial since enforcement_notices is keyed by serial/address
-    const res=await fetch(
-      `${SUPA_URL}/rest/v1/enforcement_notices?serial=eq.${encodeURIComponent(a.serial)}&order=sent_at.desc&select=*`,
-      {headers}
-    );
-    if(!res.ok)throw new Error('HTTP '+res.status);
-    const notices=await res.json();
-
-    const logBtn=`<button onclick="asmLogNotice(${JSON.stringify(JSON.stringify(a))})"
-      class="btn btn-ac" style="width:100%;justify-content:center;margin-bottom:12px">
-      + Log Notice
-    </button>`;
-
-    if(!notices.length){
-      body.innerHTML=_ac('Enforcement Notices',logBtn+'<div style="text-align:center;padding:16px;color:var(--muted);font-size:13px">No notices on file for this device.</div>');
-      return;
-    }
-
-    const timeline=notices.map((n,i)=>{
-      const sc=stageColor[n.stage]||'var(--muted)';
-      const label=stageLabel[n.stage]||('Stage '+n.stage);
-      const sentDate=n.sent_at?new Date(n.sent_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
-      return `<div style="display:flex;gap:10px;padding-bottom:14px">
-        <div style="display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0">
-          <div style="width:9px;height:9px;border-radius:50%;background:${sc};box-shadow:0 0 5px ${sc};margin-top:3px;flex-shrink:0"></div>
-          ${i<notices.length-1?`<div style="flex:1;width:1px;background:var(--border);margin-top:3px"></div>`:''}
-        </div>
-        <div style="padding-bottom:4px">
-          <div style="font-size:13px;font-weight:600;color:var(--text)">${label}</div>
-          <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px">${sentDate} &bull; ${sanitize(n.method||'—')} &bull; ${sanitize(n.sent_by||'—')}</div>
-          ${n.response_deadline?`<div style="font-family:var(--mono);font-size:10px;color:var(--yellow);margin-top:2px">Deadline: ${n.response_deadline}</div>`:''}
-          ${n.notes?`<div style="font-size:12px;color:var(--muted);margin-top:3px">${sanitize(n.notes)}</div>`:''}
-        </div>
-      </div>`;
-    }).join('');
-
-    body.innerHTML=_ac(`Enforcement History (${notices.length})`,logBtn+`<div>${timeline}</div>`);
-  } catch(e){
-    body.innerHTML=_ac('Enforcement Notices',`<div style="color:var(--red);font-size:13px;padding:12px">Failed to load: ${e.message}</div>`);
-  }
-}
-
-function asmLogNotice(aJson){
-  const a=JSON.parse(aJson);
-  // Reuse the existing complianceSendNotice modal, pre-filled for this device
-  const fakeRow={address:a.address,account_number:a.account,serial:a.serial};
-  complianceSendNotice(JSON.stringify(fakeRow));
+function asmRenderComms(a){
+  if(!a.communications||!a.communications.length)return _ac('Communications','<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">No communications logged.</div>');
+  const tl=a.communications.map(c=>{
+    const dc=c.status==='Sent'?'var(--green)':'var(--muted)';
+    return `<div style="display:flex;gap:10px;padding-bottom:14px">
+      <div style="display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0">
+        <div style="width:9px;height:9px;border-radius:50%;background:${dc};box-shadow:0 0 5px ${dc};margin-top:3px"></div>
+        <div style="flex:1;width:1px;background:var(--border);margin-top:3px"></div>
+      </div>
+      <div><div style="font-size:13px;font-weight:600;color:var(--text)">${c.type}</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:1px">${c.date} &bull; ${c.method}</div>
+      <div style="margin-top:2px;font-family:var(--mono);font-size:10px;color:${dc}">&#x2713; ${c.status}</div></div>
+    </div>`;
+  }).join('');
+  return _ac('Communication History',`<div>${tl}</div>`);
 }
 
 function asmRenderCompliance(a){
@@ -9436,41 +9296,23 @@ let complianceFilter = 'ALL';
 let complianceActiveId = null;
 
 const COMP_STATUS_CFG = {
-  'FAILED':       { color:'#ef5a5a', bg:'rgba(224,82,82,.12)',   label:'FAILED',       icon:'🛑' },
-  'OVERDUE':      { color:'#f9a61e', bg:'rgba(249,166,30,.12)',  label:'OVERDUE',      icon:'⚠️' },
-  'DUE SOON':     { color:'#f0c040', bg:'rgba(240,192,64,.12)',  label:'DUE SOON',     icon:'🟡' },
-  'CURRENT':      { color:'#4caf79', bg:'rgba(76,175,121,.12)',  label:'CURRENT',      icon:'✅' },
-  'NEVER TESTED': { color:'#9aa5b8', bg:'rgba(154,165,184,.1)',  label:'NEVER TESTED', icon:'❓' },
-  'UNKNOWN':      { color:'#888',    bg:'rgba(128,128,128,.1)',  label:'UNKNOWN',      icon:'❓' },
+  'FAILED':   { color:'#ef5a5a', bg:'rgba(224,82,82,.12)',  label:'FAILED',   icon:'🛑' },
+  'OVERDUE':  { color:'#f9a61e', bg:'rgba(249,166,30,.12)', label:'OVERDUE',  icon:'⚠️' },
+  'DUE SOON': { color:'#f0c040', bg:'rgba(240,192,64,.12)', label:'DUE SOON', icon:'🟡' },
+  'CURRENT':  { color:'#4caf79', bg:'rgba(76,175,121,.12)', label:'CURRENT',  icon:'✅' },
+  'UNKNOWN':  { color:'#888',    bg:'rgba(128,128,128,.1)', label:'UNKNOWN',  icon:'❓' },
 };
-
-// Normalize a device_compliance row into the shape the compliance page expects
-function normalizeCompRow(r) {
-  const statusMap = {
-    'failed':'FAILED', 'overdue':'OVERDUE',
-    'due_soon':'DUE SOON', 'current':'CURRENT', 'never_tested':'NEVER TESTED'
-  };
-  const today = new Date();
-  const daysOverdue = r.next_test_due
-    ? Math.floor((today - new Date(r.next_test_due + 'T12:00:00')) / (1000*60*60*24))
-    : 0;
-  return {
-    ...r,
-    compliance_status: statusMap[r.compliance_status] || 'UNKNOWN',
-    days_overdue: Math.max(0, daysOverdue),
-    last_tester: r.last_tester_name || '',
-  };
-}
 
 async function complianceInit() {
   const status = document.getElementById('comp-status-text');
   if (status) status.textContent = 'Loading compliance data…';
   try {
     const headers = await getHeaders();
+    // Page through the compliance_status view
     let all = [], from = 0, pageSize = 1000;
     while (true) {
       const res = await fetch(
-        SUPA_URL + '/rest/v1/device_compliance?select=*&order=next_test_due.asc.nullslast',
+        SUPA_URL + '/rest/v1/compliance_status?select=*&order=days_overdue.desc.nullslast',
         { headers: { ...headers, 'Range-Unit':'items', 'Range':`${from}-${from+pageSize-1}` } }
       );
       if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + await res.text());
@@ -9479,7 +9321,7 @@ async function complianceInit() {
       if (page.length < pageSize) break;
       from += pageSize;
     }
-    complianceData = all.map(normalizeCompRow);
+    complianceData = all;
     complianceRenderKPIs();
     complianceRender();
     if (status) status.textContent = `${all.length} devices tracked — last refreshed ${new Date().toLocaleTimeString()}`;
@@ -9490,20 +9332,19 @@ async function complianceInit() {
 }
 
 function complianceRenderKPIs() {
-  const counts = { ALL: complianceData.length, FAILED: 0, OVERDUE: 0, 'DUE SOON': 0, CURRENT: 0, 'NEVER TESTED': 0 };
+  const counts = { ALL: complianceData.length, FAILED: 0, OVERDUE: 0, 'DUE SOON': 0, CURRENT: 0 };
   complianceData.forEach(r => { if (counts[r.compliance_status] !== undefined) counts[r.compliance_status]++; });
-  document.getElementById('comp-n-all').textContent        = counts.ALL;
-  document.getElementById('comp-n-failed').textContent     = counts.FAILED;
-  document.getElementById('comp-n-overdue').textContent    = counts.OVERDUE;
-  document.getElementById('comp-n-duesoon').textContent    = counts['DUE SOON'];
-  document.getElementById('comp-n-current').textContent    = counts.CURRENT;
-  const neverEl = document.getElementById('comp-n-never');
-  if (neverEl) neverEl.textContent = counts['NEVER TESTED'];
+  document.getElementById('comp-n-all').textContent     = counts.ALL;
+  document.getElementById('comp-n-failed').textContent  = counts.FAILED;
+  document.getElementById('comp-n-overdue').textContent = counts.OVERDUE;
+  document.getElementById('comp-n-duesoon').textContent = counts['DUE SOON'];
+  document.getElementById('comp-n-current').textContent = counts.CURRENT;
 }
 
 function complianceSetFilter(f) {
   complianceFilter = f;
-  const map = { 'ALL':'all','FAILED':'failed','OVERDUE':'overdue','DUE SOON':'duesoon','CURRENT':'current','NEVER TESTED':'never' };
+  // Update KPI chip borders
+  const map = { 'ALL':'all','FAILED':'failed','OVERDUE':'overdue','DUE SOON':'duesoon','CURRENT':'current' };
   Object.entries(map).forEach(([k,id]) => {
     const el2 = document.getElementById('comp-kpi-' + id);
     if (el2) el2.style.borderColor = (k === f) ? 'var(--accent)' : 'transparent';
