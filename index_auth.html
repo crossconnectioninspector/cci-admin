@@ -1441,16 +1441,16 @@ select.field-input option{background:var(--elevated)}
             <div class="form-row">
               <div class="form-field">
                 <span class="field-label">Manufacturer</span>
-                <div class="ac-wrap" style="position:relative;z-index:20">
+                <div class="ac-wrap" style="position:relative;z-index:20;overflow:hidden">
                   <input type="text" class="field-input" id="imp-mfr" placeholder="Watts, Febco…" autocomplete="off" oninput="adminMfrSearch(this.value)">
-                  <div id="sub-mfr-dropdown" class="ac-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0"></div>
+                  <div id="sub-mfr-dropdown" class="ac-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:100"></div>
                 </div>
               </div>
               <div class="form-field">
                 <span class="field-label">Model #</span>
-                <div class="ac-wrap" style="position:relative">
+                <div class="ac-wrap" style="position:relative;z-index:20;overflow:hidden">
                   <input type="text" class="field-input" id="imp-model" placeholder="LF009…" autocomplete="off" oninput="adminModelSearch(this.value)">
-                  <div id="sub-model-dropdown" class="ac-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0"></div>
+                  <div id="sub-model-dropdown" class="ac-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:100"></div>
                 </div>
               </div>
             </div>
@@ -3102,7 +3102,7 @@ function toggleTheme() {
   }
 })();
 
-function nav(id, btn) {
+async function nav(id, btn) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nb').forEach(n=>n.classList.remove('active'));
   const _pg = document.getElementById('page-'+id);
@@ -3138,7 +3138,7 @@ function nav(id, btn) {
   if(id==='comms-page') commsInit();
   if(id==='bulk-notices-page') bulkInit();
   if(id==='notif-page') setTimeout(notifInit, 100);
-  if(id==='assemblies-page'){ asmExitFullscreen(); asmInit(); }
+  if(id==='assemblies-page'){ asmExitFullscreen(); await asmInit(); }
   if(id==='users-page') staffMgmt_load();
 }
 
@@ -6425,10 +6425,64 @@ const ASM_DATA = [
 
 let asmFiltered=[...ASM_DATA],asmActiveId=null,asmCurrentPage=1,asmDetailOpen=false,asmCurrentFilter='all';
 
-function asmInit(){
-  asmFiltered=[...ASM_DATA];asmCurrentPage=1;asmDetailOpen=false;asmCurrentFilter='all';
-  const p=document.getElementById('asmDetailPanel');if(p){p.style.width='0';p.style.opacity='0';}
-  asmSetFilter('all');
+async function asmInit(){
+  try {
+    // Fetch devices with property and compliance data
+    const devRes = await fetch(
+      `${SUPA_URL}/rest/v1/devices?select=id,property_id,serial,assembly,manufacturer,model,size,location_description,next_test_due&order=serial.asc`,
+      { headers: getHeaders() }
+    );
+    const devices = await devRes.json();
+    
+    // Fetch properties for address lookup
+    const propRes = await fetch(
+      `${SUPA_URL}/rest/v1/properties?select=id,address,account_number`,
+      { headers: getHeaders() }
+    );
+    const properties = await propRes.json();
+    const propMap = new Map(properties.map(p => [p.id, p]));
+    
+    // Fetch compliance status for each device
+    const compRes = await fetch(
+      `${SUPA_URL}/rest/v1/device_compliance?select=device_id,compliance_status`,
+      { headers: getHeaders() }
+    );
+    const compliance = await compRes.json();
+    const compMap = new Map(compliance.map(c => [c.device_id, c.compliance_status]));
+    
+    // Map to ASM_DATA format
+    ASM_DATA = devices.map(d => {
+      const prop = propMap.get(d.property_id);
+      const status = compMap.get(d.id) || 'never_tested';
+      const statusMap = { passed: 'pass', failed: 'fail', overdue: 'overdue', current: 'pass', due_soon: 'pass', never_tested: 'overdue' };
+      return {
+        id: d.id,
+        serial: d.serial || '—',
+        type: d.assembly || '—',
+        make: d.manufacturer || '—',
+        model: d.model || '—',
+        size: d.size || '—',
+        address: prop?.address || '—',
+        account: prop?.account_number || '—',
+        location: d.location_description || '—',
+        nextDue: d.next_test_due || '—',
+        status: statusMap[status] || 'overdue'
+      };
+    });
+    
+    asmFiltered=[...ASM_DATA];
+    asmCurrentPage=1;
+    asmDetailOpen=false;
+    asmCurrentFilter='all';
+    const p=document.getElementById('asmDetailPanel');
+    if(p){p.style.width='0';p.style.opacity='0';}
+    asmSetFilter('all');
+  } catch(e) {
+    console.error('ASM load failed:', e);
+    asmFiltered=[...ASM_DATA];
+    asmCurrentPage=1;
+    asmSetFilter('all');
+  }
 }
 
 function asmSetFilter(f){
