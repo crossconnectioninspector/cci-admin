@@ -3095,7 +3095,7 @@ function toggleTheme() {
   }
 })();
 
-function nav(id, btn) {
+async function nav(id, btn) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nb').forEach(n=>n.classList.remove('active'));
   const _pg = document.getElementById('page-'+id);
