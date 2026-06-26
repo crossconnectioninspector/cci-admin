@@ -653,10 +653,83 @@ select.field-input option{background:var(--elevated)}
 .ac-empty{padding:14px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--muted)}
 
 .admin-entry-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.5px;white-space:nowrap;background:rgba(249,166,30,.12);color:var(--accent);border:1px solid rgba(249,166,30,.3)}
+
+/* ── Mobile full-feature layout ── */
+@media(max-width:768px){
+  /* Show hamburger, hide desktop mob-nav if sidebar covers it */
+  #mob-menu-btn { display:flex !important; align-items:center; justify-content:center; }
+
+  /* Sidebar slides in from left as overlay */
+  .sidebar {
+    display:block !important;
+    position:fixed !important;
+    top:0 !important; left:0 !important; bottom:0 !important;
+    width:260px !important;
+    z-index:300 !important;
+    transform:translateX(-100%) !important;
+    transition:transform .25s ease !important;
+    overflow-y:auto !important;
+  }
+  .sidebar.mob-open {
+    transform:translateX(0) !important;
+    box-shadow:4px 0 24px rgba(0,0,0,.5) !important;
+  }
+
+  /* Dim overlay behind sidebar */
+  #mob-sidebar-overlay {
+    display:none;
+    position:fixed;inset:0;
+    background:rgba(0,0,0,.5);
+    z-index:299;
+  }
+  #mob-sidebar-overlay.active { display:block; }
+
+  /* Main content full width */
+  .main { margin-left:0 !important; padding-bottom:72px; }
+
+  /* Tables scroll sideways */
+  #asmTableBody, #locTableBody, #conTableBody,
+  #bfTableBody, #csiTableBody { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+
+  /* Assembly detail panel full screen */
+  #asmDetailPanel {
+    position:fixed !important;top:0 !important;left:0 !important;
+    right:0 !important;bottom:0 !important;
+    width:100% !important;height:100dvh !important;
+    z-index:200;overflow-y:auto;
+  }
+
+  /* KPI cards 2-col */
+  .scard { min-width:0; }
+
+  /* Bigger tap targets */
+  .btn { min-height:44px; }
+  .m-tab { min-height:40px; padding:10px 12px !important; }
+  .nb { min-height:44px; font-size:14px; }
+
+  /* Prevent iOS zoom on input */
+  input, select, textarea { font-size:16px !important; }
+
+  /* Readable padding */
+  #dash-widgets { padding:10px !important; }
+
+  /* Dashboard grids stack */
+  [style*="grid-template-columns:220px"],
+  [style*="grid-template-columns:1fr 1fr 1fr"] {
+    grid-template-columns:1fr !important;
+  }
+  [style*="grid-template-columns:repeat(5"] {
+    grid-template-columns:repeat(2,1fr) !important;
+  }
+  [style*="grid-template-columns:repeat(4"] {
+    grid-template-columns:repeat(2,1fr) !important;
+  }
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
+<div id="mob-sidebar-overlay" onclick="toggleMobileSidebar()"></div>
 
 <!-- CHANGE 2: Login Screen -->
 <div id="login-screen" style="position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse at 50% 0%, rgba(249,166,30,.08) 0%, transparent 60%), var(--bg)">
@@ -744,6 +817,9 @@ select.field-input option{background:var(--elevated)}
 <!-- MAIN -->
 <main class="main">
 <div class="topbar">
+  <button id="mob-menu-btn" onclick="toggleMobileSidebar()" style="display:none;background:none;border:none;color:var(--text);cursor:pointer;padding:8px;margin-right:2px;border-radius:8px;flex-shrink:0">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
   <div class="topbar-title" id="pageTitle">Dashboard</div>
   <div class="topbar-right">
     <span class="admin-pill">ADMIN</span>
@@ -2872,14 +2948,8 @@ async function doLogin() {
     errEl.style.display = 'block';
     if (btn) { btn.innerHTML = 'Sign In'; btn.disabled = false; }
   } else {
-    // Route to mobile or desktop
-    if (window.innerWidth <= 768) {
-      document.getElementById('login-screen').style.display = 'none';
-      showMobileAdmin();
-    } else {
-      document.getElementById('login-screen').style.display = 'none';
-      renderDashboard();
-    }
+    document.getElementById('login-screen').style.display = 'none';
+    renderDashboard();
   }
 }
 
@@ -4441,7 +4511,7 @@ supaClient.auth.getSession().then(({ data: { session } }) => {
   if (session) {
     document.getElementById('login-screen').style.display = 'none';
     if (window.innerWidth <= 768) {
-      showMobileAdmin();
+      renderDashboard();
     } else {
       renderDashboard();
     }
@@ -4452,6 +4522,14 @@ supaClient.auth.getSession().then(({ data: { session } }) => {
 // ══════════════════════════════════════════════════
 //  MOBILE ADMIN — JS
 // ══════════════════════════════════════════════════
+
+function toggleMobileSidebar() {
+  const sb = document.querySelector('.sidebar');
+  const ov = document.getElementById('mob-sidebar-overlay');
+  if (!sb) return;
+  const open = sb.classList.toggle('mob-open');
+  if (ov) ov.classList.toggle('active', open);
+}
 
 function showMobileAdmin() {
   document.body.classList.add('mobile-admin-active');
