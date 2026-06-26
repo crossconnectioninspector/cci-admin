@@ -3089,7 +3089,7 @@ function tick() {
   const s = now.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' +
             now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
   document.getElementById('clock').textContent = s;
-  document.getElementById('clock-foot').textContent = s;
+  const cf=document.getElementById('clock-foot');if(cf)cf.textContent=s;
 }
 tick(); setInterval(tick,1000);
 
@@ -3130,7 +3130,7 @@ async function nav(id, btn) {
     'knowledge-page':'Knowledge Base'
   };
   document.getElementById('pageTitle').textContent = titles[id]||id;
-  conExitFullscreen();spExitFullscreen();asmExitFullscreen();
+  try{conExitFullscreen();}catch(e){} try{spExitFullscreen();}catch(e){} try{asmExitFullscreen();}catch(e){}
   if(id==='dashboard') renderDashboard();
   if(id==='device-map-page') { setTimeout(()=>{ initDeviceMap(); }, 100); setTimeout(()=>{ if(deviceMap) deviceMap.invalidateSize(); },600); }
   if(id==='city-risk-page') { setTimeout(()=>{ initRiskMap(); }, 100); setTimeout(()=>{ if(riskMap) riskMap.invalidateSize(); },600); }
@@ -3194,7 +3194,7 @@ async function renderDashboard() {
   <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--muted)">LOADING DASHBOARD DATA…</div>
 </div>`;
   const ok = await loadAllData();
-  if (typeof applyDashTheme === 'function') applyDashTheme();
+  try { if (typeof applyDashTheme === 'function') applyDashTheme(); } catch(e) {}
   buildDashboard();
 }
 
