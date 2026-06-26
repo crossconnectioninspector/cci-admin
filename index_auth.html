@@ -3222,21 +3222,29 @@ function buildDashboard() {
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const bf = DB.filter(r => r.type === 'backflow');
 
-  if (bf.length === 0) {
+  // Use device_compliance view as primary source of truth for KPIs
+  const devComp = window._deviceComplianceCache || [];
+  const hasDevices = devComp.length > 0;
+
+  if (bf.length === 0 && !hasDevices) {
     const container = el('dash-widgets');
     if (container) container.innerHTML = `<div style="text-align:center;padding:80px 24px"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="1.5" style="margin:0 auto 16px;display:block"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><div style="font-family:var(--cond);font-size:27px;font-weight:900;color:var(--text);margin-bottom:8px">No Data Yet</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;line-height:1.8;margin-bottom:24px">Submit your first backflow test report to see<br>the compliance dashboard populate with live data.</div><a href="tester.html" style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#000;padding:12px 24px;border-radius:12px;font-family:var(--cond);font-size:18px;font-weight:900;text-decoration:none">📋 Go to Tester Portal</a></div>`;
     return;
   }
 
-  // Latest test per device
+  // ── KPIs from device_compliance view (single source of truth) ─────────────
+  const total       = devComp.length;
+  const compliant   = devComp.filter(r => r.compliance_status === 'current').length;
+  const nonComp     = devComp.filter(r => r.compliance_status === 'failed').length;
+  const overdue     = devComp.filter(r => r.compliance_status === 'overdue').length;
+  const neverTested = devComp.filter(r => r.compliance_status === 'never_tested').length;
+  const dueSoon     = devComp.filter(r => r.compliance_status === 'due_soon').length;
+  const compRate    = total > 0 ? Math.round((compliant / total) * 100) : 0;
+
+  // Latest test per device (from backflow_reports, for charts/pipeline/aging)
   const deviceMap = new Map();
   bf.forEach(r => { const key=(r.serial&&r.serial!=='')?r.serial:r.address; if(!deviceMap.has(key)||(r.date>deviceMap.get(key).date))deviceMap.set(key,r); });
-  const devices   = [...deviceMap.values()];
-  const total     = devices.length;
-  const compliant = devices.filter(r=>r.result==='PASS'&&r.date&&new Date(r.date+'T12:00:00')>=oneYearAgo).length;
-  const nonComp   = devices.filter(r=>r.result==='FAIL').length;
-  const overdue   = devices.filter(r=>!r.date||new Date(r.date+'T12:00:00')<oneYearAgo).length;
-  const compRate  = total>0?Math.round((compliant/total)*100):0;
+  const devices = [...deviceMap.values()];
 
   // Pipeline
   const due30=[],due60=[],due90=[];
@@ -3281,11 +3289,12 @@ function buildDashboard() {
   container.innerHTML=`
   ${(due30.length>0||nonComp>0)?`<div style="background:linear-gradient(135deg,rgba(224,82,82,.12) 0%,rgba(240,192,64,.08) 100%);border:1px solid rgba(224,82,82,.3);border-radius:14px;padding:14px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap"><div style="width:36px;height:36px;background:rgba(224,82,82,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div style="flex:1;min-width:200px"><div style="font-family:var(--sans);font-size:15px;font-weight:700;color:var(--text);letter-spacing:.2px">Program Attention Required</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:7px;line-height:2">${nonComp>0?`<span onclick="goToReports({tab:'fail'})" style="color:var(--red);cursor:pointer;text-decoration:underline;text-underline-offset:3px">${nonComp} device${nonComp>1?'s':''} failed last test</span>`:''} ${nonComp>0&&due30.length>0?'<span style="margin:0 8px;color:var(--border)">|</span>':''} ${due30.length>0?`<span onclick="dashScrollTo('dash-overdue-aging')" style="color:var(--yellow);cursor:pointer;text-decoration:underline;text-underline-offset:3px">${due30.length} device${due30.length>1?'s':''} due within 30 days</span>`:''}</div></div>${due30[0]?`<div onclick="openModal('${due30[0].id}')" style="text-align:right;flex-shrink:0;cursor:pointer" onmouseover="this.style.opacity='.75'" onmouseout="this.style.opacity='1'"><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Most Urgent</div><div style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px">${sanitize(due30[0].address)}</div><div style="font-family:var(--mono);font-size:10px;color:var(--red)">Due in ${due30[0].daysUntil} day${due30[0].daysUntil!==1?'s':''}</div></div>`:''}</div>`:''}
 
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px">
     ${[{label:'Total Devices',val:total,color:'var(--text)',sub:'on record',icon:'<circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4"/>',action:`goToReports({})`},
        {label:'Compliant',val:compliant,color:'var(--green)',sub:'tested within 1yr',icon:'<polyline points="20 6 9 17 4 12"/>',action:`goToReports({tab:'pass'})`},
        {label:'Non-Compliant',val:nonComp,color:nonComp>0?'var(--red)':'var(--green)',sub:nonComp>0?'need follow-up':'all clear',icon:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',action:`goToReports({tab:'fail'})`},
-       {label:'Overdue >1yr',val:overdue,color:overdue>0?'var(--yellow)':'var(--green)',sub:overdue>0?'immediate outreach':'all current',icon:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',action:`dashScrollTo('dash-overdue-aging')`}
+       {label:'Overdue',val:overdue,color:overdue>0?'var(--yellow)':'var(--green)',sub:overdue>0?'past due date':'all current',icon:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',action:`dashScrollTo('dash-overdue-aging')`},
+       {label:'Never Tested',val:neverTested,color:neverTested>0?'var(--muted)':'var(--green)',sub:neverTested>0?'no test on record':'none',icon:'<circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/>',action:`nav('assemblies-page',null)`}
     ].map(k=>`<div class="scard" style="padding:16px;position:relative;overflow:hidden;cursor:pointer" onclick="${k.action}" title="Click to view"><div style="position:absolute;top:12px;right:12px;opacity:.12"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="${k.color}" stroke-width="2">${k.icon}</svg></div><div style="font-family:var(--cond);font-size:12px;font-weight:600;color:var(--muted);letter-spacing:1.4px;text-transform:uppercase;margin-bottom:8px">${k.label}</div><div class="countup" data-target="${k.val}" style="font-family:var(--cond);font-size:42px;font-weight:900;line-height:1;color:${k.color}">0</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:6px">${k.sub}</div></div>`).join('')}
   </div>
 
@@ -6333,7 +6342,7 @@ async function asmInit(){
   try {
     // Fetch devices with property and compliance data
     const devRes = await fetch(
-      `${SUPA_URL}/rest/v1/devices?select=id,property_id,serial,assembly,manufacturer,model,size,location_description,next_test_due,is_fireline&order=serial.asc`,
+      `${SUPA_URL}/rest/v1/devices?select=id,property_id,serial,assembly,manufacturer,model,size,location_description,next_test_due&order=serial.asc`,
       { headers: await getHeaders() }
     );
     const devices = await devRes.json();
@@ -6380,7 +6389,6 @@ async function asmInit(){
         account: prop?.account_number || '—',
         location: d.location_description || '—',
         nextDue: d.next_test_due || '—',
-        isFireline: !!d.is_fireline,
         status: statusMap[status] || 'overdue',
         lastResult: '—',
         lastTested: '—',
@@ -6482,7 +6490,7 @@ function asmRenderTable(){
     let cells;
     if(asmDetailOpen){
       cells=[
-        `<div style="font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:700">${a.isFireline ? '🔥 ' : ''}${sanitize(a.serial)}</div>`,
+        `<div style="font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:700">${sanitize(a.serial)}</div>`,
         `<div style="font-size:13px;font-weight:600;color:var(--text)">${a.type}</div>`,
         `<div style="font-size:12px;color:var(--muted)">${sanitize(a.make)}</div>`,
         `<div style="font-size:12px;color:var(--muted)">${sanitize(a.model)}</div>`,
@@ -6491,7 +6499,7 @@ function asmRenderTable(){
       ];
     } else {
       cells=[
-        `<div style="font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:700">${a.isFireline ? '🔥 ' : ''}${sanitize(a.serial)}</div>`,
+        `<div style="font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:700">${sanitize(a.serial)}</div>`,
         `<div style="font-size:13px;font-weight:600;color:var(--text)">${a.type}</div>`,
         `<div style="font-size:13px;color:var(--muted)">${sanitize(a.make)}</div>`,
         `<div style="font-size:13px;color:var(--muted)">${sanitize(a.model)}</div>`,
