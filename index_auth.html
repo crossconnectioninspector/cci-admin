@@ -3130,7 +3130,7 @@ async function nav(id, btn) {
     'knowledge-page':'Knowledge Base'
   };
   document.getElementById('pageTitle').textContent = titles[id]||id;
-  try{conExitFullscreen();}catch(e){} try{spExitFullscreen();}catch(e){} try{asmExitFullscreen();}catch(e){}
+  conExitFullscreen();spExitFullscreen();asmExitFullscreen();
   if(id==='dashboard') renderDashboard();
   if(id==='device-map-page') { setTimeout(()=>{ initDeviceMap(); }, 100); setTimeout(()=>{ if(deviceMap) deviceMap.invalidateSize(); },600); }
   if(id==='city-risk-page') { setTimeout(()=>{ initRiskMap(); }, 100); setTimeout(()=>{ if(riskMap) riskMap.invalidateSize(); },600); }
@@ -3194,7 +3194,7 @@ async function renderDashboard() {
   <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--muted)">LOADING DASHBOARD DATA…</div>
 </div>`;
   const ok = await loadAllData();
-  try { if (typeof applyDashTheme === 'function') applyDashTheme(); } catch(e) {}
+  if (typeof applyDashTheme === 'function') applyDashTheme();
   buildDashboard();
 }
 
