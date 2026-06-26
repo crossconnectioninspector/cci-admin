@@ -6333,7 +6333,7 @@ async function asmInit(){
   try {
     // Fetch devices with property and compliance data
     const devRes = await fetch(
-      `${SUPA_URL}/rest/v1/devices?select=id,property_id,serial,assembly,manufacturer,model,size,location_description,next_test_due&order=serial.asc`,
+      `${SUPA_URL}/rest/v1/devices?select=id,property_id,serial,assembly,manufacturer,model,size,location_description,next_test_due,is_fireline&order=serial.asc`,
       { headers: await getHeaders() }
     );
     const devices = await devRes.json();
@@ -6380,6 +6380,7 @@ async function asmInit(){
         account: prop?.account_number || '—',
         location: d.location_description || '—',
         nextDue: d.next_test_due || '—',
+        isFireline: !!d.is_fireline,
         status: statusMap[status] || 'overdue',
         lastResult: '—',
         lastTested: '—',
@@ -6481,7 +6482,7 @@ function asmRenderTable(){
     let cells;
     if(asmDetailOpen){
       cells=[
-        `<div style="font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:700">${sanitize(a.serial)}</div>`,
+        `<div style="font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:700">${a.isFireline ? '🔥 ' : ''}${sanitize(a.serial)}</div>`,
         `<div style="font-size:13px;font-weight:600;color:var(--text)">${a.type}</div>`,
         `<div style="font-size:12px;color:var(--muted)">${sanitize(a.make)}</div>`,
         `<div style="font-size:12px;color:var(--muted)">${sanitize(a.model)}</div>`,
@@ -6490,7 +6491,7 @@ function asmRenderTable(){
       ];
     } else {
       cells=[
-        `<div style="font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:700">${sanitize(a.serial)}</div>`,
+        `<div style="font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:700">${a.isFireline ? '🔥 ' : ''}${sanitize(a.serial)}</div>`,
         `<div style="font-size:13px;font-weight:600;color:var(--text)">${a.type}</div>`,
         `<div style="font-size:13px;color:var(--muted)">${sanitize(a.make)}</div>`,
         `<div style="font-size:13px;color:var(--muted)">${sanitize(a.model)}</div>`,
