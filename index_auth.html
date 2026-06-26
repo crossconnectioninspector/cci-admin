@@ -6342,14 +6342,14 @@ async function asmInit(){
   try {
     // Fetch devices with property and compliance data
     const devRes = await fetch(
-      `${SUPA_URL}/rest/v1/devices?select=id,property_id,serial,assembly,manufacturer,model,size,location_description,next_test_due&order=serial.asc`,
+      `${SUPA_URL}/rest/v1/devices?select=id,property_id,serial,assembly,manufacturer,model,size,location_description,next_test_due,is_fireline,last_test_date,serve_type,frequency,description,last_inspection_result&order=serial.asc`,
       { headers: await getHeaders() }
     );
     const devices = await devRes.json();
     
     // Fetch properties for address lookup
     const propRes = await fetch(
-      `${SUPA_URL}/rest/v1/properties?select=id,address,account_number`,
+      `${SUPA_URL}/rest/v1/properties?select=id,address,account_number,owner_name,owner_phone,property_type,city,state,zip`,
       { headers: await getHeaders() }
     );
     const properties = await propRes.json();
@@ -6375,6 +6375,16 @@ async function asmInit(){
       const stateZipArr = (addrParts[2] || 'TX').trim().split(' ');
       const statePart = stateZipArr[0] || 'TX';
       const zipPart = stateZipArr[1] || '';
+      // Prefer DB city/state/zip; fall back to parsing address string
+      const propCity  = prop?.city  || cityPart;
+      const propState = prop?.state || statePart;
+      const propZip   = prop?.zip   || zipPart;
+
+      // Normalize last inspection result
+      const rawResult = d.last_inspection_result || '';
+      const lastResult = rawResult.toLowerCase().includes('pass') ? 'Pass'
+                       : rawResult.toLowerCase().includes('fail') ? 'Fail' : '—';
+
       return {
         id: d.id,
         serial: d.serial || '—',
@@ -6383,21 +6393,28 @@ async function asmInit(){
         model: d.model || '—',
         size: d.size || '—',
         address: streetAddr || '—',
-        city: cityPart,
-        state: statePart,
-        zip: zipPart,
+        city: propCity,
+        state: propState,
+        zip: propZip,
         account: prop?.account_number || '—',
+        businessName: prop?.owner_name || '—',
+        phone: prop?.owner_phone || '—',
+        locationType: prop?.property_type || '—',
         location: d.location_description || '—',
+        serveType: d.serve_type || 'FireLine',
+        frequency: d.frequency || 'Annual',
+        description: d.description || '—',
         nextDue: d.next_test_due || '—',
+        lastTested: d.last_test_date || '—',
+        lastResult,
+        isFireline: !!d.is_fireline,
         status: statusMap[status] || 'overdue',
-        lastResult: '—',
-        lastTested: '—',
-        hazard: '—',
-        protection: '—',
+        hazard: 'High',
+        protection: d.serve_type || 'FireLine',
         leadFree: '—',
         installed: '—',
         testedBy: '—',
-        notes: '',
+        notes: d.description || '',
         communications: [],
         reportHistory: []
       };
@@ -6822,27 +6839,35 @@ function _ac(title,html){return`<div style="background:var(--surface);border:1px
 function _ag(pairs){return`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${pairs.map(([l,v])=>`<div><div style="font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px">${l}</div><div style="font-size:16px;color:var(--text);font-weight:500;line-height:1.4">${v||'&mdash;'}</div></div>`).join('')}</div>`;}
 
 function asmRenderDetails(a){
-  return _ac('Standard Properties',_ag([
-    ['Serial Number',sanitize(a.serial)],
-    ['Type',a.type],
-    ['Make',sanitize(a.make)],
-    ['Model',sanitize(a.model)],
-    ['Size',sanitize(a.size)],
-    ['Lead Free?',a.leadFree],
-    ['Installed On',a.installed],
-    ['Last Tested',a.lastTested],
-    ['Last Result','<span style="color:'+(a.lastResult==='Pass'?'var(--green)':a.lastResult==='Fail'?'var(--red)':'var(--yellow)')+'">'+a.lastResult+'</span>'],
-    ['Next Due',a.nextDue],
-    ['Tested By',sanitize(a.testedBy)],
-    ['Account #',sanitize(a.account)],
+  const resColor = a.lastResult==='Pass'?'var(--green)':a.lastResult==='Fail'?'var(--red)':'var(--muted)';
+  const fireTag = a.isFireline
+    ? `<span style="font-family:var(--mono);font-size:10px;font-weight:700;background:rgba(249,166,30,.15);color:var(--accent);border:1px solid rgba(249,166,30,.35);padding:2px 8px;border-radius:3px;margin-left:6px">🔥 FIRELINE</span>`
+    : '';
+  return _ac('Property & Account',_ag([
+    ['Business Name', sanitize(a.businessName)],
+    ['Account #', sanitize(a.account)],
+    ['Location Type', sanitize(a.locationType)],
+    ['Phone', sanitize(a.phone)],
+    ['Service Address', sanitize(a.address)],
+    ['City / State / ZIP', `${a.city}, ${a.state} ${a.zip}`],
   ]))+
-  _ac('Custom Properties',_ag([
-    ['Hazard Level',a.hazard],
-    ['Protection Type',sanitize(a.protection)],
-    ['Lead Free?',a.leadFree],
-    ['Service Address',sanitize(a.address)],
+  _ac('Device Details',_ag([
+    ['Serial Number', sanitize(a.serial)],
+    ['Assembly Type', `${a.type}${fireTag}`],
+    ['Manufacturer', sanitize(a.make)],
+    ['Model', sanitize(a.model)],
+    ['Size', sanitize(a.size)],
+    ['Serve Type', sanitize(a.serveType)],
+    ['Description', sanitize(a.description)],
+    ['Device Location', sanitize(a.location)],
   ]))+
-  (a.notes?_ac('Notes',`<div style="font-size:13px;color:var(--muted);line-height:1.6;padding:9px 11px;background:var(--elevated);border-radius:6px">${sanitize(a.notes)}</div>`):'');
+  _ac('Inspection History',_ag([
+    ['Last Inspected', sanitize(a.lastTested)],
+    ['Last Result', `<span style="color:${resColor};font-weight:700">${a.lastResult}</span>`],
+    ['Next Due', sanitize(a.nextDue)],
+    ['Frequency', sanitize(a.frequency)],
+    ['Hazard Level', a.hazard],
+  ]));
 }
 
 function asmRenderLocation(a){
