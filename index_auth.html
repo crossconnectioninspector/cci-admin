@@ -2851,6 +2851,22 @@ async function getHeaders() {
   }
 }
 
+async function getCurrentOrgId() {
+  try {
+    const { data:{ session } } = await supaClient.auth.getSession();
+    if (!session) return 'a0000000-0000-0000-0000-000000000001';
+    const appMeta = session.user?.app_metadata || {};
+    if (appMeta.org_id) return appMeta.org_id;
+    try {
+      const payload = JSON.parse(atob(session.access_token.split('.')[1]));
+      if (payload.org_id) return payload.org_id;
+    } catch(e) {}
+    return 'a0000000-0000-0000-0000-000000000001';
+  } catch(e) {
+    return 'a0000000-0000-0000-0000-000000000001';
+  }
+}
+
 async function sbFetch(table, opts={}) {
   const headers = await getHeaders();
   const url = `${SUPA_URL}/rest/v1/${table}${opts.query||''}`;
@@ -2938,6 +2954,7 @@ async function loadAllData() {
 
 async function saveRecord(rec) {
   try {
+    const orgId = await getCurrentOrgId();
     let table, row;
     if (rec.type === 'backflow') {
       table = 'backflow_reports';
@@ -2951,10 +2968,11 @@ async function saveRecord(rec) {
         pws_name:rec.pwsName||'Abilene TX', pws_id:rec.pwsId||'',
         firm:rec.firm||'Backflow Check Pro',
         bpa_serves:rec.bpaServes||'', bpa_location:rec.bpaLocation||'',
-        test_time:rec.testTime||'', test_reason:rec.testReason||'',
+        test_time:rec.testTime||rec.test_time||'', test_reason:rec.testReason||'',
         gauge_model:rec.gaugeModel||'', gauge_serial:rec.gaugeSerial||'',
         gauge_cal:rec.gaugeCal||null, gauge_type:rec.gaugeType||'',
         entered_by_admin:rec.entered_by_admin||false,
+        org_id: orgId,
         lat:rec.lat||32.4487, lng:rec.lng||-99.7331 };
     } else if (rec.type === 'csi') {
       table = 'csi_reports';

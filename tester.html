@@ -1486,6 +1486,10 @@ async function enterApp() {
   const appEl = document.getElementById('screen-app');
   if(appEl) { appEl.style.flexDirection = 'column'; appEl.style.minHeight = '100dvh'; }
   document.getElementById('sub-date').valueAsDate = new Date();
+  const _now = new Date();
+  const _hh = String(_now.getHours()).padStart(2,'0');
+  const _mm = String(_now.getMinutes()).padStart(2,'0');
+  document.getElementById('sub-time').value = `${_hh}:${_mm}`;
   await loadProfile();
   applyProfileToForm();
   try { renderTesterInfo(); } catch(e) {}
@@ -2320,9 +2324,30 @@ async function submitReport() {
     remarks: combinedNotes,
     notes: combinedNotes,
     photo_urls: photoUrls,
+    test_time: document.getElementById('sub-time')?.value || '',
+    bpa_serves: document.getElementById('sub-bpa-serves')?.value || '',
+    bpa_location: document.getElementById('sub-bpa-location')?.value || '',
     city: 'Abilene',
     state: 'TX',
     submitted_by_user: currentUser.id,
+    org_id: (() => {
+      try {
+        // app_metadata is available synchronously on the currentUser object
+        const meta = currentUser?.app_metadata || {};
+        if (meta.org_id) return meta.org_id;
+        // Fallback: decode the current access token from localStorage
+        const storageKey = Object.keys(localStorage).find(k => k.includes('auth-token'));
+        if (storageKey) {
+          const stored = JSON.parse(localStorage.getItem(storageKey) || '{}');
+          const token = stored?.access_token;
+          if (token) {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            if (payload.org_id) return payload.org_id;
+          }
+        }
+      } catch(e) {}
+      return 'a0000000-0000-0000-0000-000000000001';
+    })(),
   };
 
   // Full row for local PDF generation (carries all 20700 fields)
