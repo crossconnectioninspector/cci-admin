@@ -2849,6 +2849,25 @@ async function getHeaders() {
   }
 }
 
+async function getCurrentOrgId() {
+  try {
+    const { data:{ session } } = await supaClient.auth.getSession();
+    if (!session) return 'a0000000-0000-0000-0000-000000000001';
+    // Try app_metadata first (Option B — works on all Supabase plans)
+    const appMeta = session.user?.app_metadata || {};
+    if (appMeta.org_id) return appMeta.org_id;
+    // Fallback: decode JWT claims directly (Option A — Auth Hook)
+    try {
+      const payload = JSON.parse(atob(session.access_token.split('.')[1]));
+      if (payload.org_id) return payload.org_id;
+    } catch(e) {}
+    // Final fallback: Abilene org
+    return 'a0000000-0000-0000-0000-000000000001';
+  } catch(e) {
+    return 'a0000000-0000-0000-0000-000000000001';
+  }
+}
+
 async function sbFetch(table, opts={}) {
   const headers = await getHeaders();
   const url = `${SUPA_URL}/rest/v1/${table}${opts.query||''}`;
@@ -2937,6 +2956,7 @@ async function loadAllData() {
 
 async function saveRecord(rec) {
   try {
+    const orgId = await getCurrentOrgId();
     let table, row;
     if (rec.type === 'backflow') {
       table = 'backflow_reports';
@@ -2954,6 +2974,7 @@ async function saveRecord(rec) {
         gauge_model:rec.gaugeModel||'', gauge_serial:rec.gaugeSerial||'',
         gauge_cal:rec.gaugeCal||null, gauge_type:rec.gaugeType||'',
         entered_by_admin:rec.entered_by_admin||false,
+        org_id: orgId,
         lat:rec.lat||32.4487, lng:rec.lng||-99.7331 };
     } else if (rec.type === 'csi') {
       table = 'csi_reports';
@@ -2966,6 +2987,7 @@ async function saveRecord(rec) {
         solder:rec.solder||'', remarks:rec.remarks||'',
         pws_name:rec.pwsName||'Abilene TX', pws_id:rec.pwsId||'',
         firm:rec.firm||'Backflow Check Pro',
+        org_id: orgId,
         lat:rec.lat||32.4487, lng:rec.lng||-99.7331 };
     } else {
       table = 'inspections';
@@ -2973,6 +2995,7 @@ async function saveRecord(rec) {
         biz_type:rec.bizType||rec.biz_type||'', hazard_rating:rec.hazardRating||rec.hazard_rating||5,
         compliance_status:rec.complianceStatus||rec.compliance_status||'notInspected',
         tester:rec.tester||'', remarks:rec.remarks||'',
+        org_id: orgId,
         lat:rec.lat||32.4487, lng:rec.lng||-99.7331 };
     }
     await sbFetch(table, { method:'POST', body:JSON.stringify(row),
@@ -9665,6 +9688,7 @@ async function complianceLogNotice(address, account, serial, rJson) {
     const { data:{ session } } = await supaClient.auth.getSession();
     const sentBy = session?.user?.email || 'admin';
     const headers = await getHeaders();
+    const orgId = await getCurrentOrgId();
     const res = await fetch(SUPA_URL + '/rest/v1/enforcement_notices', {
       method: 'POST',
       headers: { ...headers, 'Prefer': 'return=minimal' },
@@ -9673,7 +9697,8 @@ async function complianceLogNotice(address, account, serial, rJson) {
         stage: parseInt(stage), method,
         response_deadline: deadline || null,
         sent_by: sentBy,
-        notes: notes || null
+        notes: notes || null,
+        org_id: orgId
       })
     });
     if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + await res.text());
