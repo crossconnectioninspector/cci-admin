@@ -3031,9 +3031,9 @@ function initWizard() {
   const name = meta.full_name || currentUser?.email || 'Tester';
   const cert = meta.cert_number || '';
   const el = id => document.getElementById(id);
-  el('wiz-greeting').textContent = 'Hey, ' + name.split(' ')[0] + '!';
-  el('wiz-cert-display').textContent = cert ? 'CERT # ' + cert : 'No cert # — update Profile';
-  el('wiz-date').valueAsDate = new Date();
+  if (el('wiz-greeting')) el('wiz-greeting').textContent = 'Hey, ' + name.split(' ')[0] + '!';
+  if (el('wiz-cert-display')) el('wiz-cert-display').textContent = cert ? 'CERT # ' + cert : 'No cert # — update Profile';
+  if (el('wiz-date')) el('wiz-date').valueAsDate = new Date();
   initAddrAutocomplete('wiz-addr', 'wiz-addr-dropdown');
   // Load stats
   loadWizStats();
