@@ -1098,7 +1098,7 @@ select.field-input option{background:var(--elevated)}
       style="margin-bottom:8px;font-size:17px;padding:18px;border-radius:14px;letter-spacing:.3px;box-shadow:0 6px 24px rgba(249,166,30,.35)">
       ✓ Submit Test Report
     </button>
-    <button class="btn btn-ghost" onclick="clearForm()" style="margin-bottom:32px">Clear Form</button>
+    <button class="btn btn-ghost" onclick="clearForm()" style="margin-bottom:100px">Clear Form</button>
   </div>
 
   <!-- ── HISTORY ── -->
@@ -2148,11 +2148,42 @@ function toggleRepairs() {
 }
 
 function handlePhotos(input) {
-  photoFiles=[...input.files];
-  const prev=document.getElementById('photo-preview');
-  prev.innerHTML='';
-  photoFiles.forEach(f=>{const url=URL.createObjectURL(f);const img=document.createElement('img');img.src=url;img.className='photo-thumb';prev.appendChild(img);});
-  document.getElementById('photo-count').textContent=photoFiles.length?`${photoFiles.length} photo${photoFiles.length>1?'s':''} selected`:'';
+  const newFiles = [...input.files];
+  // Accumulate — don't replace existing selections
+  photoFiles = [...photoFiles, ...newFiles];
+  // Deduplicate by name+size in case same file picked twice
+  const seen = new Set();
+  photoFiles = photoFiles.filter(f => {
+    const key = f.name + f.size;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  const prev = document.getElementById('photo-preview');
+  prev.innerHTML = '';
+  photoFiles.forEach((f, i) => {
+    const url = URL.createObjectURL(f);
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;display:inline-block;margin:3px';
+    const img = document.createElement('img');
+    img.src = url;
+    img.className = 'photo-thumb';
+    const del = document.createElement('button');
+    del.innerHTML = '✕';
+    del.style.cssText = 'position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;line-height:1;padding:0';
+    del.onclick = () => {
+      photoFiles.splice(i, 1);
+      handlePhotos({ files: [] }); // re-render without re-adding
+    };
+    wrap.appendChild(img);
+    wrap.appendChild(del);
+    prev.appendChild(wrap);
+  });
+  document.getElementById('photo-count').textContent = photoFiles.length
+    ? `${photoFiles.length} photo${photoFiles.length > 1 ? 's' : ''} selected`
+    : '';
+  // Reset input so same file can be re-selected if needed
+  input.value = '';
 }
 
 async function submitReport() {
@@ -2319,6 +2350,20 @@ async function submitReport() {
     city: 'Abilene',
     state: 'TX',
     submitted_by_user: currentUser.id,
+    org_id: (()=>{
+      try {
+        const meta = currentUser?.app_metadata || {};
+        if (meta.org_id) return meta.org_id;
+        // Decode JWT claim directly
+        const token = supaClient.auth.session?.access_token
+          || document.cookie.match(/sb-.*-auth-token=([^;]+)/)?.[1];
+        if (token) {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          if (payload.org_id) return payload.org_id;
+        }
+      } catch(e) {}
+      return 'a0000000-0000-0000-0000-000000000001';
+    })(),
   };
 
   // Full row for local PDF generation (carries all 20700 fields)
