@@ -1729,7 +1729,7 @@ async function loadHomeStats() {
   try {
     const headers = await getHeaders();
     const safeEmail = encodeURIComponent(currentUser.email);
-    const res = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?tester_email=eq.${safeEmail}&select=id,date,address,assembly,manufacturer,model,serial,result,repairs,tester,tester_email,cert_num,firm,remarks,photo_urls,check1,check2,relief,psid_c1,psid_c2,psid_relief,fail_reasons,repair_details,bpa_serves,pws_name,pws_id,gauge_serial,gauge_cal_date,test_time&order=date.desc`, { headers });
+    const res = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?tester_email=eq.${safeEmail}&select=id,date,address,assembly,manufacturer,model,serial,result,repairs,tester,tester_email,cert_num,firm,remarks,photo_urls,check1,check2,relief,psid_c1,psid_c2,psid_relief,fail_reasons,repair_details,bpa_serves,bpa_location,pws_name,pws_id,gauge_serial,gauge_cal_date,test_time&order=date.desc`, { headers });
     if (!res.ok) throw new Error();
     myReports = await res.json();
     const name = testerProfile.name || currentUser.email;
@@ -1856,7 +1856,7 @@ function renderTesterInfo() {
 async function loadAllDevices() {
   try {
     const headers = await getHeaders();
-    const res = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?tester_email=eq.${encodeURIComponent(currentUser.email)}&select=id,date,address,assembly,manufacturer,model,serial,result,repairs,tester,tester_email,cert_num,firm,remarks,photo_urls,check1,check2,relief,psid_c1,psid_c2,psid_relief,fail_reasons,repair_details,bpa_serves,pws_name,pws_id,gauge_serial,gauge_cal_date,test_time&order=date.desc`, { headers });
+    const res = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?tester_email=eq.${encodeURIComponent(currentUser.email)}&select=id,date,address,assembly,manufacturer,model,serial,result,repairs,tester,tester_email,cert_num,firm,remarks,photo_urls,check1,check2,relief,psid_c1,psid_c2,psid_relief,fail_reasons,repair_details,bpa_serves,bpa_location,pws_name,pws_id,gauge_serial,gauge_cal_date,test_time&order=date.desc`, { headers });
     if (!res.ok) throw new Error();
     allDevices = await res.json();
   } catch(e) { allDevices = []; }
@@ -2325,6 +2325,7 @@ async function submitReport() {
     photo_urls: photoUrls,
     test_time: document.getElementById('sub-time')?.value || '',
     bpa_serves: document.getElementById('sub-bpa-serves')?.value || '',
+    bpa_location: document.getElementById('sub-bpa-location')?.value || '',
     city: 'Abilene',
     state: 'TX',
     submitted_by_user: currentUser.id,
@@ -2953,7 +2954,7 @@ async function loadHistory() {
   container.innerHTML=`<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-title">Loading…</div></div>`;
   try {
     const headers=await getHeaders();
-    const res=await fetch(`${SUPA_URL}/rest/v1/backflow_reports?tester_email=eq.${encodeURIComponent(currentUser.email)}&select=id,date,address,assembly,manufacturer,model,serial,result,repairs,tester,tester_email,cert_num,firm,remarks,photo_urls,check1,check2,relief,psid_c1,psid_c2,psid_relief,fail_reasons,repair_details,bpa_serves,pws_name,pws_id,gauge_serial,gauge_cal_date,test_time&order=date.desc&limit=50`,{headers});
+    const res=await fetch(`${SUPA_URL}/rest/v1/backflow_reports?tester_email=eq.${encodeURIComponent(currentUser.email)}&select=id,date,address,assembly,manufacturer,model,serial,result,repairs,tester,tester_email,cert_num,firm,remarks,photo_urls,check1,check2,relief,psid_c1,psid_c2,psid_relief,fail_reasons,repair_details,bpa_serves,bpa_location,pws_name,pws_id,gauge_serial,gauge_cal_date,test_time&order=date.desc&limit=50`,{headers});
     if (!res.ok) throw new Error();
     const all=await res.json();
     const name=testerProfile.name||currentUser.email;
@@ -3360,7 +3361,7 @@ async function loadWizHistory() {
   container.innerHTML = '<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-title">Loading…</div></div>';
   try {
     const headers = await getHeaders();
-    const res = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?tester_email=eq.${encodeURIComponent(currentUser.email)}&select=id,date,address,assembly,manufacturer,model,serial,result,repairs,tester,tester_email,cert_num,firm,remarks,photo_urls,check1,check2,relief,psid_c1,psid_c2,psid_relief,fail_reasons,repair_details,bpa_serves,pws_name,pws_id,gauge_serial,gauge_cal_date,test_time&order=date.desc&limit=30`, { headers });
+    const res = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?tester_email=eq.${encodeURIComponent(currentUser.email)}&select=id,date,address,assembly,manufacturer,model,serial,result,repairs,tester,tester_email,cert_num,firm,remarks,photo_urls,check1,check2,relief,psid_c1,psid_c2,psid_relief,fail_reasons,repair_details,bpa_serves,bpa_location,pws_name,pws_id,gauge_serial,gauge_cal_date,test_time&order=date.desc&limit=30`, { headers });
     if (!res.ok) throw new Error();
     const all = await res.json();
     const meta = currentUser?.user_metadata || {};
