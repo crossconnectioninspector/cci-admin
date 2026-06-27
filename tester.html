@@ -240,7 +240,13 @@ select.field-input option{background:var(--elevated)}
 .photo-zone-icon{font-size:36px;margin-bottom:8px;display:block}
 .photo-zone-text{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px}
 .photo-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.photo-thumb{width:72px;height:72px;border-radius:10px;object-fit:cover;border:1.5px solid var(--border)}
+.photo-thumb{width:72px;height:72px;border-radius:10px;object-fit:cover;border:1.5px solid var(--border);cursor:pointer;transition:opacity .15s}
+.photo-thumb:hover{opacity:.8}
+#photo-lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;align-items:center;justify-content:center;flex-direction:column}
+#photo-lightbox.open{display:flex}
+#photo-lightbox img{max-width:92vw;max-height:80vh;border-radius:12px;object-fit:contain}
+#photo-lightbox-close{position:absolute;top:18px;right:22px;background:none;border:none;color:#fff;font-size:32px;cursor:pointer;line-height:1}
+#photo-lightbox-caption{color:rgba(255,255,255,.6);font-size:12px;margin-top:10px;font-family:var(--mono)}
 
 /* DOC UPLOAD */
 .doc-upload-zone{
@@ -628,6 +634,11 @@ select.field-input option{background:var(--elevated)}
 </style>
 </head>
 <body>
+<div id="photo-lightbox" onclick="closeLightbox()">
+  <button id="photo-lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="photo-lightbox-img" src="" alt="Photo preview">
+  <div id="photo-lightbox-caption"></div>
+</div>
 
 <!-- ═══════════════════ LOGIN ═══════════════════ -->
 <div class="screen active" id="screen-login">
@@ -2168,13 +2179,12 @@ function handlePhotos(input) {
     const img = document.createElement('img');
     img.src = url;
     img.className = 'photo-thumb';
+    img.title = f.name;
+    img.onclick = (e) => { e.stopPropagation(); openLightbox(url, f.name, i + 1, photoFiles.length); };
     const del = document.createElement('button');
     del.innerHTML = '✕';
     del.style.cssText = 'position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;line-height:1;padding:0';
-    del.onclick = () => {
-      photoFiles.splice(i, 1);
-      handlePhotos({ files: [] }); // re-render without re-adding
-    };
+    del.onclick = (e) => { e.stopPropagation(); photoFiles.splice(i, 1); handlePhotos({ files: [] }); };
     wrap.appendChild(img);
     wrap.appendChild(del);
     prev.appendChild(wrap);
@@ -2184,6 +2194,18 @@ function handlePhotos(input) {
     : '';
   // Reset input so same file can be re-selected if needed
   input.value = '';
+}
+
+function openLightbox(url, name, idx, total) {
+  document.getElementById('photo-lightbox-img').src = url;
+  document.getElementById('photo-lightbox-caption').textContent =
+    `${idx} of ${total} — ${name}`;
+  document.getElementById('photo-lightbox').classList.add('open');
+}
+
+function closeLightbox() {
+  document.getElementById('photo-lightbox').classList.remove('open');
+  document.getElementById('photo-lightbox-img').src = '';
 }
 
 async function submitReport() {
