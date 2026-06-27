@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="X-Frame-Options" content="DENY">
+<meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Backflow Check Pro — Admin Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2841,7 +2844,6 @@ async function getHeaders() {
   try {
     const { data:{ session } } = await supaClient.auth.getSession();
     const token = session?.access_token || SUPA_KEY;
-    console.log('getHeaders: session exists =', !!session?.access_token);
     return { 'Content-Type':'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer '+token };
   } catch(e) {
     console.warn('getHeaders error:', e.message);
@@ -2852,7 +2854,6 @@ async function getHeaders() {
 async function sbFetch(table, opts={}) {
   const headers = await getHeaders();
   const url = `${SUPA_URL}/rest/v1/${table}${opts.query||''}`;
-  console.log('sbFetch:', table, url);
   const res = await fetch(url, { method: opts.method||'GET', headers: {...headers, ...(opts.headers||{})}, body: opts.body });
   if (!res.ok) {
     const e = await res.text();
@@ -3185,7 +3186,6 @@ async function renderDashboard() {
   const _n=Date.now();
   if(window._ldf&&(_n-window._ldf)<30000&&DB.length>0){buildDashboard();return;}
   window._ldf=_n;
-  console.log('renderDashboard called, DB length:', DB.length);
   const w = el('dash-widgets');
   if (w) w.innerHTML = `<div style="padding:60px;text-align:center;color:var(--muted)">
   <svg width="48" height="48" viewBox="0 0 48 48" style="margin-bottom:16px;display:block;margin-left:auto;margin-right:auto">
@@ -4497,7 +4497,7 @@ function switchMobilePage(page) {
 async function loadMobileDashboard() {
   try {
     const headers = await getHeaders();
-    const res = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?select=*&order=date.desc&limit=100`, { headers });
+    const res = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?select=id,date,address,assembly,manufacturer,model,serial,result,repairs,repair_details,tester,tester_email,cert_num,firm,remarks,photo_urls,check1,check2,relief,psid_c1,psid_c2,psid_relief,fail_reasons,bpa_serves,bpa_location,pws_name,pws_id,gauge_serial,gauge_cal_date,test_time,lat,lng,entered_by_admin,created_at&order=date.desc&limit=100`, { headers });
     if (!res.ok) throw new Error();
     const data = await res.json();
     const pass = data.filter(r => r.result === 'PASS').length;
@@ -4526,7 +4526,7 @@ async function loadMobileReports() {
   container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);font-family:var(--mono);font-size:11px">Loading…</div>';
   try {
     const headers = await getHeaders();
-    const res = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?select=*&order=date.desc&limit=50`, { headers });
+    const res = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?select=id,date,address,assembly,manufacturer,model,serial,result,repairs,repair_details,tester,tester_email,cert_num,firm,remarks,photo_urls,check1,check2,relief,psid_c1,psid_c2,psid_relief,fail_reasons,bpa_serves,bpa_location,pws_name,pws_id,gauge_serial,gauge_cal_date,test_time,lat,lng,entered_by_admin,created_at&order=date.desc&limit=50`, { headers });
     if (!res.ok) throw new Error();
     const data = await res.json();
     container.innerHTML = data.length ? data.map(r => mobileReportCard(r)).join('') : '<div style="text-align:center;padding:32px;color:var(--muted);font-family:var(--mono);font-size:11px">No reports yet</div>';
@@ -5296,7 +5296,7 @@ async function startRiskScan() {
     try {
       updateStatus('Loading verified locations from database...');
       const headers = await getHeaders();
-      const res = await fetch(SUPA_URL + '/rest/v1/verified_locations?select=*', {
+      const res = await fetch(SUPA_URL + '/rest/v1/verified_locations?select=id,address,city,state,zip,lat,lng,hazard_type,business_name', {
         headers: { ...headers, 'Range-Unit':'items', 'Range':'0-4999' }
       });
       if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -6481,10 +6481,8 @@ function asmApplyFilters(){
 }
 
 function asmDaysUntil(dateStr){
-  if(!dateStr || dateStr === '—') return null;
-  const d = new Date(dateStr);
-  if(isNaN(d.getTime())) return null;
-  return Math.floor((d - new Date()) / (1000*60*60*24));
+  if(!dateStr)return null;
+  return Math.floor((new Date(dateStr)-new Date())/(1000*60*60*24));
 }
 
 function asmRenderTable(){
@@ -6497,42 +6495,59 @@ function asmRenderTable(){
   const page=asmFiltered.slice(start,start+rpp);
   const info=document.getElementById('asmPageInfo');
   if(info)info.textContent=total===0?'No results':`${start+1}-${Math.min(start+rpp,total)} of ${total} items`;
-
-  // Hide old grid headers — we use a <table> now
-  const hdrs=document.getElementById('asmTableHeaders');
-  if(hdrs) hdrs.style.display='none';
-
   if(!body)return;
   if(!page.length){
-    body.innerHTML=`<div style="text-align:center;padding:48px;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px;opacity:.3">⚙</div><div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px">No assemblies found</div></div>`;
+    body.innerHTML=`<div style="text-align:center;padding:48px;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px;opacity:.3">&#x2699;</div><div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px">No assemblies found</div></div>`;
     return;
   }
+  const cols=asmDetailOpen?'110px 70px 90px 90px 1fr 100px':'110px 80px 100px 100px 1fr 120px 110px 100px';
+  // Update headers for slim mode
+  const hdrs=document.getElementById('asmTableHeaders');
+  if(hdrs){
+    hdrs.style.gridTemplateColumns=cols;
+    const headLabels=asmDetailOpen
+      ?['Serial #','Type','Make','Model','Location','Account #']
+      :['Serial #','Type','Make','Model','Location','Account #','Next Due','Status'];
+    hdrs.innerHTML=headLabels.map(h=>`<div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;padding:0 6px">${h}</div>`).join('');
+  }
 
-  const rows = page.map(a => {
-    const isActive = asmActiveId === a.id;
-    const days = asmDaysUntil(a.nextDue);
-    const dueColor = days===null?'var(--muted)':days<0?'var(--red)':days<30?'var(--yellow)':'var(--green)';
-    const dueLabel = days===null?'—':days<0?`${Math.abs(days)}d over`:days===0?'TODAY':`${days}d`;
-    const dueBold = days!==null && days<30 ? 'font-weight:700;' : '';
-    const statusClass = a.lastResult==='Pass'?'b-pass':a.lastResult==='Fail'?'b-fail':'';
-    const statusLabel = a.lastResult==='Pass'?'✓ PASS':a.lastResult==='Fail'?'✗ FAIL':'—';
-    const typeClass = 'b-bf';
-    const firePfx = a.isFireline ? '🔥 ' : '';
-    const bg = isActive ? 'background:rgba(249,166,30,.06);border-left:3px solid var(--accent)' : 'border-left:3px solid transparent';
-    return `<tr onclick="asmSelectRow('${a.id}')" style="cursor:pointer;${bg}" onmouseover="if('${a.id}'!=='${asmActiveId}')this.style.background='var(--elevated)'" onmouseout="this.style.background='${isActive?'rgba(249,166,30,.06)':'transparent'}'">
-      <td class="td-mono" style="color:var(--accent);font-weight:700">${firePfx}${sanitize(a.serial)}</td>
-      <td><span class="badge ${typeClass}">${a.type||'—'}</span></td>
-      <td class="td-mono">${sanitize(a.make)||'—'} ${sanitize(a.model)||''}</td>
-      <td class="td-addr" style="max-width:200px">${sanitize(a.address)}${a.city?', '+a.city:''}</td>
-      <td class="td-mono">${sanitize(a.account)||'—'}</td>
-      <td class="td-mono" style="color:${dueColor};${dueBold}">${dueLabel}</td>
-      <td>${statusClass?`<span class="badge ${statusClass}">${statusLabel}</span>`:`<span style="font-family:var(--mono);font-size:11px;color:var(--muted)">—</span>`}</td>
-    </tr>`;
+  body.innerHTML=page.map(a=>{
+    const isActive=asmActiveId===a.id;
+    const sc=a.status==='Pass'?'var(--green)':a.status==='Fail'?'var(--red)':'var(--yellow)';
+    const sbg=a.status==='Pass'?'rgba(76,175,121,.12)':a.status==='Fail'?'rgba(224,82,82,.12)':'rgba(240,192,64,.12)';
+    const sbr=a.status==='Pass'?'rgba(76,175,121,.3)':a.status==='Fail'?'rgba(224,82,82,.3)':'rgba(240,192,64,.3)';
+    const days=asmDaysUntil(a.nextDue);
+    const dueColor=days===null?'var(--muted)':days<0?'var(--red)':days<30?'var(--yellow)':'var(--green)';
+    const dueLabel=days===null?'—':days<0?'OVERDUE':days===0?'TODAY':days+'d';
+
+    let cells;
+    if(asmDetailOpen){
+      cells=[
+        `<div style="font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:700">${a.isFireline ? '🔥 ' : ''}${sanitize(a.serial)}</div>`,
+        `<div style="font-size:13px;font-weight:600;color:var(--text)">${a.type}</div>`,
+        `<div style="font-size:12px;color:var(--muted)">${sanitize(a.make)}</div>`,
+        `<div style="font-size:12px;color:var(--muted)">${sanitize(a.model)}</div>`,
+        `<div style="font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(a.address)}</div>`,
+        `<div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${sanitize(a.account)}</div>`,
+      ];
+    } else {
+      cells=[
+        `<div style="font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:700">${a.isFireline ? '🔥 ' : ''}${sanitize(a.serial)}</div>`,
+        `<div style="font-size:13px;font-weight:600;color:var(--text)">${a.type}</div>`,
+        `<div style="font-size:13px;color:var(--muted)">${sanitize(a.make)}</div>`,
+        `<div style="font-size:13px;color:var(--muted)">${sanitize(a.model)}</div>`,
+        `<div style="font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(a.address)}, ${a.city}</div>`,
+        `<div style="font-family:var(--mono);font-size:12px;color:var(--muted)">${sanitize(a.account)||'&mdash;'}</div>`,
+        `<div style="font-family:var(--mono);font-size:12px;color:${dueColor};font-weight:${days!==null&&days<30?'700':'400'}">${dueLabel}</div>`,
+        `<span style="font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;background:${sbg};color:${sc};border:1px solid ${sbr}">${a.status.toUpperCase()}</span>`,
+      ];
+    }
+
+    return `<div onclick="asmSelectRow('${a.id}')" style="display:grid;grid-template-columns:${cols};padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;align-items:center;background:${isActive?'rgba(249,166,30,.06)':'transparent'};border-left:3px solid ${isActive?'var(--accent)':'transparent'}"
+      onmouseover="if(!${isActive})this.style.background='var(--elevated)'" onmouseout="this.style.background='${isActive?'rgba(249,166,30,.06)':'transparent'}'">
+      ${cells.map(c=>`<div style="padding:0 6px;overflow:hidden">${c}</div>`).join('')}
+    </div>`;
   }).join('');
-
-  body.innerHTML=`<table style="width:100%"><thead><tr>
-    <th>Serial #</th><th>Type</th><th>Mfr / Model</th><th>Address</th><th>Account #</th><th>Next Due</th><th>Status</th>
-  </tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 function asmChangePage(p){asmCurrentPage=p;asmRenderTable();}
@@ -7001,7 +7016,7 @@ async function asmRenderComms(a){
   try {
     const headers=await getHeaders();
     const res=await fetch(
-      `${SUPA_URL}/rest/v1/enforcement_notices?serial=eq.${encodeURIComponent(a.serial)}&order=sent_at.desc&select=*`,
+      `${SUPA_URL}/rest/v1/enforcement_notices?serial=eq.${encodeURIComponent(a.serial)}&order=sent_at.desc&select=id,serial,address,account_number,stage,method,sent_by,sent_at,response_deadline,notes,created_at`,
       {headers}
     );
     if(!res.ok)throw new Error('HTTP '+res.status);
@@ -8833,7 +8848,7 @@ async function staffMgmt_load() {
 
   try {
     const headers = await getHeaders();
-    const res = await fetch(SUPA_URL+'/rest/v1/staff_access?select=*&order=created_at.desc', {headers});
+    const res = await fetch(SUPA_URL+'/rest/v1/staff_access?select=id,email,name,role,created_at&order=created_at.desc', {headers});
     if(!res.ok) throw new Error('HTTP '+res.status+': '+await res.text());
     staffMgmt_records = await res.json();
   } catch(e) {
@@ -9191,7 +9206,7 @@ async function poolsLoadData() {
     const headers = await getHeaders();
     let all = [], from = 0, pageSize = 1000;
     while(true) {
-      const res = await fetch(SUPA_URL+'/rest/v1/cad_pools?select=*', {headers:{...headers,'Range-Unit':'items','Range':`${from}-${from+pageSize-1}`}});
+      const res = await fetch(SUPA_URL+'/rest/v1/cad_pools?select=id,address,city,state,zip,owner_name,parcel_id,verified,lat,lng', {headers:{...headers,'Range-Unit':'items','Range':`${from}-${from+pageSize-1}`}});
       if(!res.ok) throw new Error('HTTP '+res.status);
       const page = await res.json();
       all = all.concat(page);
@@ -9413,7 +9428,7 @@ async function complianceInit() {
     let all = [], from = 0, pageSize = 1000;
     while (true) {
       const res = await fetch(
-        SUPA_URL + '/rest/v1/compliance_status?select=*&order=days_overdue.desc.nullslast',
+        SUPA_URL + '/rest/v1/compliance_status?select=device_id,org_id,serial,assembly_type,next_test_due,last_test_date,last_inspection_result,address,owner_name,owner_phone,compliance_status,days_overdue&order=days_overdue.desc.nullslast',
         { headers: { ...headers, 'Range-Unit':'items', 'Range':`${from}-${from+pageSize-1}` } }
       );
       if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + await res.text());

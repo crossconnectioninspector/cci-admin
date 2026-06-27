@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="X-Frame-Options" content="DENY">
+<meta name="referrer" content="no-referrer">
 <title>Backflow Check Pro — Tester Portal</title>
 <!-- BUILD: 2026-06-19-v6-id-fix — search this string in DevTools to confirm this exact deploy is live -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -240,13 +243,7 @@ select.field-input option{background:var(--elevated)}
 .photo-zone-icon{font-size:36px;margin-bottom:8px;display:block}
 .photo-zone-text{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px}
 .photo-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.photo-thumb{width:72px;height:72px;border-radius:10px;object-fit:cover;border:1.5px solid var(--border);cursor:pointer;transition:opacity .15s}
-.photo-thumb:hover{opacity:.8}
-#photo-lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;align-items:center;justify-content:center;flex-direction:column}
-#photo-lightbox.open{display:flex}
-#photo-lightbox img{max-width:92vw;max-height:80vh;border-radius:12px;object-fit:contain}
-#photo-lightbox-close{position:absolute;top:18px;right:22px;background:none;border:none;color:#fff;font-size:32px;cursor:pointer;line-height:1}
-#photo-lightbox-caption{color:rgba(255,255,255,.6);font-size:12px;margin-top:10px;font-family:var(--mono)}
+.photo-thumb{width:72px;height:72px;border-radius:10px;object-fit:cover;border:1.5px solid var(--border)}
 
 /* DOC UPLOAD */
 .doc-upload-zone{
@@ -634,11 +631,6 @@ select.field-input option{background:var(--elevated)}
 </style>
 </head>
 <body>
-<div id="photo-lightbox" onclick="closeLightbox()">
-  <button id="photo-lightbox-close" onclick="closeLightbox()">✕</button>
-  <img id="photo-lightbox-img" src="" alt="Photo preview">
-  <div id="photo-lightbox-caption"></div>
-</div>
 
 <!-- ═══════════════════ LOGIN ═══════════════════ -->
 <div class="screen active" id="screen-login">
@@ -1109,7 +1101,7 @@ select.field-input option{background:var(--elevated)}
       style="margin-bottom:8px;font-size:17px;padding:18px;border-radius:14px;letter-spacing:.3px;box-shadow:0 6px 24px rgba(249,166,30,.35)">
       ✓ Submit Test Report
     </button>
-    <button class="btn btn-ghost" onclick="clearForm()" style="margin-bottom:100px">Clear Form</button>
+    <button class="btn btn-ghost" onclick="clearForm()" style="margin-bottom:32px">Clear Form</button>
   </div>
 
   <!-- ── HISTORY ── -->
@@ -1494,11 +1486,6 @@ async function enterApp() {
   const appEl = document.getElementById('screen-app');
   if(appEl) { appEl.style.flexDirection = 'column'; appEl.style.minHeight = '100dvh'; }
   document.getElementById('sub-date').valueAsDate = new Date();
-  // Auto-populate current time
-  const _now = new Date();
-  const _hh = String(_now.getHours()).padStart(2,'0');
-  const _mm = String(_now.getMinutes()).padStart(2,'0');
-  document.getElementById('sub-time').value = `${_hh}:${_mm}`;
   await loadProfile();
   applyProfileToForm();
   try { renderTesterInfo(); } catch(e) {}
@@ -1738,11 +1725,12 @@ function checkProfileWarning() {
 async function loadHomeStats() {
   try {
     const headers = await getHeaders();
-    const res = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?select=*&order=date.desc`, { headers });
+    const safeEmail = encodeURIComponent(currentUser.email);
+    const res = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?tester_email=eq.${safeEmail}&select=id,date,address,assembly,manufacturer,model,serial,result,repairs,tester,tester_email,cert_num,firm,remarks,photo_urls,check1,check2,relief,psid_c1,psid_c2,psid_relief,fail_reasons,repair_details,bpa_serves,bpa_location,pws_name,pws_id,gauge_serial,gauge_cal_date,test_time&order=date.desc`, { headers });
     if (!res.ok) throw new Error();
-    const all = await res.json();
+    myReports = await res.json();
     const name = testerProfile.name || currentUser.email;
-    myReports = all.filter(r =>
+    myReports = myReports.filter(r =>
       (r.tester && r.tester.toLowerCase() === (name||'').toLowerCase()) ||
       (r.tester_email && r.tester_email === currentUser.email)
     );
@@ -1865,7 +1853,7 @@ function renderTesterInfo() {
 async function loadAllDevices() {
   try {
     const headers = await getHeaders();
-    const res = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?select=*&order=date.desc`, { headers });
+    const res = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?tester_email=eq.${encodeURIComponent(currentUser.email)}&select=id,date,address,assembly,manufacturer,model,serial,result,repairs,tester,tester_email,cert_num,firm,remarks,photo_urls,check1,check2,relief,psid_c1,psid_c2,psid_relief,fail_reasons,repair_details,bpa_serves,bpa_location,pws_name,pws_id,gauge_serial,gauge_cal_date,test_time&order=date.desc`, { headers });
     if (!res.ok) throw new Error();
     allDevices = await res.json();
   } catch(e) { allDevices = []; }
@@ -2164,53 +2152,11 @@ function toggleRepairs() {
 }
 
 function handlePhotos(input) {
-  const newFiles = [...input.files];
-  // Accumulate — don't replace existing selections
-  photoFiles = [...photoFiles, ...newFiles];
-  // Deduplicate by name+size in case same file picked twice
-  const seen = new Set();
-  photoFiles = photoFiles.filter(f => {
-    const key = f.name + f.size;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-  const prev = document.getElementById('photo-preview');
-  prev.innerHTML = '';
-  photoFiles.forEach((f, i) => {
-    const url = URL.createObjectURL(f);
-    const wrap = document.createElement('div');
-    wrap.style.cssText = 'position:relative;display:inline-block;margin:3px';
-    const img = document.createElement('img');
-    img.src = url;
-    img.className = 'photo-thumb';
-    img.title = f.name;
-    img.onclick = (e) => { e.stopPropagation(); openLightbox(url, f.name, i + 1, photoFiles.length); };
-    const del = document.createElement('button');
-    del.innerHTML = '✕';
-    del.style.cssText = 'position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;line-height:1;padding:0';
-    del.onclick = (e) => { e.stopPropagation(); photoFiles.splice(i, 1); handlePhotos({ files: [] }); };
-    wrap.appendChild(img);
-    wrap.appendChild(del);
-    prev.appendChild(wrap);
-  });
-  document.getElementById('photo-count').textContent = photoFiles.length
-    ? `${photoFiles.length} photo${photoFiles.length > 1 ? 's' : ''} selected`
-    : '';
-  // Reset input so same file can be re-selected if needed
-  input.value = '';
-}
-
-function openLightbox(url, name, idx, total) {
-  document.getElementById('photo-lightbox-img').src = url;
-  document.getElementById('photo-lightbox-caption').textContent =
-    `${idx} of ${total} — ${name}`;
-  document.getElementById('photo-lightbox').classList.add('open');
-}
-
-function closeLightbox() {
-  document.getElementById('photo-lightbox').classList.remove('open');
-  document.getElementById('photo-lightbox-img').src = '';
+  photoFiles=[...input.files];
+  const prev=document.getElementById('photo-preview');
+  prev.innerHTML='';
+  photoFiles.forEach(f=>{const url=URL.createObjectURL(f);const img=document.createElement('img');img.src=url;img.className='photo-thumb';prev.appendChild(img);});
+  document.getElementById('photo-count').textContent=photoFiles.length?`${photoFiles.length} photo${photoFiles.length>1?'s':''} selected`:'';
 }
 
 async function submitReport() {
@@ -2374,24 +2320,9 @@ async function submitReport() {
     remarks: combinedNotes,
     notes: combinedNotes,
     photo_urls: photoUrls,
-    test_time: document.getElementById('sub-time')?.value || '',
     city: 'Abilene',
     state: 'TX',
     submitted_by_user: currentUser.id,
-    org_id: (()=>{
-      try {
-        const meta = currentUser?.app_metadata || {};
-        if (meta.org_id) return meta.org_id;
-        // Decode JWT claim directly
-        const token = supaClient.auth.session?.access_token
-          || document.cookie.match(/sb-.*-auth-token=([^;]+)/)?.[1];
-        if (token) {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          if (payload.org_id) return payload.org_id;
-        }
-      } catch(e) {}
-      return 'a0000000-0000-0000-0000-000000000001';
-    })(),
   };
 
   // Full row for local PDF generation (carries all 20700 fields)
@@ -2999,7 +2930,7 @@ async function loadHistory() {
   container.innerHTML=`<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-title">Loading…</div></div>`;
   try {
     const headers=await getHeaders();
-    const res=await fetch(`${SUPA_URL}/rest/v1/backflow_reports?select=*&order=date.desc&limit=50`,{headers});
+    const res=await fetch(`${SUPA_URL}/rest/v1/backflow_reports?tester_email=eq.${encodeURIComponent(currentUser.email)}&select=id,date,address,assembly,manufacturer,model,serial,result,repairs,tester,tester_email,cert_num,firm,remarks,photo_urls,check1,check2,relief,psid_c1,psid_c2,psid_relief,fail_reasons,repair_details,bpa_serves,bpa_location,pws_name,pws_id,gauge_serial,gauge_cal_date,test_time&order=date.desc&limit=50`,{headers});
     if (!res.ok) throw new Error();
     const all=await res.json();
     const name=testerProfile.name||currentUser.email;
@@ -3406,7 +3337,7 @@ async function loadWizHistory() {
   container.innerHTML = '<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-title">Loading…</div></div>';
   try {
     const headers = await getHeaders();
-    const res = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?select=*&order=date.desc&limit=30`, { headers });
+    const res = await fetch(`${SUPA_URL}/rest/v1/backflow_reports?tester_email=eq.${encodeURIComponent(currentUser.email)}&select=id,date,address,assembly,manufacturer,model,serial,result,repairs,tester,tester_email,cert_num,firm,remarks,photo_urls,check1,check2,relief,psid_c1,psid_c2,psid_relief,fail_reasons,repair_details,bpa_serves,bpa_location,pws_name,pws_id,gauge_serial,gauge_cal_date,test_time&order=date.desc&limit=30`, { headers });
     if (!res.ok) throw new Error();
     const all = await res.json();
     const meta = currentUser?.user_metadata || {};
