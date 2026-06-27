@@ -2849,25 +2849,6 @@ async function getHeaders() {
   }
 }
 
-async function getCurrentOrgId() {
-  try {
-    const { data:{ session } } = await supaClient.auth.getSession();
-    if (!session) return 'a0000000-0000-0000-0000-000000000001';
-    // Try app_metadata first (Option B — works on all Supabase plans)
-    const appMeta = session.user?.app_metadata || {};
-    if (appMeta.org_id) return appMeta.org_id;
-    // Fallback: decode JWT claims directly (Option A — Auth Hook)
-    try {
-      const payload = JSON.parse(atob(session.access_token.split('.')[1]));
-      if (payload.org_id) return payload.org_id;
-    } catch(e) {}
-    // Final fallback: Abilene org
-    return 'a0000000-0000-0000-0000-000000000001';
-  } catch(e) {
-    return 'a0000000-0000-0000-0000-000000000001';
-  }
-}
-
 async function sbFetch(table, opts={}) {
   const headers = await getHeaders();
   const url = `${SUPA_URL}/rest/v1/${table}${opts.query||''}`;
@@ -2956,7 +2937,6 @@ async function loadAllData() {
 
 async function saveRecord(rec) {
   try {
-    const orgId = await getCurrentOrgId();
     let table, row;
     if (rec.type === 'backflow') {
       table = 'backflow_reports';
@@ -2974,7 +2954,6 @@ async function saveRecord(rec) {
         gauge_model:rec.gaugeModel||'', gauge_serial:rec.gaugeSerial||'',
         gauge_cal:rec.gaugeCal||null, gauge_type:rec.gaugeType||'',
         entered_by_admin:rec.entered_by_admin||false,
-        org_id: orgId,
         lat:rec.lat||32.4487, lng:rec.lng||-99.7331 };
     } else if (rec.type === 'csi') {
       table = 'csi_reports';
@@ -2987,7 +2966,6 @@ async function saveRecord(rec) {
         solder:rec.solder||'', remarks:rec.remarks||'',
         pws_name:rec.pwsName||'Abilene TX', pws_id:rec.pwsId||'',
         firm:rec.firm||'Backflow Check Pro',
-        org_id: orgId,
         lat:rec.lat||32.4487, lng:rec.lng||-99.7331 };
     } else {
       table = 'inspections';
@@ -2995,7 +2973,6 @@ async function saveRecord(rec) {
         biz_type:rec.bizType||rec.biz_type||'', hazard_rating:rec.hazardRating||rec.hazard_rating||5,
         compliance_status:rec.complianceStatus||rec.compliance_status||'notInspected',
         tester:rec.tester||'', remarks:rec.remarks||'',
-        org_id: orgId,
         lat:rec.lat||32.4487, lng:rec.lng||-99.7331 };
     }
     await sbFetch(table, { method:'POST', body:JSON.stringify(row),
@@ -6504,8 +6481,10 @@ function asmApplyFilters(){
 }
 
 function asmDaysUntil(dateStr){
-  if(!dateStr)return null;
-  return Math.floor((new Date(dateStr)-new Date())/(1000*60*60*24));
+  if(!dateStr || dateStr === '—') return null;
+  const d = new Date(dateStr);
+  if(isNaN(d.getTime())) return null;
+  return Math.floor((d - new Date()) / (1000*60*60*24));
 }
 
 function asmRenderTable(){
@@ -6518,59 +6497,42 @@ function asmRenderTable(){
   const page=asmFiltered.slice(start,start+rpp);
   const info=document.getElementById('asmPageInfo');
   if(info)info.textContent=total===0?'No results':`${start+1}-${Math.min(start+rpp,total)} of ${total} items`;
+
+  // Hide old grid headers — we use a <table> now
+  const hdrs=document.getElementById('asmTableHeaders');
+  if(hdrs) hdrs.style.display='none';
+
   if(!body)return;
   if(!page.length){
-    body.innerHTML=`<div style="text-align:center;padding:48px;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px;opacity:.3">&#x2699;</div><div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px">No assemblies found</div></div>`;
+    body.innerHTML=`<div style="text-align:center;padding:48px;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px;opacity:.3">⚙</div><div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px">No assemblies found</div></div>`;
     return;
   }
-  const cols=asmDetailOpen?'110px 70px 90px 90px 1fr 100px':'110px 80px 100px 100px 1fr 120px 110px 100px';
-  // Update headers for slim mode
-  const hdrs=document.getElementById('asmTableHeaders');
-  if(hdrs){
-    hdrs.style.gridTemplateColumns=cols;
-    const headLabels=asmDetailOpen
-      ?['Serial #','Type','Make','Model','Location','Account #']
-      :['Serial #','Type','Make','Model','Location','Account #','Next Due','Status'];
-    hdrs.innerHTML=headLabels.map(h=>`<div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;padding:0 6px">${h}</div>`).join('');
-  }
 
-  body.innerHTML=page.map(a=>{
-    const isActive=asmActiveId===a.id;
-    const sc=a.status==='Pass'?'var(--green)':a.status==='Fail'?'var(--red)':'var(--yellow)';
-    const sbg=a.status==='Pass'?'rgba(76,175,121,.12)':a.status==='Fail'?'rgba(224,82,82,.12)':'rgba(240,192,64,.12)';
-    const sbr=a.status==='Pass'?'rgba(76,175,121,.3)':a.status==='Fail'?'rgba(224,82,82,.3)':'rgba(240,192,64,.3)';
-    const days=asmDaysUntil(a.nextDue);
-    const dueColor=days===null?'var(--muted)':days<0?'var(--red)':days<30?'var(--yellow)':'var(--green)';
-    const dueLabel=days===null?'—':days<0?'OVERDUE':days===0?'TODAY':days+'d';
-
-    let cells;
-    if(asmDetailOpen){
-      cells=[
-        `<div style="font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:700">${a.isFireline ? '🔥 ' : ''}${sanitize(a.serial)}</div>`,
-        `<div style="font-size:13px;font-weight:600;color:var(--text)">${a.type}</div>`,
-        `<div style="font-size:12px;color:var(--muted)">${sanitize(a.make)}</div>`,
-        `<div style="font-size:12px;color:var(--muted)">${sanitize(a.model)}</div>`,
-        `<div style="font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(a.address)}</div>`,
-        `<div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${sanitize(a.account)}</div>`,
-      ];
-    } else {
-      cells=[
-        `<div style="font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:700">${a.isFireline ? '🔥 ' : ''}${sanitize(a.serial)}</div>`,
-        `<div style="font-size:13px;font-weight:600;color:var(--text)">${a.type}</div>`,
-        `<div style="font-size:13px;color:var(--muted)">${sanitize(a.make)}</div>`,
-        `<div style="font-size:13px;color:var(--muted)">${sanitize(a.model)}</div>`,
-        `<div style="font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sanitize(a.address)}, ${a.city}</div>`,
-        `<div style="font-family:var(--mono);font-size:12px;color:var(--muted)">${sanitize(a.account)||'&mdash;'}</div>`,
-        `<div style="font-family:var(--mono);font-size:12px;color:${dueColor};font-weight:${days!==null&&days<30?'700':'400'}">${dueLabel}</div>`,
-        `<span style="font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;background:${sbg};color:${sc};border:1px solid ${sbr}">${a.status.toUpperCase()}</span>`,
-      ];
-    }
-
-    return `<div onclick="asmSelectRow('${a.id}')" style="display:grid;grid-template-columns:${cols};padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;align-items:center;background:${isActive?'rgba(249,166,30,.06)':'transparent'};border-left:3px solid ${isActive?'var(--accent)':'transparent'}"
-      onmouseover="if(!${isActive})this.style.background='var(--elevated)'" onmouseout="this.style.background='${isActive?'rgba(249,166,30,.06)':'transparent'}'">
-      ${cells.map(c=>`<div style="padding:0 6px;overflow:hidden">${c}</div>`).join('')}
-    </div>`;
+  const rows = page.map(a => {
+    const isActive = asmActiveId === a.id;
+    const days = asmDaysUntil(a.nextDue);
+    const dueColor = days===null?'var(--muted)':days<0?'var(--red)':days<30?'var(--yellow)':'var(--green)';
+    const dueLabel = days===null?'—':days<0?`${Math.abs(days)}d over`:days===0?'TODAY':`${days}d`;
+    const dueBold = days!==null && days<30 ? 'font-weight:700;' : '';
+    const statusClass = a.lastResult==='Pass'?'b-pass':a.lastResult==='Fail'?'b-fail':'';
+    const statusLabel = a.lastResult==='Pass'?'✓ PASS':a.lastResult==='Fail'?'✗ FAIL':'—';
+    const typeClass = 'b-bf';
+    const firePfx = a.isFireline ? '🔥 ' : '';
+    const bg = isActive ? 'background:rgba(249,166,30,.06);border-left:3px solid var(--accent)' : 'border-left:3px solid transparent';
+    return `<tr onclick="asmSelectRow('${a.id}')" style="cursor:pointer;${bg}" onmouseover="if('${a.id}'!=='${asmActiveId}')this.style.background='var(--elevated)'" onmouseout="this.style.background='${isActive?'rgba(249,166,30,.06)':'transparent'}'">
+      <td class="td-mono" style="color:var(--accent);font-weight:700">${firePfx}${sanitize(a.serial)}</td>
+      <td><span class="badge ${typeClass}">${a.type||'—'}</span></td>
+      <td class="td-mono">${sanitize(a.make)||'—'} ${sanitize(a.model)||''}</td>
+      <td class="td-addr" style="max-width:200px">${sanitize(a.address)}${a.city?', '+a.city:''}</td>
+      <td class="td-mono">${sanitize(a.account)||'—'}</td>
+      <td class="td-mono" style="color:${dueColor};${dueBold}">${dueLabel}</td>
+      <td>${statusClass?`<span class="badge ${statusClass}">${statusLabel}</span>`:`<span style="font-family:var(--mono);font-size:11px;color:var(--muted)">—</span>`}</td>
+    </tr>`;
   }).join('');
+
+  body.innerHTML=`<table style="width:100%"><thead><tr>
+    <th>Serial #</th><th>Type</th><th>Mfr / Model</th><th>Address</th><th>Account #</th><th>Next Due</th><th>Status</th>
+  </tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 function asmChangePage(p){asmCurrentPage=p;asmRenderTable();}
@@ -9688,7 +9650,6 @@ async function complianceLogNotice(address, account, serial, rJson) {
     const { data:{ session } } = await supaClient.auth.getSession();
     const sentBy = session?.user?.email || 'admin';
     const headers = await getHeaders();
-    const orgId = await getCurrentOrgId();
     const res = await fetch(SUPA_URL + '/rest/v1/enforcement_notices', {
       method: 'POST',
       headers: { ...headers, 'Prefer': 'return=minimal' },
@@ -9697,8 +9658,7 @@ async function complianceLogNotice(address, account, serial, rJson) {
         stage: parseInt(stage), method,
         response_deadline: deadline || null,
         sent_by: sentBy,
-        notes: notes || null,
-        org_id: orgId
+        notes: notes || null
       })
     });
     if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + await res.text());
