@@ -6839,7 +6839,26 @@ function asmSwitchTab(tab,btn){
   const body=document.getElementById('asmTabBody');if(!body||!a)return;
   if(tab==='details')body.innerHTML=asmRenderDetails(a);
   else if(tab==='location')body.innerHTML=asmRenderLocation(a);
-  else if(tab==='history')body.innerHTML=asmRenderHistory(a);
+  else if(tab==='history'){
+    body.innerHTML=`<div style="text-align:center;padding:40px;color:var(--muted);font-family:var(--mono);font-size:12px">Loading report history…</div>`;
+    (async()=>{
+      try{
+        const headers={'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY};
+        const res=await fetch(`${SUPA_URL}/rest/v1/backflow_reports?serial=eq.${encodeURIComponent(a.serial)}&order=date.desc&select=date,result,tester,cert_num,assembly,manufacturer,model,address,repairs,repair_details,check1,check2,relief,air_inlet,remarks,firm,gauge_serial,gauge_cal`,{headers});
+        const rows=await res.json();
+        a.reportHistory=(rows||[]).map(r=>({
+          date:r.date||'',
+          result:r.result||'—',
+          tester:r.tester||'—',
+          cert:r.cert_num||'—',
+          reading:[r.check1&&`CV1: ${r.check1}`,r.check2&&`CV2: ${r.check2}`,r.relief&&`RV: ${r.relief}`,r.air_inlet&&`AI: ${r.air_inlet}`].filter(Boolean).join(' · ')||'—',
+          notes:(r.repair_details||r.remarks||'')
+        }));
+      }catch(e){a.reportHistory=[];}
+      if(document.getElementById('asmTabBody'))
+        document.getElementById('asmTabBody').innerHTML=asmRenderHistory(a);
+    })();
+  }
   else if(tab==='comms'){body.innerHTML='';asmRenderComms(a);}
   else if(tab==='compliance')body.innerHTML=asmRenderCompliance(a);
   // If location tab, force map resize after tab animation settles
