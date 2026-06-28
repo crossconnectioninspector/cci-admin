@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
-<meta http-equiv="X-Frame-Options" content="DENY">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Backflow Check Pro — Admin Portal</title>
@@ -6844,7 +6843,7 @@ function asmSwitchTab(tab,btn){
     (async()=>{
       try{
         const headers={'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY};
-        const res=await fetch(`${SUPA_URL}/rest/v1/backflow_reports?serial=eq.${encodeURIComponent(a.serial)}&order=date.desc&select=id,date,result,tester,tester_email,cert_num,assembly,manufacturer,model,serial,size,address,repairs,repair_details,check1,check2,relief,air_inlet,remarks,firm,gauge_serial,gauge_cal,photo_urls,bpa_serves,bpa_location,test_time,pws_name,pws_id`,{headers});
+        const res=await fetch(`${SUPA_URL}/rest/v1/backflow_reports?serial=eq.${encodeURIComponent(a.serial)}&order=date.desc&select=id,date,result,tester,tester_email,cert_num,assembly,manufacturer,model,serial,size,address,repairs,repair_details,check1,check2,relief,air_inlet,remarks,firm,gauge_serial,gauge_cal_date,photo_urls,bpa_serves,bpa_location,test_time,pws_name,pws_id`,{headers});
         const rows=await res.json();
         a.reportHistory=(rows||[]).map(r=>({
           id:r.id||'',
