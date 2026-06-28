@@ -6332,10 +6332,53 @@ document.addEventListener('click',function(e){if(!conDetailOpen)return;const pan
 // ═══════════════════════════════════════════════════════
 const SP_REQUIRED=['cert_number','company','license_exp','gauge_cal_date','gauge_serial'];
 const SP_REQUIRED_LABELS={cert_number:'Backflow Cert Number',company:'Company / Firm',license_exp:'License Expiration Date',gauge_cal_date:'Gauge Calibration Date',gauge_serial:'Gauge Serial Number'};
-const SP_DATA=[{id:1,name:"Matt Snider",email:"matt@backflowcheckpro.com",company:"Backflow Check Pro",cert_number:"TX-4421",phone:"(325) 555-0101",gauge_serial:"GAU-2291",gauge_cal_date:"2026-09-01",license_number:"LIC-0042",license_exp:"2027-03-15",testsRun:47,status:"active",approved_at:"2025-01-10",notes:"Lead tester.",testHistory:[{date:"2026-01-22",address:"4150 Buffalo Gap Rd",assembly:"PV-0034",result:"Pass"},{date:"2025-11-14",address:"1423 N 1st St",assembly:"RP-2291",result:"Pass"}]},{id:2,name:"Jorge Rodriguez",email:"j.rodriguez@abileneplumbing.com",company:"Abilene Plumbing Co.",cert_number:"TX-2209",phone:"(325) 555-0217",gauge_serial:"GAU-1144",gauge_cal_date:"2026-06-15",license_number:"LIC-0088",license_exp:"2026-11-30",testsRun:23,status:"active",approved_at:"2025-03-15",notes:"",testHistory:[{date:"2025-10-02",address:"3801 S Clack St",assembly:"RP-0881",result:"Pass"}]},{id:3,name:"Sandra Williams",email:"s.williams@williamsbackflow.com",company:"Williams Backflow LLC",cert_number:"TX-3387",phone:"(325) 555-0344",gauge_serial:"",gauge_cal_date:"",license_number:"",license_exp:"",testsRun:31,status:"pending",submitted_at:"2026-05-20",notes:"Missing gauge cal and license.",testHistory:[]},{id:4,name:"David Kim",email:"d.kim@kimmechanical.com",company:"Kim Mechanical Services",cert_number:"",phone:"(325) 555-0488",gauge_serial:"",gauge_cal_date:"",license_number:"",license_exp:"",testsRun:0,status:"pending",submitted_at:"2026-05-27",notes:"New — multiple fields missing.",testHistory:[]}];
-let spFiltered=[...SP_DATA],spActiveId=null,spCurrentPage=1,spDetailOpen=false,spCurrentTab='active';
-function spInit(){spLoadCommsFromStorage();spCurrentPage=1;spDetailOpen=false;const p=document.getElementById('spDetailPanel');if(p){p.style.width='0';p.style.opacity='0';}spSetTab('active');spUpdatePendingBadge();}
-function spUpdatePendingBadge(){const pending=SP_DATA.filter(t=>t.status==='pending').length;const badge=document.getElementById('spPendingBadge');if(badge){badge.textContent=pending;badge.style.display=pending>0?'inline':'none';}}
+// SP_DATA is now populated from Supabase testers table
+let SP_DATA = [];
+
+function spMapRow(t) {
+  return {
+    id: t.id,
+    name: t.name || t.email || '',
+    email: t.email || '',
+    company: t.company || '',
+    cert_number: t.cert_number || t.license_number || '',
+    phone: t.phone || '',
+    gauge_serial: t.gauge_serial || '',
+    gauge_cal_date: t.gauge_cal_date || '',
+    license_number: t.license_number || '',
+    license_exp: t.license_exp || '',
+    testsRun: t.tests_run || 0,
+    status: t.status || 'pending',
+    approved_at: t.approved_at || '',
+    submitted_at: t.created_at ? t.created_at.split('T')[0] : '',
+    notes: t.notes || '',
+    fireline_authorized: t.fireline_authorized || false,
+    rme_number: t.rme_number || '',
+    scr_number: t.scr_number || '',
+    testHistory: [],
+  };
+}let spFiltered=[],spActiveId=null,spCurrentPage=1,spDetailOpen=false,spCurrentTab='active';
+async function spInit(){
+  spLoadCommsFromStorage();spCurrentPage=1;spDetailOpen=false;
+  const p=document.getElementById('spDetailPanel');if(p){p.style.width='0';p.style.opacity='0';}
+  try{
+    const headers=await getHeaders();
+    const orgId=await getCurrentOrgId();
+    const res=await fetch(
+      `${SUPA_URL}/rest/v1/testers?org_id=eq.${orgId}&select=id,name,email,company,cert_number,license_number,license_exp,phone,gauge_serial,gauge_cal_date,status,approved_at,notes,tests_run,fireline_authorized,rme_number,scr_number,created_at&order=name.asc`,
+      {headers}
+    );
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const rows=await res.json();
+    SP_DATA=(rows||[]).map(spMapRow);
+  }catch(e){
+    console.error('spInit:',e);
+    SP_DATA=[];
+  }
+  spFiltered=[...SP_DATA];
+  spSetTab('active');spUpdatePendingBadge();
+}
+function spUpdatePendingBadge(){const pending=(SP_DATA||[]).filter(t=>t.status==='pending').length;const badge=document.getElementById('spPendingBadge');if(badge){badge.textContent=pending;badge.style.display=pending>0?'inline':'none';}}
 function spSetTab(tab){spCurrentTab=tab;spCurrentPage=1;const btnA=document.getElementById('spTabActive'),btnP=document.getElementById('spTabPending');if(btnA){btnA.style.background=tab==='active'?'var(--accent)':'transparent';btnA.style.color=tab==='active'?'#000':'var(--muted)';}if(btnP){btnP.style.background=tab==='pending'?'var(--yellow)':'transparent';btnP.style.color=tab==='pending'?'#000':'var(--muted)';}spApplyFilters();}
 function spApplyFilters(){const ms=document.getElementById('spMainSearch')?.value.trim().toLowerCase()||'';spFiltered=SP_DATA.filter(t=>t.status===spCurrentTab&&(!ms||t.name.toLowerCase().includes(ms)||t.cert_number.toLowerCase().includes(ms)||t.company.toLowerCase().includes(ms)||t.email.toLowerCase().includes(ms)));spRenderTable();}
 function spMissingFields(t){return SP_REQUIRED.filter(f=>!t[f]||t[f].toString().trim()==='');}
@@ -6410,11 +6453,50 @@ function spSaveEdit(){
   toast('Tester updated','success');
 }
 function spSwitchTab(tab,btn){document.querySelectorAll('#spDetailTabs .m-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');const t=SP_DATA.find(x=>x.id===spActiveId);const body=document.getElementById('spTabBody');if(!body||!t)return;if(tab==='info')body.innerHTML=spRenderInfo(t);else if(tab==='tests')body.innerHTML=spRenderTests(t);else if(tab==='credentials')body.innerHTML=spRenderCredentials(t);else if(tab==='comms')body.innerHTML=spRenderComms(t);}
-function spApprove(){const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return;const missing=spMissingFields(t);if(missing.length>0&&!confirm('Missing fields:\n\n'+missing.map(f=>'\u2022 '+SP_REQUIRED_LABELS[f]).join('\n')+'\n\nApprove anyway?'))return;t.status='active';t.approved_at=new Date().toISOString().split('T')[0];spUpdatePendingBadge();spSelectRow(t.id);}
+async function spApprove(){
+  const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return;
+  const missing=spMissingFields(t);
+  if(missing.length>0&&!confirm('Missing fields:\n\n'+missing.map(f=>'\u2022 '+SP_REQUIRED_LABELS[f]).join('\n')+'\n\nApprove anyway?'))return;
+  try{
+    const headers=await getHeaders();
+    const today=new Date().toISOString().split('T')[0];
+    const res=await fetch(`${SUPA_URL}/rest/v1/testers?id=eq.${t.id}`,{
+      method:'PATCH',headers:{...headers,'Prefer':'return=minimal'},
+      body:JSON.stringify({status:'active',approved_at:today})
+    });
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    t.status='active';t.approved_at=today;
+    spUpdatePendingBadge();spSelectRow(t.id);
+    if(typeof toast==='function')toast('Tester approved','success');
+  }catch(e){alert('Approve failed: '+e.message);}
+}
 function spRequestInfo(){const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return;const missing=spMissingFields(t);alert('Notification sent to '+t.email+':\n\nPlease complete your profile.\n\nMissing:\n'+missing.map(f=>'\u2022 '+SP_REQUIRED_LABELS[f]).join('\n'));}
-function spReject(){const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return;if(!confirm('Reject '+t.name+'?'))return;t.status='rejected';spUpdatePendingBadge();spCloseDetail();spSetTab('pending');}
+async function spReject(){
+  const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return;
+  if(!confirm('Reject '+t.name+'?'))return;
+  try{
+    const headers=await getHeaders();
+    const res=await fetch(`${SUPA_URL}/rest/v1/testers?id=eq.${t.id}`,{
+      method:'PATCH',headers:{...headers,'Prefer':'return=minimal'},
+      body:JSON.stringify({status:'rejected'})
+    });
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    t.status='rejected';
+    spUpdatePendingBadge();spCloseDetail();spSetTab('pending');
+  }catch(e){alert('Reject failed: '+e.message);}
+}
 
-function spSetStatus(status){const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return;t.status=status;const badge=document.getElementById('spDetailStatusBadge');if(badge){const sc=status==='active'?'var(--green)':'var(--red)';const sbg=status==='active'?'rgba(76,175,121,.14)':'rgba(224,82,82,.14)';const sbr=status==='active'?'rgba(76,175,121,.3)':'rgba(224,82,82,.3)';badge.style.cssText=`font-family:var(--cond);font-weight:700;font-size:13px;padding:4px 10px;border-radius:5px;background:${sbg};color:${sc};border:1px solid ${sbr}`;badge.textContent=status.toUpperCase();}const aBtn=document.getElementById('spStatusActive');const dBtn=document.getElementById('spStatusDisabled');const isActive=status==='active';if(aBtn){aBtn.style.borderColor=isActive?'var(--green)':'var(--border)';aBtn.style.background=isActive?'rgba(61,184,112,.12)':'var(--elevated)';aBtn.style.color=isActive?'var(--green)':'var(--muted)';}if(dBtn){dBtn.style.borderColor=!isActive?'var(--red)':'var(--border)';dBtn.style.background=!isActive?'rgba(224,82,82,.12)':'var(--elevated)';dBtn.style.color=!isActive?'var(--red)':'var(--muted)';}spRenderTable();if(typeof toast==='function')toast('Tester '+(isActive?'activated':'disabled'),'success');}
+async function spSetStatus(status){
+  const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return;
+  try{
+    const headers=await getHeaders();
+    const res=await fetch(`${SUPA_URL}/rest/v1/testers?id=eq.${t.id}`,{
+      method:'PATCH',headers:{...headers,'Prefer':'return=minimal'},
+      body:JSON.stringify({status})
+    });
+    if(!res.ok)throw new Error('HTTP '+res.status);
+  }catch(e){alert('Status update failed: '+e.message);return;}
+  t.status=status;const badge=document.getElementById('spDetailStatusBadge');if(badge){const sc=status==='active'?'var(--green)':'var(--red)';const sbg=status==='active'?'rgba(76,175,121,.14)':'rgba(224,82,82,.14)';const sbr=status==='active'?'rgba(76,175,121,.3)':'rgba(224,82,82,.3)';badge.style.cssText=`font-family:var(--cond);font-weight:700;font-size:13px;padding:4px 10px;border-radius:5px;background:${sbg};color:${sc};border:1px solid ${sbr}`;badge.textContent=status.toUpperCase();}const aBtn=document.getElementById('spStatusActive');const dBtn=document.getElementById('spStatusDisabled');const isActive=status==='active';if(aBtn){aBtn.style.borderColor=isActive?'var(--green)':'var(--border)';aBtn.style.background=isActive?'rgba(61,184,112,.12)':'var(--elevated)';aBtn.style.color=isActive?'var(--green)':'var(--muted)';}if(dBtn){dBtn.style.borderColor=!isActive?'var(--red)':'var(--border)';dBtn.style.background=!isActive?'rgba(224,82,82,.12)':'var(--elevated)';dBtn.style.color=!isActive?'var(--red)':'var(--muted)';}spRenderTable();if(typeof toast==='function')toast('Tester '+(isActive?'activated':'disabled'),'success');}
 function spRefresh(){spInit();const btn=event?.currentTarget;if(btn){const orig=btn.innerHTML;btn.innerHTML='&#x2713; Synced!';setTimeout(()=>{btn.innerHTML=orig;},2000);}}
 function _sp(title,html){return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px"><div style="font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:1.4px;text-transform:uppercase;margin-bottom:13px;font-weight:600">${title}</div>${html}</div>`;}
 function _sg(pairs){return`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${pairs.map(([l,v])=>`<div><div style="font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px">${l}</div><div style="font-size:16px;color:var(--text);font-weight:500;line-height:1.4">${v||'<span style=color:var(--red)>Missing</span>'}</div></div>`).join('')}</div>`;}
