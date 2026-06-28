@@ -5808,19 +5808,96 @@ function clearRiskSearch() {
 // ═══════════════════════════════════════════════════════
 //  LOCATIONS MODULE
 // ═══════════════════════════════════════════════════════
-const LOC_DATA=[{id:1,address:"1423 N 1st St",city:"Abilene",state:"TX",zip:"79601",name:"Circle K #4421",account:"ACC-00142",contact:"Randy Torres",phone:"(325) 555-0182",email:"randy.torres@circlek.com",hazard:"High",hazardRating:9,compliance:"Compliant",lastSurvey:"Pass",connections:2,riskScore:12,deviceCount:2,assemblies:[{serial:"RP-2291",type:"RPZ",make:"Watts",model:"009",size:'3/4"',status:"Pass",tested:"2025-11-14",due:"2026-11-14"},{serial:"DC-0044",type:"DCVA",make:"Wilkins",model:"975XL",size:'1"',status:"Pass",tested:"2025-11-14",due:"2026-11-14"}],communications:[{date:"2025-09-14",type:"60-Day Notice",method:"Email",status:"Sent"},{date:"2025-10-14",type:"30-Day Notice",method:"Email",status:"Sent"}],surveys:[{date:"2025-11-14",surveyor:"Matt Snider",result:"Pass",notes:"Two RPZ assemblies on east side. Mechanical room accessible via rear entrance."}],complianceHistory:[{year:"2026",pct:100,pass:2,fail:0},{year:"2025",pct:100,pass:2,fail:0},{year:"2024",pct:85,pass:1,fail:1}]},{id:2,address:"3801 S Clack St",city:"Abilene",state:"TX",zip:"79606",name:"Hendrick Medical Center",account:"ACC-00389",contact:"Susan Park",phone:"(325) 555-0244",email:"s.park@hendrickhealth.org",hazard:"High",hazardRating:10,compliance:"Overdue",lastSurvey:"Pass",connections:3,riskScore:71,deviceCount:3,assemblies:[{serial:"RP-0881",type:"RPZ",make:"Febco",model:"860",size:'1"',status:"Overdue",tested:"2024-10-02",due:"2025-10-02"},{serial:"RP-0882",type:"RPZ",make:"Febco",model:"860",size:'1"',status:"Pass",tested:"2025-03-15",due:"2026-03-15"},{serial:"DC-0199",type:"DCVA",make:"Watts",model:"007",size:'3/4"',status:"Overdue",tested:"2024-10-02",due:"2025-10-02"}],communications:[{date:"2025-07-02",type:"60-Day Notice",method:"Email",status:"Sent"},{date:"2025-09-30",type:"Overdue Notice",method:"Email",status:"Sent"}],surveys:[{date:"2024-10-02",surveyor:"Matt Snider",result:"Pass",notes:"3 assemblies total. RP-0881 and DC-0199 now OVERDUE."}],complianceHistory:[{year:"2026",pct:33,pass:1,fail:2},{year:"2025",pct:100,pass:3,fail:0},{year:"2024",pct:100,pass:3,fail:0}]},{id:3,address:"4150 Buffalo Gap Rd",city:"Abilene",state:"TX",zip:"79605",name:"Walmart Supercenter",account:"ACC-00217",contact:"Luis Garza",phone:"(325) 555-0311",email:"l.garza@walmart.com",hazard:"Medium",hazardRating:5,compliance:"Compliant",lastSurvey:"Pass",connections:1,riskScore:8,deviceCount:1,assemblies:[{serial:"PV-0034",type:"PVB",make:"Ames",model:"4000SS",size:'1/2"',status:"Pass",tested:"2026-01-22",due:"2027-01-22"}],communications:[{date:"2025-11-22",type:"60-Day Notice",method:"Email",status:"Sent"}],surveys:[{date:"2026-01-22",surveyor:"Matt Snider",result:"Pass",notes:"Single PVB on irrigation system."}],complianceHistory:[{year:"2026",pct:100,pass:1,fail:0},{year:"2025",pct:100,pass:1,fail:0}]},{id:4,address:"2018 Grape St",city:"Abilene",state:"TX",zip:"79601",name:"Abilene High School",account:"ACC-00504",contact:"Dr. Maria Okonkwo",phone:"(325) 555-0099",email:"m.okonkwo@aisd.org",hazard:"Medium",hazardRating:6,compliance:"Non-Compliant",lastSurvey:"Fail",connections:2,riskScore:58,deviceCount:2,assemblies:[{serial:"RP-1145",type:"RPZ",make:"Watts",model:"009M3",size:'1"',status:"Fail",tested:"2025-08-10",due:"2026-08-10"},{serial:"DC-0288",type:"DCVA",make:"Watts",model:"007M1",size:'3/4"',status:"Pass",tested:"2025-08-10",due:"2026-08-10"}],communications:[{date:"2025-06-10",type:"60-Day Notice",method:"Email",status:"Sent"},{date:"2025-08-10",type:"Fail Notice",method:"Email + SMS",status:"Sent"}],surveys:[{date:"2025-08-10",surveyor:"Matt Snider",result:"Fail",notes:"RP-1145 failed: relief valve discharged continuously."}],complianceHistory:[{year:"2026",pct:50,pass:1,fail:1},{year:"2025",pct:100,pass:2,fail:0}]}];
+const LOC_DATA_DEMO=[{id:1,address:"1423 N 1st St",city:"Abilene",state:"TX",zip:"79601",name:"Circle K #4421",account:"ACC-00142",contact:"Randy Torres",phone:"(325) 555-0182",email:"randy.torres@circlek.com",hazard:"High",hazardRating:9,compliance:"Compliant",lastSurvey:"Pass",connections:2,riskScore:12,deviceCount:2,assemblies:[{serial:"RP-2291",type:"RPZ",make:"Watts",model:"009",size:'3/4"',status:"Pass",tested:"2025-11-14",due:"2026-11-14"},{serial:"DC-0044",type:"DCVA",make:"Wilkins",model:"975XL",size:'1"',status:"Pass",tested:"2025-11-14",due:"2026-11-14"}],communications:[{date:"2025-09-14",type:"60-Day Notice",method:"Email",status:"Sent"},{date:"2025-10-14",type:"30-Day Notice",method:"Email",status:"Sent"}],surveys:[{date:"2025-11-14",surveyor:"Matt Snider",result:"Pass",notes:"Two RPZ assemblies on east side. Mechanical room accessible via rear entrance."}],complianceHistory:[{year:"2026",pct:100,pass:2,fail:0},{year:"2025",pct:100,pass:2,fail:0},{year:"2024",pct:85,pass:1,fail:1}]},{id:2,address:"3801 S Clack St",city:"Abilene",state:"TX",zip:"79606",name:"Hendrick Medical Center",account:"ACC-00389",contact:"Susan Park",phone:"(325) 555-0244",email:"s.park@hendrickhealth.org",hazard:"High",hazardRating:10,compliance:"Overdue",lastSurvey:"Pass",connections:3,riskScore:71,deviceCount:3,assemblies:[{serial:"RP-0881",type:"RPZ",make:"Febco",model:"860",size:'1"',status:"Overdue",tested:"2024-10-02",due:"2025-10-02"},{serial:"RP-0882",type:"RPZ",make:"Febco",model:"860",size:'1"',status:"Pass",tested:"2025-03-15",due:"2026-03-15"},{serial:"DC-0199",type:"DCVA",make:"Watts",model:"007",size:'3/4"',status:"Overdue",tested:"2024-10-02",due:"2025-10-02"}],communications:[{date:"2025-07-02",type:"60-Day Notice",method:"Email",status:"Sent"},{date:"2025-09-30",type:"Overdue Notice",method:"Email",status:"Sent"}],surveys:[{date:"2024-10-02",surveyor:"Matt Snider",result:"Pass",notes:"3 assemblies total. RP-0881 and DC-0199 now OVERDUE."}],complianceHistory:[{year:"2026",pct:33,pass:1,fail:2},{year:"2025",pct:100,pass:3,fail:0},{year:"2024",pct:100,pass:3,fail:0}]},{id:3,address:"4150 Buffalo Gap Rd",city:"Abilene",state:"TX",zip:"79605",name:"Walmart Supercenter",account:"ACC-00217",contact:"Luis Garza",phone:"(325) 555-0311",email:"l.garza@walmart.com",hazard:"Medium",hazardRating:5,compliance:"Compliant",lastSurvey:"Pass",connections:1,riskScore:8,deviceCount:1,assemblies:[{serial:"PV-0034",type:"PVB",make:"Ames",model:"4000SS",size:'1/2"',status:"Pass",tested:"2026-01-22",due:"2027-01-22"}],communications:[{date:"2025-11-22",type:"60-Day Notice",method:"Email",status:"Sent"}],surveys:[{date:"2026-01-22",surveyor:"Matt Snider",result:"Pass",notes:"Single PVB on irrigation system."}],complianceHistory:[{year:"2026",pct:100,pass:1,fail:0},{year:"2025",pct:100,pass:1,fail:0}]},{id:4,address:"2018 Grape St",city:"Abilene",state:"TX",zip:"79601",name:"Abilene High School",account:"ACC-00504",contact:"Dr. Maria Okonkwo",phone:"(325) 555-0099",email:"m.okonkwo@aisd.org",hazard:"Medium",hazardRating:6,compliance:"Non-Compliant",lastSurvey:"Fail",connections:2,riskScore:58,deviceCount:2,assemblies:[{serial:"RP-1145",type:"RPZ",make:"Watts",model:"009M3",size:'1"',status:"Fail",tested:"2025-08-10",due:"2026-08-10"},{serial:"DC-0288",type:"DCVA",make:"Watts",model:"007M1",size:'3/4"',status:"Pass",tested:"2025-08-10",due:"2026-08-10"}],communications:[{date:"2025-06-10",type:"60-Day Notice",method:"Email",status:"Sent"},{date:"2025-08-10",type:"Fail Notice",method:"Email + SMS",status:"Sent"}],surveys:[{date:"2025-08-10",surveyor:"Matt Snider",result:"Fail",notes:"RP-1145 failed: relief valve discharged continuously."}],complianceHistory:[{year:"2026",pct:50,pass:1,fail:1},{year:"2025",pct:100,pass:2,fail:0}]}];
 
-let locFiltered=[...LOC_DATA],locActiveId=null,locCurrentPage=1,locAdvOpen=false,locDetailOpen=false,locEditMode=false;
+let LOC_DATA=[],locFiltered=[],locActiveId=null,locCurrentPage=1,locAdvOpen=false,locDetailOpen=false,locEditMode=false;
 let locSavedFilters=JSON.parse(localStorage.getItem('cci_loc_filters')||'[]');
 const LOC_COLS_FULL='180px 1fr 140px 80px 110px 110px 90px';
 const LOC_HEADS_FULL=['Address','Name / Business','Device Types','Size','Serial Numbers','Account #','Hazard'];
 const LOC_COLS_SLIM='160px 1fr 100px 90px 80px';
 const LOC_HEADS_SLIM=['Address','Name','Device Type','Account #','Hazard'];
 
-function locInit(){
-  // Restore persisted comms notes from localStorage
+// ── LOC_DATA is now populated from Supabase properties table ──
+function locMapRow(p) {
+  // Map properties table columns → existing loc object shape
+  // so all rendering code works unchanged
+  const compliance = (() => {
+    if (!p.next_test_due) return 'Compliant';
+    const due = new Date(p.next_test_due);
+    const now = new Date();
+    const days = Math.floor((due - now) / 86400000);
+    if (days < 0) return 'Overdue';
+    if (days < 30) return 'Due Soon';
+    return 'Compliant';
+  })();
+  return {
+    id: p.id,
+    address: p.address || '',
+    city: p.city || 'Abilene',
+    state: p.state || 'TX',
+    zip: p.zip || '',
+    name: p.owner_name || p.address || '',
+    account: p.account_number || '',
+    contact: p.owner_name || '',
+    phone: p.owner_phone || '',
+    email: p.owner_email || '',
+    hazard: p.property_type || 'Medium',
+    hazardRating: p.property_type === 'High' ? 8 : p.property_type === 'Low' ? 2 : 5,
+    compliance,
+    lastSurvey: 'Pending',
+    connections: 1,
+    riskScore: 0,
+    deviceCount: 0,
+    assemblies: [],
+    communications: [],
+    surveys: [],
+    complianceHistory: [],
+  };
+}
+
+function locMapRow(p){
+  const now=new Date();
+  const due=p.next_test_due?new Date(p.next_test_due):null;
+  const days=due?Math.floor((due-now)/86400000):null;
+  const compliance=days===null?'Compliant':days<0?'Overdue':days<30?'Due Soon':'Compliant';
+  return{
+    id:p.id,
+    address:p.address||'',
+    city:p.city||'Abilene',
+    state:p.state||'TX',
+    zip:p.zip||'',
+    name:p.owner_name||p.address||'',
+    account:p.account_number||'',
+    contact:p.owner_name||'',
+    phone:p.owner_phone||'',
+    email:p.owner_email||'',
+    hazard:p.property_type||'Medium',
+    hazardRating:p.property_type==='High'?8:p.property_type==='Low'?2:5,
+    compliance,lastSurvey:'Pending',connections:1,riskScore:0,deviceCount:0,
+    assemblies:[],communications:[],surveys:[],complianceHistory:[],
+  };
+}
+
+async function locInit(){
   locLoadCommsFromStorage();
-  locFiltered=[...LOC_DATA];locCurrentPage=1;locDetailOpen=false;locEditMode=false;
+  locDetailOpen=false;locEditMode=false;locCurrentPage=1;
+  const tb=document.getElementById('locTableBody');
+  if(tb)tb.innerHTML='<div style="text-align:center;padding:48px;color:var(--muted);font-family:var(--mono);font-size:12px">Loading locations…</div>';
+  try{
+    const headers=await getHeaders();
+    const orgId=await getCurrentOrgId();
+    const res=await fetch(
+      `${SUPA_URL}/rest/v1/properties?org_id=eq.${orgId}&select=id,address,city,state,zip,owner_name,owner_email,owner_phone,account_number,property_type,next_test_due,created_at&order=address.asc`,
+      {headers}
+    );
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const rows=await res.json();
+    LOC_DATA=(rows||[]).map(locMapRow);
+  }catch(e){
+    console.error('locInit:',e);
+    LOC_DATA=[];
+  }
+  locFiltered=[...LOC_DATA];locCurrentPage=1;
   const p=document.getElementById('locDetailPanel');if(p){p.style.width='0';p.style.opacity='0';}
   locRenderHeaders();locRenderTable();locRenderSavedChips();
 }
@@ -5901,7 +5978,40 @@ function _lg(pairs){return`<div style="display:grid;grid-template-columns:1fr 1f
 
 function locRenderDetails(loc){if(locEditMode){const ef=(id,val,type='text',opts=null)=>opts?`<select id="${id}" class="ss" style="font-size:13px;padding:5px 8px;width:100%">${opts.map(o=>`<option${o===val?' selected':''}>${o}</option>`).join('')}</select>`:`<input id="${id}" type="${type}" value="${sanitize(val||'')}" class="si" style="font-size:13px;padding:5px 8px;width:100%">`;return _lc('Property — Editing',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Business Name</div>${ef('edit-name',loc.name)}</div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Account #</div>${ef('edit-account',loc.account)}</div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Hazard</div>${ef('edit-hazard',loc.hazard,'text',['High','Medium','Low'])}</div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">ZIP</div>${ef('edit-zip',loc.zip)}</div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Connections</div>${ef('edit-connections',loc.connections,'number')}</div></div>`)+_lc('Contact — Editing',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div style="grid-column:1/-1"><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Contact Name</div>${ef('edit-contact',loc.contact)}</div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Phone</div>${ef('edit-phone',loc.phone)}</div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Email</div>${ef('edit-email',loc.email)}</div></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button onclick="locEditMode=false;locToggleEdit()" class="btn btn-gh btn-sm">Cancel</button><button onclick="locSaveEdit()" class="btn btn-ac btn-sm">Save Changes</button></div>`);}return _lc('Property Information',_lg([['Business Name',sanitize(loc.name)],['Account Number',sanitize(loc.account)],['Street Address',sanitize(loc.address)],['City / State / ZIP',loc.city+', '+loc.state+' '+loc.zip],['Hazard Type',loc.hazard+' ('+loc.hazardRating+'/10)'],['Service Connections',loc.connections]]))+_lc('Primary Contact',_lg([['Contact Name',sanitize(loc.contact)],['Phone',sanitize(loc.phone)],['Email',sanitize(loc.email)],['Overall Compliance','<span style="color:'+(loc.compliance==='Compliant'?'var(--green)':loc.compliance==='Overdue'?'var(--yellow)':'var(--red)')+'">'+loc.compliance+'</span>']]));}
 
-function locSaveEdit(){const loc=LOC_DATA.find(l=>l.id===locActiveId);if(!loc)return;const g=id=>document.getElementById(id)?.value?.trim();loc.name=g('edit-name')||loc.name;loc.account=g('edit-account')||loc.account;loc.hazard=g('edit-hazard')||loc.hazard;loc.hazardRating=loc.hazard==='High'?8:loc.hazard==='Medium'?5:2;loc.zip=g('edit-zip')||loc.zip;loc.connections=parseInt(g('edit-connections'))||loc.connections;loc.contact=g('edit-contact')||loc.contact;loc.phone=g('edit-phone')||loc.phone;loc.email=g('edit-email')||loc.email;locEditMode=false;const btn=document.getElementById('locEditBtn');if(btn){btn.innerHTML='&#x2713; Saved';btn.style.color='var(--green)';btn.style.borderColor='var(--green)';setTimeout(()=>{btn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit';btn.style.color='';btn.style.borderColor='';},1500);}const body=document.getElementById('locTabBody');if(body)body.innerHTML=locRenderDetails(loc);locRenderTable();}
+async function locSaveEdit(){
+  const loc=LOC_DATA.find(l=>l.id===locActiveId);if(!loc)return;
+  const g=id=>document.getElementById(id)?.value?.trim();
+  const updates={
+    owner_name:g('edit-name')||loc.name,
+    account_number:g('edit-account')||loc.account,
+    property_type:g('edit-hazard')||loc.hazard,
+    zip:g('edit-zip')||loc.zip,
+    owner_phone:g('edit-phone')||loc.phone,
+    owner_email:g('edit-email')||loc.email,
+  };
+  try{
+    const headers=await getHeaders();
+    const res=await fetch(`${SUPA_URL}/rest/v1/properties?id=eq.${loc.id}`,{
+      method:'PATCH',
+      headers:{...headers,'Prefer':'return=minimal'},
+      body:JSON.stringify(updates)
+    });
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    // Update local object so UI reflects change immediately
+    loc.name=updates.owner_name;loc.account=updates.account_number;
+    loc.hazard=updates.property_type;loc.zip=updates.zip;
+    loc.phone=updates.owner_phone;loc.email=updates.owner_email;
+    loc.contact=updates.owner_name;
+    locEditMode=false;
+    const btn=document.getElementById('locEditBtn');
+    if(btn){btn.innerHTML='&#x2713; Saved';btn.style.color='var(--green)';btn.style.borderColor='var(--green)';setTimeout(()=>{btn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit';btn.style.color='';btn.style.borderColor='';},1500);}
+    const body=document.getElementById('locTabBody');if(body)body.innerHTML=locRenderDetails(loc);
+    locRenderTable();
+  }catch(e){
+    alert('Save failed: '+e.message);
+    console.error('locSaveEdit:',e);
+  }
+}
 
 function locRenderAssemblies(loc){const sc=s=>s==='Pass'?'var(--green)':s==='Fail'?'var(--red)':'var(--yellow)';const sbg=s=>s==='Pass'?'rgba(76,175,121,.12)':s==='Fail'?'rgba(224,82,82,.12)':'rgba(240,192,64,.12)';const sbr=s=>s==='Pass'?'rgba(76,175,121,.3)':s==='Fail'?'rgba(224,82,82,.3)':'rgba(240,192,64,.3)';if(locEditMode){const editRows=loc.assemblies.map((a,i)=>`<tr style="border-bottom:1px solid var(--border);background:var(--elevated)"><td style="padding:6px 5px"><select id="ae-type-${i}" class="ss" style="font-size:12px;padding:4px 5px;width:60px"><option${a.type==='RPZ'?' selected':''}>RPZ</option><option${a.type==='DCVA'?' selected':''}>DCVA</option><option${a.type==='PVB'?' selected':''}>PVB</option><option${a.type==='SVB'?' selected':''}>SVB</option></select></td><td style="padding:6px 5px"><input id="ae-make-${i}" class="si" value="${sanitize(a.make)}" style="font-size:12px;padding:4px 6px;width:70px"></td><td style="padding:6px 5px"><input id="ae-model-${i}" class="si" value="${sanitize(a.model)}" style="font-size:12px;padding:4px 6px;width:70px"></td><td style="padding:6px 5px"><input id="ae-size-${i}" class="si" value="${sanitize(a.size)}" style="font-size:12px;padding:4px 6px;width:50px"></td><td style="padding:6px 5px"><input id="ae-serial-${i}" class="si" value="${sanitize(a.serial)}" style="font-size:12px;padding:4px 6px;width:80px"></td><td style="padding:6px 5px"><select id="ae-status-${i}" class="ss" style="font-size:12px;padding:4px 5px;width:70px"><option${a.status==='Pass'?' selected':''}>Pass</option><option${a.status==='Fail'?' selected':''}>Fail</option><option${a.status==='Overdue'?' selected':''}>Overdue</option></select></td><td style="padding:6px 5px"><input id="ae-due-${i}" class="si" type="date" value="${a.due}" style="font-size:12px;padding:4px 6px;width:110px"></td><td style="padding:6px 5px"><button onclick="locDeleteAssembly(${i})" style="background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.25);border-radius:4px;color:var(--red);cursor:pointer;padding:3px 7px;font-size:12px">&#x2715;</button></td></tr>`).join('');const addRow=`<tr style="border-top:2px solid var(--border);background:rgba(249,166,30,.04)"><td style="padding:6px 5px"><select id="ae-type-new" class="ss" style="font-size:12px;padding:4px 5px;width:60px"><option>RPZ</option><option>DCVA</option><option>PVB</option><option>SVB</option></select></td><td style="padding:6px 5px"><input id="ae-make-new" class="si" placeholder="Make" style="font-size:12px;padding:4px 6px;width:70px"></td><td style="padding:6px 5px"><input id="ae-model-new" class="si" placeholder="Model" style="font-size:12px;padding:4px 6px;width:70px"></td><td style="padding:6px 5px"><input id="ae-size-new" class="si" placeholder='3/4"' style="font-size:12px;padding:4px 6px;width:50px"></td><td style="padding:6px 5px"><input id="ae-serial-new" class="si" placeholder="Serial" style="font-size:12px;padding:4px 6px;width:80px"></td><td style="padding:6px 5px"><select id="ae-status-new" class="ss" style="font-size:12px;padding:4px 5px;width:70px"><option>Pass</option><option>Fail</option><option>Overdue</option></select></td><td style="padding:6px 5px"><input id="ae-due-new" class="si" type="date" style="font-size:12px;padding:4px 6px;width:110px"></td><td style="padding:6px 5px"><button onclick="locSaveAssemblies()" style="background:rgba(249,166,30,.12);border:1px solid rgba(249,166,30,.3);border-radius:4px;color:var(--accent);cursor:pointer;padding:3px 7px;font-size:12px">+ Add</button></td></tr>`;return _lc('Assemblies — Editing',`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:520px"><thead><tr style="border-bottom:1px solid var(--border)">${['Type','Make','Model','Size','Serial #','Status','Due',''].map(h=>`<th style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;text-align:left;padding:5px 8px">${h}</th>`).join('')}</tr></thead><tbody>${editRows}${addRow}</tbody></table></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px"><button onclick="locEditMode=true;locToggleEdit()" class="btn btn-gh btn-sm">Cancel</button><button onclick="locSaveAssemblies()" class="btn btn-ac btn-sm">Save Assemblies</button></div>`);}const rows=loc.assemblies.map(a=>`<tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 10px;font-size:15px;font-weight:600">${a.type}</td><td style="padding:10px 10px;font-size:15px;color:var(--muted)">${a.make}</td><td style="padding:10px 10px;font-size:15px;color:var(--muted)">${a.model}</td><td style="padding:10px 10px;font-family:var(--mono);font-size:12px;color:var(--muted)">${a.size}</td><td style="padding:10px 10px;font-family:var(--mono);font-size:12px;color:var(--muted)">${sanitize(a.serial)}</td><td style="padding:9px 8px"><span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${sc(a.status)};background:${sbg(a.status)};border:1px solid ${sbr(a.status)};padding:2px 7px;border-radius:3px">${a.status.toUpperCase()}</span></td><td style="padding:10px 10px;font-family:var(--mono);font-size:12px;color:var(--muted)">${a.due}</td></tr>`).join('');return _lc('Assemblies ('+loc.assemblies.length+')','<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:480px"><thead><tr style="border-bottom:1px solid var(--border)">'+['Type','Make','Model','Size','Serial #','Status','Due'].map(h=>`<th style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;text-align:left;padding:5px 8px">${h}</th>`).join('')+'</tr></thead><tbody>'+rows+'</tbody></table></div>')+'<button onclick="locToggleEdit()" class="btn btn-ac" style="width:100%;justify-content:center;margin-top:8px">+ Add / Edit Assemblies</button>';}
 
@@ -5941,6 +6051,11 @@ function locConfirmDelete(){
     async ()=>{
       try{
         await sbFetch('backflow_reports',{method:'DELETE',query:`?address=eq.${encodeURIComponent(loc.address)}`});
+        // DELETE from Supabase
+        try{
+          const headers=await getHeaders();
+          await fetch(`${SUPA_URL}/rest/v1/properties?id=eq.${locActiveId}`,{method:'DELETE',headers});
+        }catch(e){console.error('locDelete:',e);}
         LOC_DATA=LOC_DATA.filter(l=>l.id!==locActiveId);
         locFiltered=locFiltered.filter(l=>l.id!==locActiveId);
         DB=DB.filter(r=>r.address!==loc.address);
@@ -6003,7 +6118,33 @@ document.addEventListener('DOMContentLoaded',function(){
 
 function locRenderContacts(loc){if(locEditMode){const ef=(id,val)=>`<input id="${id}" type="text" value="${sanitize(val||'')}" class="si" style="font-size:13px;padding:5px 8px;width:100%">`;return _lc('Contact — Editing',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div style="grid-column:1/-1"><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Contact Name</div>${ef('ec-contact',loc.contact)}</div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Phone</div>${ef('ec-phone',loc.phone)}</div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Email</div>${ef('ec-email',loc.email)}</div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Role</div>${ef('ec-role',loc.role||'Property Manager')}</div><div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:2px">Account #</div>${ef('ec-account',loc.account)}</div></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button onclick="locEditMode=false;locToggleEdit()" class="btn btn-gh btn-sm">Cancel</button><button onclick="locSaveContact()" class="btn btn-ac btn-sm">Save Contact</button></div>`);}return _lc('Primary Contact',_lg([['Contact Name',sanitize(loc.contact)],['Phone',sanitize(loc.phone)],['Email',sanitize(loc.email)],['Role',sanitize(loc.role||'Property Manager')],['Account #',sanitize(loc.account)],['City',loc.city]]))+_lc('Address',_lg([['Street',sanitize(loc.address)],['City',loc.city],['State',loc.state],['ZIP',loc.zip]]));}
 
-function locSaveContact(){const loc=LOC_DATA.find(l=>l.id===locActiveId);if(!loc)return;const g=id=>document.getElementById(id)?.value?.trim();loc.contact=g('ec-contact')||loc.contact;loc.phone=g('ec-phone')||loc.phone;loc.email=g('ec-email')||loc.email;loc.role=g('ec-role')||loc.role;loc.account=g('ec-account')||loc.account;locEditMode=false;locToggleEdit();const body=document.getElementById('locTabBody');if(body)body.innerHTML=locRenderContacts(loc);locRenderTable();}
+async function locSaveContact(){
+  const loc=LOC_DATA.find(l=>l.id===locActiveId);if(!loc)return;
+  const g=id=>document.getElementById(id)?.value?.trim();
+  const updates={
+    owner_name:g('ec-contact')||loc.contact,
+    owner_phone:g('ec-phone')||loc.phone,
+    owner_email:g('ec-email')||loc.email,
+    account_number:g('ec-account')||loc.account,
+  };
+  try{
+    const headers=await getHeaders();
+    const res=await fetch(`${SUPA_URL}/rest/v1/properties?id=eq.${loc.id}`,{
+      method:'PATCH',
+      headers:{...headers,'Prefer':'return=minimal'},
+      body:JSON.stringify(updates)
+    });
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    loc.contact=updates.owner_name;loc.name=updates.owner_name;
+    loc.phone=updates.owner_phone;loc.email=updates.owner_email;
+    loc.account=updates.account_number;
+    locEditMode=false;locToggleEdit();
+    const body=document.getElementById('locTabBody');if(body)body.innerHTML=locRenderContacts(loc);
+    locRenderTable();
+  }catch(e){
+    alert('Save failed: '+e.message);
+  }
+}
 
 function locRenderComms(loc){if(!loc.communications)loc.communications=[];const dotColor=c=>c.status==='Logged'?'var(--blue)':c.status==='Sent'?'var(--green)':'var(--muted)';const tl=loc.communications.map(c=>`<div style="display:flex;gap:10px;padding-bottom:14px"><div style="display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0"><div style="width:9px;height:9px;border-radius:50%;background:${dotColor(c)};box-shadow:0 0 5px ${dotColor(c)};margin-top:3px"></div><div style="flex:1;width:1px;background:var(--border);margin-top:3px"></div></div><div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">${c.type}</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:1px">${c.date} &bull; ${c.method}</div>${c.notes?`<div style="margin-top:5px;padding:7px 10px;background:var(--elevated);border-radius:5px;font-size:12px;color:var(--muted);line-height:1.5">${sanitize(c.notes)}</div>`:''}<div style="margin-top:2px;font-family:var(--mono);font-size:10px;color:${dotColor(c)}">&#x2713; ${c.status}</div></div></div>`).join('');const lastDue=new Date(loc.assemblies.sort((a,b)=>new Date(b.due)-new Date(a.due))[0].due);const fmt=d=>d.toISOString().split('T')[0];const d60=new Date(lastDue);d60.setDate(d60.getDate()-60);const d30=new Date(lastDue);d30.setDate(d30.getDate()-30);const d7=new Date(lastDue);d7.setDate(d7.getDate()-7);const sched=[['60-Day Notice',fmt(d60),'var(--blue)'],['30-Day Notice',fmt(d30),'var(--yellow)'],['7-Day Urgent',fmt(d7),'var(--red)'],['Due Date',loc.assemblies[0].due,'var(--accent)']].map(([t,d,c])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:var(--text)">${t}</div><div style="font-family:var(--mono);font-size:11px;color:${c}">${d}</div></div>`).join('');const noteForm=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px"><div style="font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:1.4px;text-transform:uppercase;margin-bottom:13px;font-weight:600">Log Communication</div><div style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px"><select id="comm-note-type" class="ss" style="font-size:13px;padding:7px 10px;flex-shrink:0;width:140px"><option>Phone Call</option><option>Email Sent</option><option>In Person</option><option>Voicemail</option><option>Text Message</option><option>Letter</option></select><div style="font-family:var(--mono);font-size:11px;color:var(--muted);align-self:center">${new Date().toISOString().split('T')[0]}</div></div><textarea id="comm-note-text" class="si" rows="3" placeholder="Enter notes..." style="font-size:13px;padding:8px 10px;resize:vertical;line-height:1.5"></textarea><div style="display:flex;justify-content:flex-end"><button onclick="locAddCommNote(${loc.id})" class="btn btn-ac btn-sm">+ Log Entry</button></div></div></div>`;return noteForm+_lc('Communication History ('+(loc.communications.length)+')',loc.communications.length?'<div>'+tl+'</div>':'<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">No communications logged yet.</div>')+_lc('Predictive Outreach Schedule',sched);}
 
@@ -6070,7 +6211,40 @@ function locRenderCompliance(loc){const bars=loc.complianceHistory.map(y=>{const
 
 function locOpenAdd(){const m=document.getElementById('locAddModal');if(m)m.style.display='flex';const err=document.getElementById('la-error');if(err){err.style.display='none';err.textContent='';}}
 function locCloseAdd(){const m=document.getElementById('locAddModal');if(m)m.style.display='none';['la-address','la-name','la-account','la-zip','la-contact','la-phone','la-email','la-notes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});['la-city','la-state'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=id==='la-city'?'Abilene':'TX';});['la-connections'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='1';});const hz=document.getElementById('la-hazard');if(hz)hz.value='';}
-function locSaveAdd(){const address=document.getElementById('la-address')?.value.trim();const hazard=document.getElementById('la-hazard')?.value;const err=document.getElementById('la-error');if(!address){if(err){err.textContent='Street address is required.';err.style.display='block';}return;}if(!hazard){if(err){err.textContent='Please select a hazard type.';err.style.display='block';}return;}const newLoc={id:LOC_DATA.length+1,address,name:document.getElementById('la-name')?.value.trim()||address,account:document.getElementById('la-account')?.value.trim()||'ACC-'+String(Date.now()).slice(-5),city:document.getElementById('la-city')?.value.trim()||'Abilene',state:document.getElementById('la-state')?.value.trim()||'TX',zip:document.getElementById('la-zip')?.value.trim()||'',hazard,hazardRating:hazard==='High'?8:hazard==='Medium'?5:2,compliance:'Compliant',lastSurvey:'Pending',connections:parseInt(document.getElementById('la-connections')?.value||'1'),riskScore:0,deviceCount:0,contact:document.getElementById('la-contact')?.value.trim()||'',phone:document.getElementById('la-phone')?.value.trim()||'',email:document.getElementById('la-email')?.value.trim()||'',surveyNotes:document.getElementById('la-notes')?.value.trim()||'',assemblies:[],communications:[],surveys:[],complianceHistory:[]};LOC_DATA.push(newLoc);locFiltered=[...LOC_DATA];locCurrentPage=Math.ceil(LOC_DATA.length/parseInt(document.getElementById('locRowsPerPage')?.value||'10'));locCloseAdd();locRenderTable();}
+async function locSaveAdd(){
+  const address=document.getElementById('la-address')?.value.trim();
+  const hazard=document.getElementById('la-hazard')?.value;
+  const err=document.getElementById('la-error');
+  if(!address){if(err){err.textContent='Street address is required.';err.style.display='block';}return;}
+  if(!hazard){if(err){err.textContent='Please select a hazard type.';err.style.display='block';}return;}
+  try{
+    const headers=await getHeaders();
+    const orgId=await getCurrentOrgId();
+    const row={
+      address,
+      city:document.getElementById('la-city')?.value.trim()||'Abilene',
+      state:document.getElementById('la-state')?.value.trim()||'TX',
+      zip:document.getElementById('la-zip')?.value.trim()||'',
+      owner_name:document.getElementById('la-name')?.value.trim()||'',
+      owner_phone:document.getElementById('la-phone')?.value.trim()||'',
+      owner_email:document.getElementById('la-email')?.value.trim()||'',
+      account_number:document.getElementById('la-account')?.value.trim()||'',
+      property_type:hazard,
+      org_id:orgId,
+    };
+    const res=await fetch(`${SUPA_URL}/rest/v1/properties`,{
+      method:'POST',
+      headers:{...headers,'Prefer':'return=representation'},
+      body:JSON.stringify(row)
+    });
+    if(!res.ok){const e=await res.text();throw new Error(e);}
+    locCloseAdd();
+    await locInit();
+  }catch(e){
+    if(err){err.textContent='Save failed: '+e.message;err.style.display='block';}
+    console.error('locSaveAdd:',e);
+  }
+}
 function locExportCSV(){const h=['Account','Name','Address','City','ZIP','Phone','Contact','Email','Hazard','Compliance','Devices'];const rows=locFiltered.map(l=>[l.account,l.name,l.address,l.city,l.zip,l.phone,l.contact,l.email,l.hazard,l.compliance,l.deviceCount]);const csv=[h,...rows].map(r=>r.map(v=>'"'+(v||'').toString().replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='bcp-locations.csv';a.click();}
 
 document.addEventListener('click',function(e){const modal=document.getElementById('locAddModal');if(modal&&e.target===modal)locCloseAdd();const conModal=document.getElementById('conAddModal');if(conModal&&e.target===conModal)conCloseAdd();},false);
