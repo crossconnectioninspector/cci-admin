@@ -2850,6 +2850,22 @@ async function getHeaders() {
   }
 }
 
+async function getCurrentOrgId() {
+  try {
+    const { data:{ session } } = await supaClient.auth.getSession();
+    if (!session) return 'a0000000-0000-0000-0000-000000000001';
+    const appMeta = session.user?.app_metadata || {};
+    if (appMeta.org_id) return appMeta.org_id;
+    try {
+      const payload = JSON.parse(atob(session.access_token.split('.')[1]));
+      if (payload.org_id) return payload.org_id;
+    } catch(e) {}
+    return 'a0000000-0000-0000-0000-000000000001';
+  } catch(e) {
+    return 'a0000000-0000-0000-0000-000000000001';
+  }
+}
+
 async function sbFetch(table, opts={}) {
   const headers = await getHeaders();
   const url = `${SUPA_URL}/rest/v1/${table}${opts.query||''}`;
