@@ -6340,21 +6340,23 @@ function spMapRow(t) {
     id: t.id,
     name: t.name || t.email || '',
     email: t.email || '',
-    company: t.company || '',
-    cert_number: t.cert_number || t.license_number || '',
+    company: t.company || t.firm || '',
+    cert_number: t.cert_number || t.cert_num || '',
     phone: t.phone || '',
     gauge_serial: t.gauge_serial || '',
     gauge_cal_date: t.gauge_cal_date || '',
-    license_number: t.license_number || '',
-    license_exp: t.license_exp || '',
+    license_number: t.license_number || t.cert_num || '',
+    license_exp: t.license_exp || t.cert_expires || '',
     testsRun: t.tests_run || 0,
-    status: t.status || 'pending',
+    status: t.status || (t.active ? 'active' : 'pending'),
     approved_at: t.approved_at || '',
     submitted_at: t.created_at ? t.created_at.split('T')[0] : '',
     notes: t.notes || '',
     fireline_authorized: t.fireline_authorized || false,
     rme_number: t.rme_number || '',
+    rme_expires: t.rme_expires || '',
     scr_number: t.scr_number || '',
+    scr_expires: t.scr_expires || '',
     testHistory: [],
   };
 }let spFiltered=[],spActiveId=null,spCurrentPage=1,spDetailOpen=false,spCurrentTab='active';
@@ -6365,7 +6367,7 @@ async function spInit(){
     const headers=await getHeaders();
     const orgId=await getCurrentOrgId();
     const res=await fetch(
-      `${SUPA_URL}/rest/v1/testers?org_id=eq.${orgId}&select=id,name,email,company,cert_number,license_number,license_exp,phone,gauge_serial,gauge_cal_date,status,approved_at,notes,tests_run,fireline_authorized,rme_number,scr_number,created_at&order=name.asc`,
+      `${SUPA_URL}/rest/v1/testers?org_id=eq.${orgId}&select=id,name,email,company,firm,cert_num,cert_number,cert_expires,license_number,license_exp,phone,gauge_serial,gauge_cal_date,status,active,approved_at,notes,tests_run,fireline_authorized,rme_number,rme_expires,scr_number,scr_expires,created_at&order=name.asc`,
       {headers}
     );
     if(!res.ok)throw new Error('HTTP '+res.status);
