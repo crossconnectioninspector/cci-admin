@@ -3544,7 +3544,7 @@ async function nav(id, btn) {
   if(id==='bulk-notices-page') bulkInit();
   if(id==='notif-page') setTimeout(notifInit, 100);
   if(id==='assemblies-page'){ asmExitFullscreen(); await asmInit(); }
-  if(id==='settings-page') settingsInit();
+  if(id==='settings-page'){ console.warn('NAV: hitting settings branch'); settingsInit(); }
   if(id==='users-page') staffMgmt_load();
 }
 
