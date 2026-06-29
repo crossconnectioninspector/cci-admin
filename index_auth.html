@@ -2576,99 +2576,102 @@ Please contact our office to schedule your test..." style="font-size:13px;paddin
   <!-- Header -->
   <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:32px">
     <div>
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
-        <div style="width:8px;height:8px;border-radius:50%;background:#F9A61E;box-shadow:0 0 8px #F9A61E88"></div>
-        <span style="font-family:monospace;font-size:10px;letter-spacing:2px;color:#F9A61E;text-transform:uppercase">System Configuration</span>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="font-family:monospace;font-size:10px;letter-spacing:3px;color:#F9A61E;text-transform:uppercase;opacity:.8">System Configuration</span>
       </div>
-      <h2 style="font-size:26px;font-weight:800;margin:0;letter-spacing:-0.5px">Settings</h2>
-      <p style="font-size:13px;margin:4px 0 0;opacity:.45">Program parameters — drives PDF headers, email notices, and compliance reports</p>
+      <h2 style="font-size:28px;font-weight:800;margin:0;letter-spacing:-1px;color:#fff">Settings</h2>
+      <p style="font-size:13px;margin:6px 0 0;color:rgba(255,255,255,.4)">Program parameters — drives PDF headers, email notices, and compliance reports</p>
     </div>
     <button onclick="settingsSave()" id="settings-save-btn"
-      style="background:linear-gradient(135deg,#F9A61E,#e8950a);color:#000;font-weight:800;font-size:13px;padding:11px 22px;border:none;border-radius:10px;cursor:pointer;letter-spacing:.3px;box-shadow:0 4px 16px rgba(249,166,30,.3);transition:all .2s"
-      onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 20px rgba(249,166,30,.45)'"
-      onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(249,166,30,.3)'">
+      style="background:#F9A61E;color:#000;font-weight:800;font-size:13px;padding:12px 24px;border:none;border-radius:10px;cursor:pointer;letter-spacing:.3px;box-shadow:0 0 20px rgba(249,166,30,.4);flex-shrink:0;margin-top:4px">
       💾 Save Settings
     </button>
   </div>
 
   <!-- PWS Section -->
-  <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;margin-bottom:14px;position:relative;overflow:hidden">
-    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#F9A61E44,transparent)"></div>
-    <div style="font-family:monospace;font-size:9px;letter-spacing:2px;color:#F9A61E;text-transform:uppercase;margin-bottom:18px">Public Water System</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+  <div style="border:1px solid rgba(249,166,30,.2);border-radius:14px;padding:24px;margin-bottom:12px;background:rgba(249,166,30,.03)">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px">
+      <div style="width:3px;height:16px;background:#F9A61E;border-radius:2px"></div>
+      <span style="font-family:monospace;font-size:10px;letter-spacing:2px;color:#F9A61E;text-transform:uppercase">Public Water System</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div style="grid-column:1/-1">
-        <label style="font-size:11px;opacity:.5;display:block;margin-bottom:6px;letter-spacing:.5px">PWS NAME</label>
+        <label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase">PWS Name</label>
         <input id="cfg-pws-name" type="text" placeholder="City of Abilene Water Utilities"
-          style="width:100%;padding:11px 14px;font-size:14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);outline:none;transition:border-color .2s;box-sizing:border-box"
-          onfocus="this.style.borderColor='#F9A61E'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+          style="width:100%;padding:12px 16px;font-size:15px;font-weight:500;border-radius:10px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#fff;outline:none;box-sizing:border-box;transition:border-color .15s"
+          onfocus="this.style.borderColor='#F9A61E'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
       </div>
       <div>
-        <label style="font-size:11px;opacity:.5;display:block;margin-bottom:6px;letter-spacing:.5px">PWS ID</label>
+        <label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase">PWS ID</label>
         <input id="cfg-pws-id" type="text" placeholder="TX0100023"
-          style="width:100%;padding:11px 14px;font-size:14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);outline:none;font-family:monospace;transition:border-color .2s;box-sizing:border-box"
-          onfocus="this.style.borderColor='#F9A61E'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+          style="width:100%;padding:12px 16px;font-size:15px;font-weight:600;border-radius:10px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#fff;outline:none;font-family:monospace;box-sizing:border-box;transition:border-color .15s"
+          onfocus="this.style.borderColor='#F9A61E'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
       </div>
       <div>
-        <label style="font-size:11px;opacity:.5;display:block;margin-bottom:6px;letter-spacing:.5px">STATE</label>
+        <label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase">State</label>
         <input id="cfg-state" type="text" placeholder="TX" maxlength="2"
-          style="width:100%;padding:11px 14px;font-size:14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);outline:none;font-family:monospace;transition:border-color .2s;box-sizing:border-box"
-          onfocus="this.style.borderColor='#F9A61E'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+          style="width:100%;padding:12px 16px;font-size:15px;font-weight:600;border-radius:10px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#fff;outline:none;font-family:monospace;box-sizing:border-box;transition:border-color .15s"
+          onfocus="this.style.borderColor='#F9A61E'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
       </div>
     </div>
   </div>
 
   <!-- Administrator Section -->
-  <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;margin-bottom:14px;position:relative;overflow:hidden">
-    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#4db8ff44,transparent)"></div>
-    <div style="font-family:monospace;font-size:9px;letter-spacing:2px;color:#4db8ff;text-transform:uppercase;margin-bottom:18px">Program Administrator</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+  <div style="border:1px solid rgba(77,184,255,.2);border-radius:14px;padding:24px;margin-bottom:12px;background:rgba(77,184,255,.03)">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px">
+      <div style="width:3px;height:16px;background:#4db8ff;border-radius:2px"></div>
+      <span style="font-family:monospace;font-size:10px;letter-spacing:2px;color:#4db8ff;text-transform:uppercase">Program Administrator</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div>
-        <label style="font-size:11px;opacity:.5;display:block;margin-bottom:6px;letter-spacing:.5px">ADMIN NAME</label>
+        <label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase">Admin Name</label>
         <input id="cfg-admin-name" type="text" placeholder="Matt Snider"
-          style="width:100%;padding:11px 14px;font-size:14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);outline:none;transition:border-color .2s;box-sizing:border-box"
-          onfocus="this.style.borderColor='#4db8ff'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+          style="width:100%;padding:12px 16px;font-size:15px;font-weight:500;border-radius:10px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#fff;outline:none;box-sizing:border-box;transition:border-color .15s"
+          onfocus="this.style.borderColor='#4db8ff'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
       </div>
       <div>
-        <label style="font-size:11px;opacity:.5;display:block;margin-bottom:6px;letter-spacing:.5px">ADMIN EMAIL</label>
+        <label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase">Admin Email</label>
         <input id="cfg-admin-email" type="email" placeholder="admin@city.gov"
-          style="width:100%;padding:11px 14px;font-size:14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);outline:none;transition:border-color .2s;box-sizing:border-box"
-          onfocus="this.style.borderColor='#4db8ff'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+          style="width:100%;padding:12px 16px;font-size:15px;font-weight:500;border-radius:10px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#fff;outline:none;box-sizing:border-box;transition:border-color .15s"
+          onfocus="this.style.borderColor='#4db8ff'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
       </div>
       <div>
-        <label style="font-size:11px;opacity:.5;display:block;margin-bottom:6px;letter-spacing:.5px">TCEQ CONTACT EMAIL</label>
+        <label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase">TCEQ Contact Email</label>
         <input id="cfg-tceq-email" type="email" placeholder="tceq.contact@tceq.texas.gov"
-          style="width:100%;padding:11px 14px;font-size:14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);outline:none;transition:border-color .2s;box-sizing:border-box"
-          onfocus="this.style.borderColor='#4db8ff'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+          style="width:100%;padding:12px 16px;font-size:15px;font-weight:500;border-radius:10px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#fff;outline:none;box-sizing:border-box;transition:border-color .15s"
+          onfocus="this.style.borderColor='#4db8ff'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
       </div>
       <div>
-        <label style="font-size:11px;opacity:.5;display:block;margin-bottom:6px;letter-spacing:.5px">REPLY-TO EMAIL</label>
+        <label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase">Reply-To Email</label>
         <input id="cfg-reply-to" type="email" placeholder="noreply@city.gov"
-          style="width:100%;padding:11px 14px;font-size:14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);outline:none;transition:border-color .2s;box-sizing:border-box"
-          onfocus="this.style.borderColor='#4db8ff'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+          style="width:100%;padding:12px 16px;font-size:15px;font-weight:500;border-radius:10px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#fff;outline:none;box-sizing:border-box;transition:border-color .15s"
+          onfocus="this.style.borderColor='#4db8ff'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
       </div>
     </div>
   </div>
 
   <!-- Compliance Section -->
-  <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;margin-bottom:14px;position:relative;overflow:hidden">
-    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#4caf7944,transparent)"></div>
-    <div style="font-family:monospace;font-size:9px;letter-spacing:2px;color:#4caf79;text-transform:uppercase;margin-bottom:18px">Compliance Program</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+  <div style="border:1px solid rgba(76,175,121,.2);border-radius:14px;padding:24px;margin-bottom:12px;background:rgba(76,175,121,.03)">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px">
+      <div style="width:3px;height:16px;background:#4caf79;border-radius:2px"></div>
+      <span style="font-family:monospace;font-size:10px;letter-spacing:2px;color:#4caf79;text-transform:uppercase">Compliance Program</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div>
-        <label style="font-size:11px;opacity:.5;display:block;margin-bottom:6px;letter-spacing:.5px">DEFAULT TEST FREQUENCY</label>
+        <label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase">Default Test Frequency</label>
         <select id="cfg-frequency"
-          style="width:100%;padding:11px 14px;font-size:14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(30,30,40,.9);outline:none;transition:border-color .2s;box-sizing:border-box;cursor:pointer"
-          onfocus="this.style.borderColor='#4caf79'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+          style="width:100%;padding:12px 16px;font-size:15px;font-weight:500;border-radius:10px;border:1.5px solid rgba(255,255,255,.15);background:rgba(30,32,44,.95);color:#fff;outline:none;box-sizing:border-box;cursor:pointer;transition:border-color .15s"
+          onfocus="this.style.borderColor='#4caf79'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
           <option value="Annual">Annual</option>
           <option value="Semi-Annual">Semi-Annual</option>
           <option value="Quarterly">Quarterly</option>
         </select>
       </div>
       <div>
-        <label style="font-size:11px;opacity:.5;display:block;margin-bottom:6px;letter-spacing:.5px">AUTO-VALIDATE RESULTS</label>
+        <label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase">Auto-Validate Results</label>
         <select id="cfg-auto-validate"
-          style="width:100%;padding:11px 14px;font-size:14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(30,30,40,.9);outline:none;transition:border-color .2s;box-sizing:border-box;cursor:pointer"
-          onfocus="this.style.borderColor='#4caf79'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+          style="width:100%;padding:12px 16px;font-size:15px;font-weight:500;border-radius:10px;border:1.5px solid rgba(255,255,255,.15);background:rgba(30,32,44,.95);color:#fff;outline:none;box-sizing:border-box;cursor:pointer;transition:border-color .15s"
+          onfocus="this.style.borderColor='#4caf79'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
           <option value="true">✓ Enabled — auto accept/fail per TCEQ</option>
           <option value="false">✗ Disabled — admin reviews all</option>
         </select>
@@ -2677,71 +2680,75 @@ Please contact our office to schedule your test..." style="font-size:13px;paddin
   </div>
 
   <!-- Notice Timing -->
-  <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;margin-bottom:14px;position:relative;overflow:hidden">
-    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#e05555,transparent)"></div>
-    <div style="font-family:monospace;font-size:9px;letter-spacing:2px;color:#e05555;text-transform:uppercase;margin-bottom:6px">Notice Timing</div>
-    <div style="font-size:12px;opacity:.4;margin-bottom:18px">Days before due date to send automated compliance notices</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+  <div style="border:1px solid rgba(224,85,85,.2);border-radius:14px;padding:24px;margin-bottom:12px;background:rgba(224,85,85,.03)">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <div style="width:3px;height:16px;background:#e05555;border-radius:2px"></div>
+      <span style="font-family:monospace;font-size:10px;letter-spacing:2px;color:#e05555;text-transform:uppercase">Notice Timing</span>
+    </div>
+    <p style="font-size:12px;color:rgba(255,255,255,.35);margin:0 0 20px 11px">Days before due date to send automated compliance notices</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
       <div>
-        <label style="font-size:11px;opacity:.5;display:block;margin-bottom:6px;letter-spacing:.5px">FIRST NOTICE</label>
+        <label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase">First Notice</label>
         <div style="position:relative">
           <input id="cfg-notice-1" type="number" placeholder="60"
-            style="width:100%;padding:11px 40px 11px 14px;font-size:20px;font-weight:700;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);outline:none;font-family:monospace;transition:border-color .2s;box-sizing:border-box"
-            onfocus="this.style.borderColor='#e05555'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
-          <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:10px;opacity:.4">days</span>
+            style="width:100%;padding:12px 44px 12px 16px;font-size:22px;font-weight:700;border-radius:10px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#fff;outline:none;font-family:monospace;box-sizing:border-box;transition:border-color .15s"
+            onfocus="this.style.borderColor='#e05555'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
+          <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:10px;color:rgba(255,255,255,.35);pointer-events:none">days</span>
         </div>
       </div>
       <div>
-        <label style="font-size:11px;opacity:.5;display:block;margin-bottom:6px;letter-spacing:.5px">SECOND NOTICE</label>
+        <label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase">Second Notice</label>
         <div style="position:relative">
           <input id="cfg-notice-2" type="number" placeholder="30"
-            style="width:100%;padding:11px 40px 11px 14px;font-size:20px;font-weight:700;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);outline:none;font-family:monospace;transition:border-color .2s;box-sizing:border-box"
-            onfocus="this.style.borderColor='#e05555'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
-          <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:10px;opacity:.4">days</span>
+            style="width:100%;padding:12px 44px 12px 16px;font-size:22px;font-weight:700;border-radius:10px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#fff;outline:none;font-family:monospace;box-sizing:border-box;transition:border-color .15s"
+            onfocus="this.style.borderColor='#e05555'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
+          <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:10px;color:rgba(255,255,255,.35);pointer-events:none">days</span>
         </div>
       </div>
       <div>
-        <label style="font-size:11px;opacity:.5;display:block;margin-bottom:6px;letter-spacing:.5px">FINAL NOTICE</label>
+        <label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase">Final Notice</label>
         <div style="position:relative">
           <input id="cfg-notice-3" type="number" placeholder="7"
-            style="width:100%;padding:11px 40px 11px 14px;font-size:20px;font-weight:700;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);outline:none;font-family:monospace;transition:border-color .2s;box-sizing:border-box"
-            onfocus="this.style.borderColor='#e05555'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
-          <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:10px;opacity:.4">days</span>
+            style="width:100%;padding:12px 44px 12px 16px;font-size:22px;font-weight:700;border-radius:10px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#fff;outline:none;font-family:monospace;box-sizing:border-box;transition:border-color .15s"
+            onfocus="this.style.borderColor='#e05555'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
+          <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:10px;color:rgba(255,255,255,.35);pointer-events:none">days</span>
         </div>
       </div>
     </div>
   </div>
 
-  <div id="settings-status" style="display:none;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:500;margin-bottom:14px;text-align:center"></div>
+  <div id="settings-status" style="display:none;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:600;margin-bottom:12px;text-align:center"></div>
 
   <!-- TCEQ Registry -->
-  <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;position:relative;overflow:hidden">
-    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#a78bfa44,transparent)"></div>
+  <div style="border:1px solid rgba(167,139,250,.2);border-radius:14px;padding:24px;background:rgba(167,139,250,.03)">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-      <div style="font-family:monospace;font-size:9px;letter-spacing:2px;color:#a78bfa;text-transform:uppercase">TCEQ License Registry</div>
-      <div id="tceq-registry-count" style="font-family:monospace;font-size:11px;opacity:.4">—</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:3px;height:16px;background:#a78bfa;border-radius:2px"></div>
+        <span style="font-family:monospace;font-size:10px;letter-spacing:2px;color:#a78bfa;text-transform:uppercase">TCEQ License Registry</span>
+      </div>
+      <div id="tceq-registry-count" style="font-family:monospace;font-size:11px;color:rgba(255,255,255,.35)">—</div>
     </div>
-    <p style="font-size:12px;opacity:.45;margin:0 0 16px;line-height:1.6">Upload the monthly TCEQ spreadsheet to cross-reference tester credentials.
+    <p style="font-size:12px;color:rgba(255,255,255,.35);margin:0 0 16px 11px;line-height:1.6">
+      Upload the monthly TCEQ spreadsheet to cross-reference tester credentials.
       <a href="https://www.tceq.texas.gov/licensing/authorized-contact-info" target="_blank" style="color:#F9A61E;text-decoration:none">Download ↗</a>
     </p>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <label style="display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border:1px solid rgba(255,255,255,.12);border-radius:10px;cursor:pointer;font-size:13px;transition:border-color .2s"
-        onmouseover="this.style.borderColor='#a78bfa'" onmouseout="this.style.borderColor='rgba(255,255,255,.12)'">
+      <label style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border:1.5px solid rgba(255,255,255,.15);border-radius:10px;cursor:pointer;font-size:13px;color:#fff;transition:border-color .15s"
+        onmouseover="this.style.borderColor='#a78bfa'" onmouseout="this.style.borderColor='rgba(255,255,255,.15)'">
         📎 Choose XLSX
         <input type="file" id="tceq-xlsx-input" accept=".xlsx,.xls" style="display:none" onchange="tceqPreviewFile(this)">
       </label>
-      <span id="tceq-file-name" style="font-size:12px;opacity:.4">No file selected</span>
+      <span id="tceq-file-name" style="font-size:12px;color:rgba(255,255,255,.35)">No file selected</span>
       <button onclick="tceqImport()" id="tceq-import-btn"
-        style="display:none;background:linear-gradient(135deg,#a78bfa,#8b5cf6);color:#fff;font-weight:700;font-size:12px;padding:9px 16px;border:none;border-radius:10px;cursor:pointer">
+        style="display:none;background:#a78bfa;color:#fff;font-weight:700;font-size:13px;padding:10px 18px;border:none;border-radius:10px;cursor:pointer">
         ⬆ Import
       </button>
     </div>
     <div id="tceq-import-status" style="display:none;margin-top:12px;padding:10px 14px;border-radius:10px;font-size:12px"></div>
-    <div id="tceq-last-import" style="margin-top:10px;font-size:11px;opacity:.35;font-family:monospace"></div>
-    <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.06)">
+    <div id="tceq-last-import" style="margin-top:10px;font-size:11px;color:rgba(255,255,255,.3);font-family:monospace"></div>
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06)">
       <a href="https://www2.tceq.texas.gov/lic_dpa/index.cfm?fuseaction=licall.searchindiv" target="_blank"
-        style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#a78bfa;text-decoration:none;opacity:.8"
-        onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.8'">
+        style="font-size:12px;color:#a78bfa;text-decoration:none">
         🔗 TCEQ Manual License Search ↗
       </a>
     </div>
