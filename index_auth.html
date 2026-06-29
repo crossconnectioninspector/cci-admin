@@ -2568,7 +2568,123 @@ Please contact our office to schedule your test..." style="font-size:13px;paddin
     <div style="color:var(--muted);font-size:13px">Loading...</div>
   </div>
 
-<div class="page" id="page-settings-page"><div class="es"><div class="es-icon">&#x2699;&#xFE0F;</div><div class="es-title">Settings</div><div class="es-sub">System settings coming soon.</div></div></div>
+<div class="page" id="page-settings-page">
+<div style="max-width:720px;margin:0 auto;padding:0 0 48px">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+    <div>
+      <div style="font-size:22px;font-weight:700;color:var(--text)">Settings</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:2px">Program configuration — drives PDF headers, email notices, and compliance reports</div>
+    </div>
+    <button onclick="settingsSave()" id="settings-save-btn"
+      style="background:var(--accent);color:#000;font-weight:700;font-size:13px;padding:9px 20px;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:6px">
+      💾 Save Settings
+    </button>
+  </div>
+
+  <!-- PWS Info -->
+  <div style="background:var(--elevated);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">Public Water System</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div style="grid-column:1/-1">
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">PWS Name</label>
+        <input id="cfg-pws-name" type="text" placeholder="City of Abilene Water Utilities"
+          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px">
+      </div>
+      <div>
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">PWS ID</label>
+        <input id="cfg-pws-id" type="text" placeholder="TX0100023"
+          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;font-family:var(--mono)">
+      </div>
+      <div>
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">State</label>
+        <input id="cfg-state" type="text" placeholder="TX" maxlength="2"
+          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;font-family:var(--mono)">
+      </div>
+    </div>
+  </div>
+
+  <!-- Program Administrator -->
+  <div style="background:var(--elevated);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">Program Administrator</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Admin Name</label>
+        <input id="cfg-admin-name" type="text" placeholder="Matt Snider"
+          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px">
+      </div>
+      <div>
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Admin Email</label>
+        <input id="cfg-admin-email" type="email" placeholder="admin@city.gov"
+          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px">
+      </div>
+      <div>
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">TCEQ Contact Email</label>
+        <input id="cfg-tceq-email" type="email" placeholder="tceq.contact@tceq.texas.gov"
+          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px">
+      </div>
+      <div>
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Reply-To Email (notices)</label>
+        <input id="cfg-reply-to" type="email" placeholder="noreply@city.gov"
+          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px">
+      </div>
+    </div>
+  </div>
+
+  <!-- Compliance Settings -->
+  <div style="background:var(--elevated);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">Compliance Program</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Default Test Frequency</label>
+        <select id="cfg-frequency"
+          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px">
+          <option value="Annual">Annual</option>
+          <option value="Semi-Annual">Semi-Annual</option>
+          <option value="Quarterly">Quarterly</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Auto-Validate Test Results</label>
+        <select id="cfg-auto-validate"
+          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px">
+          <option value="true">Enabled — auto accept/fail per TCEQ thresholds</option>
+          <option value="false">Disabled — admin reviews all results</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notice Timing -->
+  <div style="background:var(--elevated);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Automated Notice Timing</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Days before due date to send compliance notices</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div>
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">First Notice (days)</label>
+        <input id="cfg-notice-1" type="number" min="1" max="365" placeholder="60"
+          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;font-family:var(--mono)">
+      </div>
+      <div>
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Second Notice (days)</label>
+        <input id="cfg-notice-2" type="number" min="1" max="365" placeholder="30"
+          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;font-family:var(--mono)">
+      </div>
+      <div>
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Final Notice (days)</label>
+        <input id="cfg-notice-3" type="number" min="1" max="365" placeholder="7"
+          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;font-family:var(--mono)">
+      </div>
+    </div>
+  </div>
+
+  <!-- Save status -->
+  <div id="settings-status" style="display:none;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:500;margin-top:8px;text-align:center"></div>
+
+</div>
+</div>
+
 
 <div class="page" id="page-knowledge-page"><div class="es"><div class="es-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div><div class="es-title">Knowledge Base</div><div class="es-sub">Program documentation and compliance resources coming soon.</div></div></div>
 
@@ -2850,6 +2966,106 @@ async function getHeaders() {
   }
 }
 
+// ── SETTINGS ─────────────────────────────────────────────────
+// Global settings cache — used by PDF and email functions
+window.BCP_SETTINGS = {};
+
+async function settingsInit() {
+  try {
+    const headers = await getHeaders();
+    const orgId = await getCurrentOrgId();
+    const res = await fetch(
+      `${SUPA_URL}/rest/v1/org_settings?org_id=eq.${orgId}&select=key,value`,
+      { headers }
+    );
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const rows = await res.json();
+    const cfg = {};
+    (rows || []).forEach(r => { cfg[r.key] = r.value; });
+    window.BCP_SETTINGS = cfg;
+
+    // Populate form fields
+    const s = id => document.getElementById(id);
+    if (s('cfg-pws-name'))    s('cfg-pws-name').value    = cfg.pws_name || '';
+    if (s('cfg-pws-id'))      s('cfg-pws-id').value      = cfg.pws_id || '';
+    if (s('cfg-state'))       s('cfg-state').value       = cfg.state || 'TX';
+    if (s('cfg-admin-name'))  s('cfg-admin-name').value  = cfg.admin_name || '';
+    if (s('cfg-admin-email')) s('cfg-admin-email').value = cfg.admin_email || '';
+    if (s('cfg-tceq-email'))  s('cfg-tceq-email').value  = cfg.tceq_contact_email || '';
+    if (s('cfg-reply-to'))    s('cfg-reply-to').value    = cfg.reply_to_email || '';
+    if (s('cfg-frequency'))   s('cfg-frequency').value   = cfg.default_frequency || 'Annual';
+    if (s('cfg-auto-validate')) s('cfg-auto-validate').value = cfg.auto_validate_results || 'true';
+    if (s('cfg-notice-1'))    s('cfg-notice-1').value    = cfg.notice_days_1 || '60';
+    if (s('cfg-notice-2'))    s('cfg-notice-2').value    = cfg.notice_days_2 || '30';
+    if (s('cfg-notice-3'))    s('cfg-notice-3').value    = cfg.notice_days_3 || '7';
+  } catch(e) {
+    console.error('settingsInit:', e);
+  }
+}
+
+async function settingsSave() {
+  const btn = document.getElementById('settings-save-btn');
+  const status = document.getElementById('settings-status');
+  if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
+
+  const s = id => document.getElementById(id)?.value?.trim() || '';
+  const updates = {
+    pws_name:             s('cfg-pws-name'),
+    pws_id:               s('cfg-pws-id'),
+    state:                s('cfg-state'),
+    admin_name:           s('cfg-admin-name'),
+    admin_email:          s('cfg-admin-email'),
+    tceq_contact_email:   s('cfg-tceq-email'),
+    reply_to_email:       s('cfg-reply-to'),
+    default_frequency:    s('cfg-frequency'),
+    auto_validate_results:s('cfg-auto-validate'),
+    notice_days_1:        s('cfg-notice-1'),
+    notice_days_2:        s('cfg-notice-2'),
+    notice_days_3:        s('cfg-notice-3'),
+  };
+
+  try {
+    const headers = await getHeaders();
+    const orgId = await getCurrentOrgId();
+    // Upsert each key individually
+    const upserts = Object.entries(updates).map(([key, value]) => ({
+      org_id: orgId, key, value
+    }));
+    const res = await fetch(`${SUPA_URL}/rest/v1/org_settings`, {
+      method: 'POST',
+      headers: { ...headers, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify(upserts)
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+
+    // Update global cache
+    Object.assign(window.BCP_SETTINGS, updates);
+
+    if (status) {
+      status.style.display = 'block';
+      status.style.background = 'rgba(76,175,121,.12)';
+      status.style.color = 'var(--green)';
+      status.style.border = '1px solid rgba(76,175,121,.3)';
+      status.textContent = '✓ Settings saved successfully';
+      setTimeout(() => { status.style.display = 'none'; }, 3000);
+    }
+    if (btn) { btn.textContent = '✓ Saved'; btn.style.background = 'var(--green)'; }
+    setTimeout(() => {
+      if (btn) { btn.textContent = '💾 Save Settings'; btn.style.background = ''; btn.disabled = false; }
+    }, 2000);
+  } catch(e) {
+    if (status) {
+      status.style.display = 'block';
+      status.style.background = 'rgba(224,82,82,.12)';
+      status.style.color = 'var(--red)';
+      status.style.border = '1px solid rgba(224,82,82,.3)';
+      status.textContent = 'Save failed: ' + e.message;
+    }
+    if (btn) { btn.textContent = '💾 Save Settings'; btn.disabled = false; }
+    console.error('settingsSave:', e);
+  }
+}
+
 async function getCurrentOrgId() {
   try {
     const { data:{ session } } = await supaClient.auth.getSession();
@@ -2963,7 +3179,7 @@ async function saveRecord(rec) {
         repairs:rec.repairs||false, repair_details:rec.repairDetails||'',
         check1:rec.check1||'', check2:rec.check2||'', relief:rec.relief||'',
         air_inlet:rec.air_inlet||'', remarks:rec.remarks||'',
-        pws_name:rec.pwsName||'Abilene TX', pws_id:rec.pwsId||'',
+        pws_name:rec.pwsName||window.BCP_SETTINGS?.pws_name||'Abilene TX', pws_id:rec.pwsId||window.BCP_SETTINGS?.pws_id||'',
         firm:rec.firm||'Backflow Check Pro',
         bpa_serves:rec.bpaServes||'', bpa_location:rec.bpaLocation||'',
         test_time:rec.testTime||'', test_reason:rec.testReason||'',
@@ -2980,7 +3196,7 @@ async function saveRecord(rec) {
         c4:rec.c4??true, c5:rec.c5??true, c6:rec.c6??true,
         service_lines:rec.serviceLines||rec.service_lines||'',
         solder:rec.solder||'', remarks:rec.remarks||'',
-        pws_name:rec.pwsName||'Abilene TX', pws_id:rec.pwsId||'',
+        pws_name:rec.pwsName||window.BCP_SETTINGS?.pws_name||'Abilene TX', pws_id:rec.pwsId||window.BCP_SETTINGS?.pws_id||'',
         firm:rec.firm||'Backflow Check Pro',
         lat:rec.lat||32.4487, lng:rec.lng||-99.7331 };
     } else {
@@ -3165,6 +3381,7 @@ async function nav(id, btn) {
   if(id==='bulk-notices-page') bulkInit();
   if(id==='notif-page') setTimeout(notifInit, 100);
   if(id==='assemblies-page'){ asmExitFullscreen(); await asmInit(); }
+  if(id==='settings-page') settingsInit();
   if(id==='users-page') staffMgmt_load();
 }
 
@@ -8665,7 +8882,7 @@ async function generateReportPDF(r) {
 
       y = sec('1  Public Water System & Location of Service', y);
       y = frow([
-        ['Name of Public Water System (PWS)', r.pwsName || r.pws_name || 'City of Abilene', 230],
+        ['Name of Public Water System (PWS)', r.pwsName || r.pws_name || window.BCP_SETTINGS?.pws_name || 'City of Abilene', 230],
         ['PWS ID #', r.pwsId || r.pws_id || '\u2014', 90],
         ['Date of Inspection', r.date || '\u2014', CW - 320],
       ], y, 26);
@@ -8851,7 +9068,7 @@ async function generateReportPDF(r) {
 
     y = sec('1  Public Water System Information', y);
     y = frow([
-      ['Name of Public Water System (PWS)', r.pws_name || r.pwsName || 'City of Abilene', 224],
+      ['Name of Public Water System (PWS)', r.pws_name || r.pwsName || window.BCP_SETTINGS?.pws_name || 'City of Abilene', 224],
       ['PWS ID #', r.pws_id || r.pwsId || '—', 90],
       ['PWS Contact Person', r.pws_contact || r.pwsContact || '—', CW - 314],
     ], y, 26);
