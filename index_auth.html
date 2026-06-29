@@ -2652,30 +2652,49 @@ Please contact our office to schedule your test..." style="font-size:13px;paddin
 
   <!-- Compliance Section -->
   <div style="border:1px solid rgba(76,175,121,.2);border-radius:14px;padding:24px;margin-bottom:12px;background:rgba(76,175,121,.03)">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
       <div style="width:3px;height:16px;background:#4caf79;border-radius:2px"></div>
       <span style="font-family:monospace;font-size:10px;letter-spacing:2px;color:#4caf79;text-transform:uppercase">Compliance Program</span>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <p style="font-size:12px;color:rgba(255,255,255,.35);margin:0 0 20px 11px">Set test frequency by hazard classification per 30 TAC §290</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px">
       <div>
-        <label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase">Default Test Frequency</label>
-        <select id="cfg-frequency"
-          style="width:100%;padding:12px 16px;font-size:15px;font-weight:500;border-radius:10px;border:1.5px solid rgba(255,255,255,.15);background:rgba(30,32,44,.95);color:#fff;outline:none;box-sizing:border-box;cursor:pointer;transition:border-color .15s"
-          onfocus="this.style.borderColor='#4caf79'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
-          <option value="Annual">Annual</option>
-          <option value="Semi-Annual">Semi-Annual</option>
-          <option value="Quarterly">Quarterly</option>
-        </select>
+        <label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase">🔥 Fire Line</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input id="cfg-fireline-yrs" type="number" min="1" max="5" placeholder="1"
+            style="width:70px;padding:10px 12px;font-size:20px;font-weight:700;border-radius:10px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#fff;outline:none;font-family:monospace;text-align:center;transition:border-color .15s"
+            onfocus="this.style.borderColor='#e05555'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
+          <span style="font-size:13px;color:rgba(255,255,255,.4)">yr / Annual</span>
+        </div>
       </div>
       <div>
-        <label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase">Auto-Validate Results</label>
-        <select id="cfg-auto-validate"
-          style="width:100%;padding:12px 16px;font-size:15px;font-weight:500;border-radius:10px;border:1.5px solid rgba(255,255,255,.15);background:rgba(30,32,44,.95);color:#fff;outline:none;box-sizing:border-box;cursor:pointer;transition:border-color .15s"
-          onfocus="this.style.borderColor='#4caf79'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
-          <option value="true">✓ Enabled — auto accept/fail per TCEQ</option>
-          <option value="false">✗ Disabled — admin reviews all</option>
-        </select>
+        <label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase">⚠️ Health Hazard</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input id="cfg-health-yrs" type="number" min="1" max="5" placeholder="1"
+            style="width:70px;padding:10px 12px;font-size:20px;font-weight:700;border-radius:10px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#fff;outline:none;font-family:monospace;text-align:center;transition:border-color .15s"
+            onfocus="this.style.borderColor='#F9A61E'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
+          <span style="font-size:13px;color:rgba(255,255,255,.4)">yr / Annual</span>
+        </div>
       </div>
+      <div>
+        <label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase">✓ Non-Health</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input id="cfg-nonhealth-yrs" type="number" min="1" max="5" placeholder="1"
+            style="width:70px;padding:10px 12px;font-size:20px;font-weight:700;border-radius:10px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#fff;outline:none;font-family:monospace;text-align:center;transition:border-color .15s"
+            onfocus="this.style.borderColor='#4caf79'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
+          <span style="font-size:13px;color:rgba(255,255,255,.4)">yr / Annual</span>
+        </div>
+      </div>
+    </div>
+    <div style="padding-top:16px;border-top:1px solid rgba(255,255,255,.06)">
+      <label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase">Auto-Validate Results</label>
+      <select id="cfg-auto-validate"
+        style="width:100%;padding:12px 16px;font-size:15px;font-weight:500;border-radius:10px;border:1.5px solid rgba(255,255,255,.15);background:rgba(30,32,44,.95);color:#fff;outline:none;box-sizing:border-box;cursor:pointer;transition:border-color .15s"
+        onfocus="this.style.borderColor='#4caf79'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
+        <option value="true">✓ Enabled — auto accept/fail per TCEQ thresholds</option>
+        <option value="false">✗ Disabled — admin manually reviews all results</option>
+      </select>
+      <p style="font-size:11px;color:rgba(255,255,255,.25);margin:8px 0 0">When enabled, readings are evaluated against USC/TCEQ minimums on submit</p>
     </div>
   </div>
 
@@ -3070,6 +3089,9 @@ async function settingsInit() {
     if (s('cfg-reply-to'))    s('cfg-reply-to').value    = cfg.reply_to_email || '';
     if (s('cfg-frequency'))   s('cfg-frequency').value   = cfg.default_frequency || 'Annual';
     if (s('cfg-auto-validate')) s('cfg-auto-validate').value = cfg.auto_validate_results || 'true';
+    if (s('cfg-fireline-yrs'))  s('cfg-fireline-yrs').value  = cfg.fireline_frequency_yrs || '1';
+    if (s('cfg-health-yrs'))    s('cfg-health-yrs').value    = cfg.health_frequency_yrs || '1';
+    if (s('cfg-nonhealth-yrs')) s('cfg-nonhealth-yrs').value = cfg.nonhealth_frequency_yrs || '1';
     if (s('cfg-notice-1'))    s('cfg-notice-1').value    = cfg.notice_days_1 || '60';
     if (s('cfg-notice-2'))    s('cfg-notice-2').value    = cfg.notice_days_2 || '30';
     if (s('cfg-notice-3'))    s('cfg-notice-3').value    = cfg.notice_days_3 || '7';
@@ -3095,6 +3117,9 @@ async function settingsSave() {
     reply_to_email:       s('cfg-reply-to'),
     default_frequency:    s('cfg-frequency'),
     auto_validate_results:s('cfg-auto-validate'),
+    fireline_frequency_yrs: s('cfg-fireline-yrs') || '1',
+    health_frequency_yrs:   s('cfg-health-yrs') || '1',
+    nonhealth_frequency_yrs:s('cfg-nonhealth-yrs') || '1',
     notice_days_1:        s('cfg-notice-1'),
     notice_days_2:        s('cfg-notice-2'),
     notice_days_3:        s('cfg-notice-3'),
