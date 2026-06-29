@@ -2997,18 +2997,23 @@ async function getHeaders() {
 window.BCP_SETTINGS = {};
 
 async function settingsInit() {
+  // Show defaults immediately so page doesn't look blank
+  const s = id => document.getElementById(id);
+  if (s('cfg-pws-name') && !s('cfg-pws-name').value) s('cfg-pws-name').value = window.BCP_SETTINGS?.pws_name || '';
+  if (s('cfg-pws-id') && !s('cfg-pws-id').value)     s('cfg-pws-id').value   = window.BCP_SETTINGS?.pws_id || '';
+  if (s('cfg-state') && !s('cfg-state').value)        s('cfg-state').value    = 'TX';
+  if (s('cfg-notice-1') && !s('cfg-notice-1').value)  s('cfg-notice-1').value = '60';
+  if (s('cfg-notice-2') && !s('cfg-notice-2').value)  s('cfg-notice-2').value = '30';
+  if (s('cfg-notice-3') && !s('cfg-notice-3').value)  s('cfg-notice-3').value = '7';
   try {
     const headers = await getHeaders();
     const orgId = await getCurrentOrgId();
-    console.log('settingsInit: orgId =', orgId);
     const res = await fetch(
       `${SUPA_URL}/rest/v1/org_settings?org_id=eq.${orgId}&select=key,value`,
       { headers }
     );
-    console.log('settingsInit: fetch status =', res.status);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const rows = await res.json();
-    console.log('settingsInit: rows =', rows);
     const cfg = {};
     (rows || []).forEach(r => { cfg[r.key] = r.value; });
     window.BCP_SETTINGS = cfg;
