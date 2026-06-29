@@ -3009,6 +3009,7 @@ async function settingsInit() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const rows = await res.json();
     console.log('settingsInit: rows =', rows);
+    console.log('settingsInit: cfg-pws-name element =', document.getElementById('cfg-pws-name'));
     const cfg = {};
     (rows || []).forEach(r => { cfg[r.key] = r.value; });
     window.BCP_SETTINGS = cfg;
