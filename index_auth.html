@@ -2682,6 +2682,32 @@ Please contact our office to schedule your test..." style="font-size:13px;paddin
   <!-- Save status -->
   <div id="settings-status" style="display:none;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:500;margin-top:8px;text-align:center"></div>
 
+  <!-- TCEQ License Registry -->
+  <div style="background:var(--elevated);border:1px solid var(--border);border-radius:14px;padding:20px;margin-top:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">TCEQ License Registry</div>
+      <div id="tceq-registry-count" style="font-family:var(--mono);font-size:11px;color:var(--muted)">—</div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5">Upload the TCEQ License Holder spreadsheet monthly to cross-reference tester credentials. Download from <a href="https://www.tceq.texas.gov/licensing/authorized-contact-info" target="_blank" style="color:var(--accent)">tceq.texas.gov/licensing/authorized-contact-info</a>. Note: this list only includes license holders who opted into public release.</div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <label style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 14px;cursor:pointer;font-size:13px;color:var(--text)">
+        📎 Choose XLSX file
+        <input type="file" id="tceq-xlsx-input" accept=".xlsx,.xls" style="display:none" onchange="tceqPreviewFile(this)">
+      </label>
+      <div id="tceq-file-name" style="font-size:12px;color:var(--muted)">No file selected</div>
+      <button onclick="tceqImport()" id="tceq-import-btn" style="display:none;background:var(--accent);color:#000;font-weight:700;font-size:12px;padding:9px 16px;border:none;border-radius:8px;cursor:pointer">⬆ Import</button>
+    </div>
+    <div id="tceq-import-status" style="display:none;margin-top:10px;padding:10px 12px;border-radius:8px;font-size:12px"></div>
+    <div id="tceq-last-import" style="margin-top:10px;font-size:11px;color:var(--muted);font-family:var(--mono)"></div>
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Manual license lookup — search full TCEQ database by name or license number:</div>
+      <a href="https://www2.tceq.texas.gov/lic_dpa/index.cfm?fuseaction=licall.searchindiv" target="_blank"
+        style="display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--text);text-decoration:none;font-family:var(--mono)">
+        🔗 TCEQ License Search ↗
+      </a>
+    </div>
+  </div>
+
 </div>
 </div>
 
@@ -3001,6 +3027,7 @@ async function settingsInit() {
     if (s('cfg-notice-1'))    s('cfg-notice-1').value    = cfg.notice_days_1 || '60';
     if (s('cfg-notice-2'))    s('cfg-notice-2').value    = cfg.notice_days_2 || '30';
     if (s('cfg-notice-3'))    s('cfg-notice-3').value    = cfg.notice_days_3 || '7';
+    tceqLoadRegistryCount();
   } catch(e) {
     console.error('settingsInit:', e);
   }
@@ -3067,6 +3094,139 @@ async function settingsSave() {
     if (btn) { btn.textContent = '💾 Save Settings'; btn.disabled = false; }
     console.error('settingsSave:', e);
   }
+}
+
+// ── TCEQ LICENSE REGISTRY ────────────────────────────────────
+let tceqXlsxData = null;
+
+function tceqPreviewFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  document.getElementById('tceq-file-name').textContent = file.name;
+  document.getElementById('tceq-import-btn').style.display = '';
+  tceqXlsxData = file;
+}
+
+async function tceqImport() {
+  if (!tceqXlsxData) return;
+  const btn = document.getElementById('tceq-import-btn');
+  const statusEl = document.getElementById('tceq-import-status');
+  btn.textContent = 'Importing…'; btn.disabled = true;
+  statusEl.style.display = 'block';
+  statusEl.style.background = 'var(--elevated)';
+  statusEl.style.color = 'var(--muted)';
+  statusEl.textContent = 'Reading spreadsheet…';
+  try {
+    if (!window.XLSX) {
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+        s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    }
+    const ab = await tceqXlsxData.arrayBuffer();
+    const wb = window.XLSX.read(ab, { type: 'array' });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = window.XLSX.utils.sheet_to_json(ws, { header: 1 });
+    const batch = new Date().toISOString().split('T')[0];
+    const records = [];
+    for (let i = 1; i < rows.length; i++) {
+      const r = rows[i];
+      if (!r || !r[1]) continue;
+      const licNum = (r[0] || '').toString().trim();
+      const name = (r[1] || '').toString().trim();
+      const licType = (r[2] || '').toString().trim();
+      const isBpat = licType.toLowerCase().includes('backflow prevention assembly tester');
+      records.push({
+        license_number: licNum || `NO-LIC-${i}`,
+        name, license_type: licType,
+        license_code: licNum ? licNum.replace(/\d+$/, '') : '',
+        address: (r[3] || '').toString().trim() || null,
+        phone: (r[4] || '').toString().trim() || null,
+        email: (r[5] || '').toString().trim() || null,
+        is_bpat: isBpat, import_batch: batch,
+      });
+    }
+    statusEl.textContent = `Parsed ${records.length} records (${records.filter(r=>r.is_bpat).length} BPATs). Uploading…`;
+    const headers = await getHeaders();
+    let uploaded = 0;
+    for (let i = 0; i < records.length; i += 200) {
+      const chunk = records.slice(i, i + 200);
+      const res = await fetch(`${SUPA_URL}/rest/v1/tceq_license_registry`, {
+        method: 'POST',
+        headers: { ...headers, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify(chunk)
+      });
+      if (!res.ok) throw new Error(await res.text());
+      uploaded += chunk.length;
+      statusEl.textContent = `Uploaded ${uploaded} / ${records.length}…`;
+    }
+    const bpatCount = records.filter(r => r.is_bpat).length;
+    statusEl.style.background = 'rgba(76,175,121,.12)';
+    statusEl.style.color = 'var(--green)';
+    statusEl.style.border = '1px solid rgba(76,175,121,.3)';
+    statusEl.textContent = `✓ Imported ${records.length} records — ${bpatCount} BPATs. Batch: ${batch}`;
+    const countEl = document.getElementById('tceq-registry-count');
+    if (countEl) countEl.textContent = `${bpatCount} BPATs on file`;
+    const lastEl = document.getElementById('tceq-last-import');
+    if (lastEl) lastEl.textContent = `Last import: ${batch} — ${records.length} records`;
+    btn.textContent = '✓ Imported'; btn.style.background = 'var(--green)';
+    setTimeout(() => { btn.textContent = '⬆ Import'; btn.style.background = ''; btn.disabled = false; }, 3000);
+  } catch(e) {
+    statusEl.style.background = 'rgba(224,82,82,.12)';
+    statusEl.style.color = 'var(--red)';
+    statusEl.style.border = '1px solid rgba(224,82,82,.3)';
+    statusEl.textContent = 'Import failed: ' + e.message;
+    btn.textContent = '⬆ Import'; btn.disabled = false;
+  }
+}
+
+async function tceqVerifyLicense(certNumber) {
+  if (!certNumber || !certNumber.trim()) return { found: false, warning: 'No cert number provided' };
+  try {
+    const headers = await getHeaders();
+    const res = await fetch(
+      `${SUPA_URL}/rest/v1/tceq_license_registry?license_number=eq.${encodeURIComponent(certNumber.trim())}&select=license_number,name,license_type,is_bpat,import_batch`,
+      { headers }
+    );
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const rows = await res.json();
+    if (!rows || !rows.length) return { found: false, warning: `License ${certNumber} not found in TCEQ registry` };
+    const r = rows[0];
+    return {
+      found: true, name: r.name, is_bpat: r.is_bpat,
+      license_type: r.license_type, import_batch: r.import_batch,
+      warning: !r.is_bpat ? `${certNumber} is not a BPAT license (${r.license_type})` : null
+    };
+  } catch(e) {
+    return { found: false, warning: 'Registry lookup failed: ' + e.message };
+  }
+}
+
+async function tceqLoadRegistryCount() {
+  try {
+    const headers = await getHeaders();
+    const res = await fetch(
+      `${SUPA_URL}/rest/v1/tceq_license_registry?is_bpat=eq.true&select=id`,
+      { headers: { ...headers, 'Prefer': 'count=exact', 'Range-Unit': 'items', 'Range': '0-0' } }
+    );
+    const countHdr = res.headers.get('Content-Range');
+    if (countHdr) {
+      const total = countHdr.split('/')[1];
+      const el = document.getElementById('tceq-registry-count');
+      if (el) el.textContent = total > 0 ? `${total} BPATs on file` : 'No records yet';
+    }
+    const res2 = await fetch(
+      `${SUPA_URL}/rest/v1/tceq_license_registry?select=import_batch&order=import_batch.desc&limit=1`,
+      { headers }
+    );
+    const rows2 = await res2.json();
+    if (rows2 && rows2[0]) {
+      const el = document.getElementById('tceq-last-import');
+      if (el) el.textContent = `Last import: ${rows2[0].import_batch}`;
+    }
+  } catch(e) {}
 }
 
 async function getCurrentOrgId() {
@@ -6695,6 +6855,15 @@ async function spApprove(){
   const t=SP_DATA.find(x=>x.id===spActiveId);if(!t)return;
   const missing=spMissingFields(t);
   if(missing.length>0&&!confirm('Missing fields:\n\n'+missing.map(f=>'\u2022 '+SP_REQUIRED_LABELS[f]).join('\n')+'\n\nApprove anyway?'))return;
+  const certNum=t.cert_number||t.cert_num||'';
+  if(certNum){
+    const check=await tceqVerifyLicense(certNum);
+    if(!check.found){
+      if(!confirm('\u26a0\ufe0f TCEQ Registry Warning\n\n'+check.warning+'\n\nThis license was not found in the registry. It may still be valid \u2014 verify at tceq.texas.gov.\n\nApprove anyway?'))return;
+    }else if(check.warning){
+      if(!confirm('\u26a0\ufe0f TCEQ Registry Warning\n\n'+check.warning+'\n\nApprove anyway?'))return;
+    }
+  }
   try{
     const headers=await getHeaders();
     const today=new Date().toISOString().split('T')[0];
