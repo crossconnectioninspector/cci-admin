@@ -2571,135 +2571,181 @@ Please contact our office to schedule your test..." style="font-size:13px;paddin
 </div>
 
 <div class="page" id="page-settings-page">
-<div style="padding:24px;max-width:720px;width:100%">
+<div style="padding:28px;max-width:760px;width:100%">
 
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+  <!-- Header -->
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:32px">
     <div>
-      <h2 style="font-size:22px;font-weight:700;margin:0">Settings</h2>
-      <p style="font-size:13px;margin:4px 0 0;opacity:.6">Program configuration</p>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+        <div style="width:8px;height:8px;border-radius:50%;background:#F9A61E;box-shadow:0 0 8px #F9A61E88"></div>
+        <span style="font-family:monospace;font-size:10px;letter-spacing:2px;color:#F9A61E;text-transform:uppercase">System Configuration</span>
+      </div>
+      <h2 style="font-size:26px;font-weight:800;margin:0;letter-spacing:-0.5px">Settings</h2>
+      <p style="font-size:13px;margin:4px 0 0;opacity:.45">Program parameters — drives PDF headers, email notices, and compliance reports</p>
     </div>
     <button onclick="settingsSave()" id="settings-save-btn"
-      style="background:#F9A61E;color:#000;font-weight:700;font-size:13px;padding:9px 20px;border:none;border-radius:10px;cursor:pointer">
+      style="background:linear-gradient(135deg,#F9A61E,#e8950a);color:#000;font-weight:800;font-size:13px;padding:11px 22px;border:none;border-radius:10px;cursor:pointer;letter-spacing:.3px;box-shadow:0 4px 16px rgba(249,166,30,.3);transition:all .2s"
+      onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 20px rgba(249,166,30,.45)'"
+      onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(249,166,30,.3)'">
       💾 Save Settings
     </button>
   </div>
 
-  <fieldset style="border:1px solid rgba(128,128,128,.3);border-radius:12px;padding:16px 20px;margin-bottom:16px">
-    <legend style="font-size:11px;padding:0 8px;opacity:.5;text-transform:uppercase;letter-spacing:1px">Public Water System</legend>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">
+  <!-- PWS Section -->
+  <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;margin-bottom:14px;position:relative;overflow:hidden">
+    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#F9A61E44,transparent)"></div>
+    <div style="font-family:monospace;font-size:9px;letter-spacing:2px;color:#F9A61E;text-transform:uppercase;margin-bottom:18px">Public Water System</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
       <div style="grid-column:1/-1">
-        <label style="font-size:12px;opacity:.7;display:block;margin-bottom:4px">PWS Name</label>
+        <label style="font-size:11px;opacity:.5;display:block;margin-bottom:6px;letter-spacing:.5px">PWS NAME</label>
         <input id="cfg-pws-name" type="text" placeholder="City of Abilene Water Utilities"
-          style="width:100%;padding:9px 12px;font-size:14px;border-radius:8px;border:1px solid rgba(128,128,128,.4)">
+          style="width:100%;padding:11px 14px;font-size:14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);outline:none;transition:border-color .2s;box-sizing:border-box"
+          onfocus="this.style.borderColor='#F9A61E'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
       </div>
       <div>
-        <label style="font-size:12px;opacity:.7;display:block;margin-bottom:4px">PWS ID</label>
+        <label style="font-size:11px;opacity:.5;display:block;margin-bottom:6px;letter-spacing:.5px">PWS ID</label>
         <input id="cfg-pws-id" type="text" placeholder="TX0100023"
-          style="width:100%;padding:9px 12px;font-size:14px;border-radius:8px;border:1px solid rgba(128,128,128,.4);font-family:monospace">
+          style="width:100%;padding:11px 14px;font-size:14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);outline:none;font-family:monospace;transition:border-color .2s;box-sizing:border-box"
+          onfocus="this.style.borderColor='#F9A61E'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
       </div>
       <div>
-        <label style="font-size:12px;opacity:.7;display:block;margin-bottom:4px">State</label>
+        <label style="font-size:11px;opacity:.5;display:block;margin-bottom:6px;letter-spacing:.5px">STATE</label>
         <input id="cfg-state" type="text" placeholder="TX" maxlength="2"
-          style="width:100%;padding:9px 12px;font-size:14px;border-radius:8px;border:1px solid rgba(128,128,128,.4);font-family:monospace">
+          style="width:100%;padding:11px 14px;font-size:14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);outline:none;font-family:monospace;transition:border-color .2s;box-sizing:border-box"
+          onfocus="this.style.borderColor='#F9A61E'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
       </div>
     </div>
-  </fieldset>
+  </div>
 
-  <fieldset style="border:1px solid rgba(128,128,128,.3);border-radius:12px;padding:16px 20px;margin-bottom:16px">
-    <legend style="font-size:11px;padding:0 8px;opacity:.5;text-transform:uppercase;letter-spacing:1px">Program Administrator</legend>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">
+  <!-- Administrator Section -->
+  <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;margin-bottom:14px;position:relative;overflow:hidden">
+    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#4db8ff44,transparent)"></div>
+    <div style="font-family:monospace;font-size:9px;letter-spacing:2px;color:#4db8ff;text-transform:uppercase;margin-bottom:18px">Program Administrator</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
       <div>
-        <label style="font-size:12px;opacity:.7;display:block;margin-bottom:4px">Admin Name</label>
+        <label style="font-size:11px;opacity:.5;display:block;margin-bottom:6px;letter-spacing:.5px">ADMIN NAME</label>
         <input id="cfg-admin-name" type="text" placeholder="Matt Snider"
-          style="width:100%;padding:9px 12px;font-size:14px;border-radius:8px;border:1px solid rgba(128,128,128,.4)">
+          style="width:100%;padding:11px 14px;font-size:14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);outline:none;transition:border-color .2s;box-sizing:border-box"
+          onfocus="this.style.borderColor='#4db8ff'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
       </div>
       <div>
-        <label style="font-size:12px;opacity:.7;display:block;margin-bottom:4px">Admin Email</label>
+        <label style="font-size:11px;opacity:.5;display:block;margin-bottom:6px;letter-spacing:.5px">ADMIN EMAIL</label>
         <input id="cfg-admin-email" type="email" placeholder="admin@city.gov"
-          style="width:100%;padding:9px 12px;font-size:14px;border-radius:8px;border:1px solid rgba(128,128,128,.4)">
+          style="width:100%;padding:11px 14px;font-size:14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);outline:none;transition:border-color .2s;box-sizing:border-box"
+          onfocus="this.style.borderColor='#4db8ff'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
       </div>
       <div>
-        <label style="font-size:12px;opacity:.7;display:block;margin-bottom:4px">TCEQ Contact Email</label>
+        <label style="font-size:11px;opacity:.5;display:block;margin-bottom:6px;letter-spacing:.5px">TCEQ CONTACT EMAIL</label>
         <input id="cfg-tceq-email" type="email" placeholder="tceq.contact@tceq.texas.gov"
-          style="width:100%;padding:9px 12px;font-size:14px;border-radius:8px;border:1px solid rgba(128,128,128,.4)">
+          style="width:100%;padding:11px 14px;font-size:14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);outline:none;transition:border-color .2s;box-sizing:border-box"
+          onfocus="this.style.borderColor='#4db8ff'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
       </div>
       <div>
-        <label style="font-size:12px;opacity:.7;display:block;margin-bottom:4px">Reply-To Email</label>
+        <label style="font-size:11px;opacity:.5;display:block;margin-bottom:6px;letter-spacing:.5px">REPLY-TO EMAIL</label>
         <input id="cfg-reply-to" type="email" placeholder="noreply@city.gov"
-          style="width:100%;padding:9px 12px;font-size:14px;border-radius:8px;border:1px solid rgba(128,128,128,.4)">
+          style="width:100%;padding:11px 14px;font-size:14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);outline:none;transition:border-color .2s;box-sizing:border-box"
+          onfocus="this.style.borderColor='#4db8ff'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
       </div>
     </div>
-  </fieldset>
+  </div>
 
-  <fieldset style="border:1px solid rgba(128,128,128,.3);border-radius:12px;padding:16px 20px;margin-bottom:16px">
-    <legend style="font-size:11px;padding:0 8px;opacity:.5;text-transform:uppercase;letter-spacing:1px">Compliance Program</legend>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">
+  <!-- Compliance Section -->
+  <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;margin-bottom:14px;position:relative;overflow:hidden">
+    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#4caf7944,transparent)"></div>
+    <div style="font-family:monospace;font-size:9px;letter-spacing:2px;color:#4caf79;text-transform:uppercase;margin-bottom:18px">Compliance Program</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
       <div>
-        <label style="font-size:12px;opacity:.7;display:block;margin-bottom:4px">Default Test Frequency</label>
+        <label style="font-size:11px;opacity:.5;display:block;margin-bottom:6px;letter-spacing:.5px">DEFAULT TEST FREQUENCY</label>
         <select id="cfg-frequency"
-          style="width:100%;padding:9px 12px;font-size:14px;border-radius:8px;border:1px solid rgba(128,128,128,.4)">
+          style="width:100%;padding:11px 14px;font-size:14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(30,30,40,.9);outline:none;transition:border-color .2s;box-sizing:border-box;cursor:pointer"
+          onfocus="this.style.borderColor='#4caf79'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
           <option value="Annual">Annual</option>
           <option value="Semi-Annual">Semi-Annual</option>
           <option value="Quarterly">Quarterly</option>
         </select>
       </div>
       <div>
-        <label style="font-size:12px;opacity:.7;display:block;margin-bottom:4px">Auto-Validate Results</label>
+        <label style="font-size:11px;opacity:.5;display:block;margin-bottom:6px;letter-spacing:.5px">AUTO-VALIDATE RESULTS</label>
         <select id="cfg-auto-validate"
-          style="width:100%;padding:9px 12px;font-size:14px;border-radius:8px;border:1px solid rgba(128,128,128,.4)">
-          <option value="true">Enabled — auto accept/fail per TCEQ</option>
-          <option value="false">Disabled — admin reviews all</option>
+          style="width:100%;padding:11px 14px;font-size:14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(30,30,40,.9);outline:none;transition:border-color .2s;box-sizing:border-box;cursor:pointer"
+          onfocus="this.style.borderColor='#4caf79'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+          <option value="true">✓ Enabled — auto accept/fail per TCEQ</option>
+          <option value="false">✗ Disabled — admin reviews all</option>
         </select>
       </div>
     </div>
-  </fieldset>
+  </div>
 
-  <fieldset style="border:1px solid rgba(128,128,128,.3);border-radius:12px;padding:16px 20px;margin-bottom:16px">
-    <legend style="font-size:11px;padding:0 8px;opacity:.5;text-transform:uppercase;letter-spacing:1px">Notice Timing (days before due)</legend>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:8px">
+  <!-- Notice Timing -->
+  <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;margin-bottom:14px;position:relative;overflow:hidden">
+    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#e05555,transparent)"></div>
+    <div style="font-family:monospace;font-size:9px;letter-spacing:2px;color:#e05555;text-transform:uppercase;margin-bottom:6px">Notice Timing</div>
+    <div style="font-size:12px;opacity:.4;margin-bottom:18px">Days before due date to send automated compliance notices</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
       <div>
-        <label style="font-size:12px;opacity:.7;display:block;margin-bottom:4px">First Notice</label>
-        <input id="cfg-notice-1" type="number" placeholder="60"
-          style="width:100%;padding:9px 12px;font-size:14px;border-radius:8px;border:1px solid rgba(128,128,128,.4);font-family:monospace">
+        <label style="font-size:11px;opacity:.5;display:block;margin-bottom:6px;letter-spacing:.5px">FIRST NOTICE</label>
+        <div style="position:relative">
+          <input id="cfg-notice-1" type="number" placeholder="60"
+            style="width:100%;padding:11px 40px 11px 14px;font-size:20px;font-weight:700;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);outline:none;font-family:monospace;transition:border-color .2s;box-sizing:border-box"
+            onfocus="this.style.borderColor='#e05555'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+          <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:10px;opacity:.4">days</span>
+        </div>
       </div>
       <div>
-        <label style="font-size:12px;opacity:.7;display:block;margin-bottom:4px">Second Notice</label>
-        <input id="cfg-notice-2" type="number" placeholder="30"
-          style="width:100%;padding:9px 12px;font-size:14px;border-radius:8px;border:1px solid rgba(128,128,128,.4);font-family:monospace">
+        <label style="font-size:11px;opacity:.5;display:block;margin-bottom:6px;letter-spacing:.5px">SECOND NOTICE</label>
+        <div style="position:relative">
+          <input id="cfg-notice-2" type="number" placeholder="30"
+            style="width:100%;padding:11px 40px 11px 14px;font-size:20px;font-weight:700;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);outline:none;font-family:monospace;transition:border-color .2s;box-sizing:border-box"
+            onfocus="this.style.borderColor='#e05555'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+          <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:10px;opacity:.4">days</span>
+        </div>
       </div>
       <div>
-        <label style="font-size:12px;opacity:.7;display:block;margin-bottom:4px">Final Notice</label>
-        <input id="cfg-notice-3" type="number" placeholder="7"
-          style="width:100%;padding:9px 12px;font-size:14px;border-radius:8px;border:1px solid rgba(128,128,128,.4);font-family:monospace">
+        <label style="font-size:11px;opacity:.5;display:block;margin-bottom:6px;letter-spacing:.5px">FINAL NOTICE</label>
+        <div style="position:relative">
+          <input id="cfg-notice-3" type="number" placeholder="7"
+            style="width:100%;padding:11px 40px 11px 14px;font-size:20px;font-weight:700;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);outline:none;font-family:monospace;transition:border-color .2s;box-sizing:border-box"
+            onfocus="this.style.borderColor='#e05555'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+          <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:10px;opacity:.4">days</span>
+        </div>
       </div>
     </div>
-  </fieldset>
+  </div>
 
-  <div id="settings-status" style="display:none;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:500;margin-bottom:16px;text-align:center"></div>
+  <div id="settings-status" style="display:none;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:500;margin-bottom:14px;text-align:center"></div>
 
-  <fieldset style="border:1px solid rgba(128,128,128,.3);border-radius:12px;padding:16px 20px">
-    <legend style="font-size:11px;padding:0 8px;opacity:.5;text-transform:uppercase;letter-spacing:1px">TCEQ License Registry</legend>
-    <div style="margin-top:8px">
-      <p style="font-size:12px;opacity:.6;margin:0 0 12px">Upload monthly TCEQ spreadsheet to cross-reference tester credentials.
-        <a href="https://www.tceq.texas.gov/licensing/authorized-contact-info" target="_blank" style="color:#F9A61E">Download here ↗</a>
-      </p>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
-        <label style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid rgba(128,128,128,.4);border-radius:8px;cursor:pointer;font-size:13px">
-          📎 Choose XLSX
-          <input type="file" id="tceq-xlsx-input" accept=".xlsx,.xls" style="display:none" onchange="tceqPreviewFile(this)">
-        </label>
-        <span id="tceq-file-name" style="font-size:12px;opacity:.5">No file selected</span>
-        <span id="tceq-registry-count" style="font-size:11px;opacity:.5;font-family:monospace;margin-left:auto">—</span>
-        <button onclick="tceqImport()" id="tceq-import-btn" style="display:none;background:#F9A61E;color:#000;font-weight:700;font-size:12px;padding:8px 14px;border:none;border-radius:8px;cursor:pointer">⬆ Import</button>
-      </div>
-      <div id="tceq-import-status" style="display:none;padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:8px"></div>
-      <div id="tceq-last-import" style="font-size:11px;opacity:.4;font-family:monospace"></div>
-      <div style="margin-top:12px">
-        <a href="https://www2.tceq.texas.gov/lic_dpa/index.cfm?fuseaction=licall.searchindiv" target="_blank"
-          style="font-size:12px;color:#F9A61E;text-decoration:none">🔗 TCEQ Manual License Search ↗</a>
-      </div>
+  <!-- TCEQ Registry -->
+  <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;position:relative;overflow:hidden">
+    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#a78bfa44,transparent)"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div style="font-family:monospace;font-size:9px;letter-spacing:2px;color:#a78bfa;text-transform:uppercase">TCEQ License Registry</div>
+      <div id="tceq-registry-count" style="font-family:monospace;font-size:11px;opacity:.4">—</div>
     </div>
-  </fieldset>
+    <p style="font-size:12px;opacity:.45;margin:0 0 16px;line-height:1.6">Upload the monthly TCEQ spreadsheet to cross-reference tester credentials.
+      <a href="https://www.tceq.texas.gov/licensing/authorized-contact-info" target="_blank" style="color:#F9A61E;text-decoration:none">Download ↗</a>
+    </p>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <label style="display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border:1px solid rgba(255,255,255,.12);border-radius:10px;cursor:pointer;font-size:13px;transition:border-color .2s"
+        onmouseover="this.style.borderColor='#a78bfa'" onmouseout="this.style.borderColor='rgba(255,255,255,.12)'">
+        📎 Choose XLSX
+        <input type="file" id="tceq-xlsx-input" accept=".xlsx,.xls" style="display:none" onchange="tceqPreviewFile(this)">
+      </label>
+      <span id="tceq-file-name" style="font-size:12px;opacity:.4">No file selected</span>
+      <button onclick="tceqImport()" id="tceq-import-btn"
+        style="display:none;background:linear-gradient(135deg,#a78bfa,#8b5cf6);color:#fff;font-weight:700;font-size:12px;padding:9px 16px;border:none;border-radius:10px;cursor:pointer">
+        ⬆ Import
+      </button>
+    </div>
+    <div id="tceq-import-status" style="display:none;margin-top:12px;padding:10px 14px;border-radius:10px;font-size:12px"></div>
+    <div id="tceq-last-import" style="margin-top:10px;font-size:11px;opacity:.35;font-family:monospace"></div>
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.06)">
+      <a href="https://www2.tceq.texas.gov/lic_dpa/index.cfm?fuseaction=licall.searchindiv" target="_blank"
+        style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#a78bfa;text-decoration:none;opacity:.8"
+        onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.8'">
+        🔗 TCEQ Manual License Search ↗
+      </a>
+    </div>
+  </div>
 
 </div>
 </div>
