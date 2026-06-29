@@ -2568,87 +2568,83 @@ Please contact our office to schedule your test..." style="font-size:13px;paddin
     <div style="color:var(--muted);font-size:13px">Loading...</div>
   </div>
 
-<div class="page" id="page-settings-page" style="flex-direction:column;align-items:flex-start;overflow-y:auto;padding:24px;min-height:100%;width:100%;color:var(--text);background:var(--bg)">
-<div style="max-width:720px;width:100%;padding-bottom:48px">
+<div class="page" id="page-settings-page" style="flex-direction:column;align-items:flex-start;overflow-y:auto;padding:24px;min-height:100%;width:100%">
+<div style="max-width:720px;width:100%">
 
-  <!-- Header -->
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
     <div>
-      <div style="font-size:22px;font-weight:700;color:var(--text)">Settings</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:2px">Program configuration — drives PDF headers, email notices, and compliance reports</div>
+      <div style="font-size:22px;font-weight:700">Settings</div>
+      <div style="font-size:13px;opacity:.6;margin-top:2px">Program configuration — drives PDF headers, email notices, and compliance reports</div>
     </div>
     <button onclick="settingsSave()" id="settings-save-btn"
-      style="background:var(--accent);color:#000;font-weight:700;font-size:13px;padding:9px 20px;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:6px">
+      style="background:#F9A61E;color:#000;font-weight:700;font-size:13px;padding:9px 20px;border:none;border-radius:10px;cursor:pointer">
       💾 Save Settings
     </button>
   </div>
 
-  <!-- PWS Info -->
-  <div style="background:var(--elevated);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px">
-    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">Public Water System</div>
+  <div style="border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:20px;margin-bottom:16px">
+    <div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;font-family:monospace">Public Water System</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div style="grid-column:1/-1">
-        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">PWS Name</label>
+        <label style="font-size:12px;opacity:.6;display:block;margin-bottom:4px">PWS Name</label>
         <input id="cfg-pws-name" type="text" placeholder="City of Abilene Water Utilities"
-          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px">
+          style="width:100%;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:9px 12px;font-size:14px;background:rgba(255,255,255,.06)">
       </div>
       <div>
-        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">PWS ID</label>
+        <label style="font-size:12px;opacity:.6;display:block;margin-bottom:4px">PWS ID</label>
         <input id="cfg-pws-id" type="text" placeholder="TX0100023"
-          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;font-family:var(--mono)">
+          style="width:100%;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:9px 12px;font-size:14px;font-family:monospace;background:rgba(255,255,255,.06)">
       </div>
       <div>
-        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">State</label>
+        <label style="font-size:12px;opacity:.6;display:block;margin-bottom:4px">State</label>
         <input id="cfg-state" type="text" placeholder="TX" maxlength="2"
-          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;font-family:var(--mono)">
+          style="width:100%;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:9px 12px;font-size:14px;font-family:monospace;background:rgba(255,255,255,.06)">
       </div>
     </div>
   </div>
 
-  <!-- Program Administrator -->
-  <div style="background:var(--elevated);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px">
-    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">Program Administrator</div>
+  <div style="border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:20px;margin-bottom:16px">
+    <div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;font-family:monospace">Program Administrator</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div>
-        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Admin Name</label>
+        <label style="font-size:12px;opacity:.6;display:block;margin-bottom:4px">Admin Name</label>
         <input id="cfg-admin-name" type="text" placeholder="Matt Snider"
-          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px">
+          style="width:100%;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:9px 12px;font-size:14px;background:rgba(255,255,255,.06)">
       </div>
       <div>
-        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Admin Email</label>
+        <label style="font-size:12px;opacity:.6;display:block;margin-bottom:4px">Admin Email</label>
         <input id="cfg-admin-email" type="email" placeholder="admin@city.gov"
-          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px">
+          style="width:100%;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:9px 12px;font-size:14px;background:rgba(255,255,255,.06)">
       </div>
       <div>
-        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">TCEQ Contact Email</label>
+        <label style="font-size:12px;opacity:.6;display:block;margin-bottom:4px">TCEQ Contact Email</label>
         <input id="cfg-tceq-email" type="email" placeholder="tceq.contact@tceq.texas.gov"
-          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px">
+          style="width:100%;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:9px 12px;font-size:14px;background:rgba(255,255,255,.06)">
       </div>
       <div>
-        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Reply-To Email (notices)</label>
+        <label style="font-size:12px;opacity:.6;display:block;margin-bottom:4px">Reply-To Email (notices)</label>
         <input id="cfg-reply-to" type="email" placeholder="noreply@city.gov"
-          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px">
+          style="width:100%;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:9px 12px;font-size:14px;background:rgba(255,255,255,.06)">
       </div>
     </div>
   </div>
 
-  <!-- Compliance Settings -->
-  <div style="background:var(--elevated);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px">
-    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">Compliance Program</div>
+  <div style="border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:20px;margin-bottom:16px">
+    <div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;font-family:monospace">Compliance Program</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div>
-        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Default Test Frequency</label>
+        <label style="font-size:12px;opacity:.6;display:block;margin-bottom:4px">Default Test Frequency</label>
         <select id="cfg-frequency"
-          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px">
+          style="width:100%;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:9px 12px;font-size:14px;background:rgba(255,255,255,.06)">
           <option value="Annual">Annual</option>
           <option value="Semi-Annual">Semi-Annual</option>
           <option value="Quarterly">Quarterly</option>
         </select>
       </div>
       <div>
-        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Auto-Validate Test Results</label>
+        <label style="font-size:12px;opacity:.6;display:block;margin-bottom:4px">Auto-Validate Test Results</label>
         <select id="cfg-auto-validate"
-          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px">
+          style="width:100%;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:9px 12px;font-size:14px;background:rgba(255,255,255,.06)">
           <option value="true">Enabled — auto accept/fail per TCEQ thresholds</option>
           <option value="false">Disabled — admin reviews all results</option>
         </select>
@@ -2656,53 +2652,50 @@ Please contact our office to schedule your test..." style="font-size:13px;paddin
     </div>
   </div>
 
-  <!-- Notice Timing -->
-  <div style="background:var(--elevated);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px">
-    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Automated Notice Timing</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Days before due date to send compliance notices</div>
+  <div style="border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:20px;margin-bottom:16px">
+    <div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-family:monospace">Automated Notice Timing</div>
+    <div style="font-size:12px;opacity:.5;margin-bottom:14px">Days before due date to send compliance notices</div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
       <div>
-        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">First Notice (days)</label>
+        <label style="font-size:12px;opacity:.6;display:block;margin-bottom:4px">First Notice (days)</label>
         <input id="cfg-notice-1" type="number" min="1" max="365" placeholder="60"
-          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;font-family:var(--mono)">
+          style="width:100%;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:9px 12px;font-size:14px;font-family:monospace;background:rgba(255,255,255,.06)">
       </div>
       <div>
-        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Second Notice (days)</label>
+        <label style="font-size:12px;opacity:.6;display:block;margin-bottom:4px">Second Notice (days)</label>
         <input id="cfg-notice-2" type="number" min="1" max="365" placeholder="30"
-          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;font-family:var(--mono)">
+          style="width:100%;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:9px 12px;font-size:14px;font-family:monospace;background:rgba(255,255,255,.06)">
       </div>
       <div>
-        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Final Notice (days)</label>
+        <label style="font-size:12px;opacity:.6;display:block;margin-bottom:4px">Final Notice (days)</label>
         <input id="cfg-notice-3" type="number" min="1" max="365" placeholder="7"
-          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;font-family:var(--mono)">
+          style="width:100%;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:9px 12px;font-size:14px;font-family:monospace;background:rgba(255,255,255,.06)">
       </div>
     </div>
   </div>
 
-  <!-- Save status -->
   <div id="settings-status" style="display:none;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:500;margin-top:8px;text-align:center"></div>
 
-  <!-- TCEQ License Registry -->
-  <div style="background:var(--elevated);border:1px solid var(--border);border-radius:14px;padding:20px;margin-top:16px">
+  <div style="border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:20px;margin-top:16px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">TCEQ License Registry</div>
-      <div id="tceq-registry-count" style="font-family:var(--mono);font-size:11px;color:var(--muted)">—</div>
+      <div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:1px;font-family:monospace">TCEQ License Registry</div>
+      <div id="tceq-registry-count" style="font-size:11px;opacity:.5;font-family:monospace">—</div>
     </div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5">Upload the TCEQ License Holder spreadsheet monthly to cross-reference tester credentials. Download from <a href="https://www.tceq.texas.gov/licensing/authorized-contact-info" target="_blank" style="color:var(--accent)">tceq.texas.gov/licensing/authorized-contact-info</a>. Note: this list only includes license holders who opted into public release.</div>
+    <div style="font-size:12px;opacity:.5;margin-bottom:14px;line-height:1.5">Upload the TCEQ License Holder spreadsheet monthly to cross-reference tester credentials. Download from <a href="https://www.tceq.texas.gov/licensing/authorized-contact-info" target="_blank" style="color:#F9A61E">tceq.texas.gov/licensing/authorized-contact-info</a>.</div>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <label style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 14px;cursor:pointer;font-size:13px;color:var(--text)">
+      <label style="display:flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:9px 14px;cursor:pointer;font-size:13px">
         📎 Choose XLSX file
         <input type="file" id="tceq-xlsx-input" accept=".xlsx,.xls" style="display:none" onchange="tceqPreviewFile(this)">
       </label>
-      <div id="tceq-file-name" style="font-size:12px;color:var(--muted)">No file selected</div>
-      <button onclick="tceqImport()" id="tceq-import-btn" style="display:none;background:var(--accent);color:#000;font-weight:700;font-size:12px;padding:9px 16px;border:none;border-radius:8px;cursor:pointer">⬆ Import</button>
+      <div id="tceq-file-name" style="font-size:12px;opacity:.5">No file selected</div>
+      <button onclick="tceqImport()" id="tceq-import-btn" style="display:none;background:#F9A61E;color:#000;font-weight:700;font-size:12px;padding:9px 16px;border:none;border-radius:8px;cursor:pointer">⬆ Import</button>
     </div>
     <div id="tceq-import-status" style="display:none;margin-top:10px;padding:10px 12px;border-radius:8px;font-size:12px"></div>
-    <div id="tceq-last-import" style="margin-top:10px;font-size:11px;color:var(--muted);font-family:var(--mono)"></div>
-    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Manual license lookup — search full TCEQ database by name or license number:</div>
+    <div id="tceq-last-import" style="margin-top:10px;font-size:11px;opacity:.4;font-family:monospace"></div>
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)">
+      <div style="font-size:12px;opacity:.5;margin-bottom:8px">Manual license lookup — search full TCEQ database:</div>
       <a href="https://www2.tceq.texas.gov/lic_dpa/index.cfm?fuseaction=licall.searchindiv" target="_blank"
-        style="display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--text);text-decoration:none;font-family:var(--mono)">
+        style="display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:8px 14px;font-size:12px;color:inherit;text-decoration:none;font-family:monospace">
         🔗 TCEQ License Search ↗
       </a>
     </div>
@@ -2710,7 +2703,6 @@ Please contact our office to schedule your test..." style="font-size:13px;paddin
 
 </div>
 </div>
-
 
 <div class="page" id="page-knowledge-page"><div class="es"><div class="es-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div><div class="es-title">Knowledge Base</div><div class="es-sub">Program documentation and compliance resources coming soon.</div></div></div>
 
