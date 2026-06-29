@@ -2568,8 +2568,8 @@ Please contact our office to schedule your test..." style="font-size:13px;paddin
     <div style="color:var(--muted);font-size:13px">Loading...</div>
   </div>
 
-<div class="page" id="page-settings-page">
-<div style="max-width:720px;margin:0 auto;padding:0 0 48px">
+<div class="page" id="page-settings-page" style="display:none;flex-direction:column;align-items:flex-start;overflow-y:auto">
+<div style="max-width:720px;width:100%;padding-bottom:48px">
 
   <!-- Header -->
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
@@ -2974,12 +2974,15 @@ async function settingsInit() {
   try {
     const headers = await getHeaders();
     const orgId = await getCurrentOrgId();
+    console.log('settingsInit: orgId =', orgId);
     const res = await fetch(
       `${SUPA_URL}/rest/v1/org_settings?org_id=eq.${orgId}&select=key,value`,
       { headers }
     );
+    console.log('settingsInit: fetch status =', res.status);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const rows = await res.json();
+    console.log('settingsInit: rows =', rows);
     const cfg = {};
     (rows || []).forEach(r => { cfg[r.key] = r.value; });
     window.BCP_SETTINGS = cfg;
